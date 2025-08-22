@@ -1,0 +1,75 @@
+x-env: &default-env
+  # --- Shared env (safe mock values for local dev only) ---
+  ASPNETCORE_URLS: http://+:5000
+
+  # Database
+  POSTGRES_HOST: db
+  POSTGRES_DB: appdb
+  POSTGRES_USER: appuser
+  POSTGRES_PASSWORD: appsecret
+  ConnectionStrings__Default: Host=db;Database=appdb;Username=appuser;Password=appsecret
+
+  # RabbitMQ (broker for tasks + events)
+  AMQP_URL: amqp://guest:guest@rabbitmq:5672//
+  MessageQueue__AmqpUrl: amqp://guest:guest@rabbitmq:5672//
+
+  # Python agent base URL (API uses this for synchronous calls)
+  AGENT_BASE_URL: http://agent:8000
+
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: appdb
+      POSTGRES_USER: appuser
+      POSTGRES_PASSWORD: appsecret
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    restart: unless-stopped
+    ports:
+      - "5672:5672"   # AMQP
+      - "15672:15672" # Management UI
+
+  api:
+    build:
+      context: ../server/api
+      dockerfile: Dockerfile
+    environment:
+      <<: *default-env
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+      - rabbitmq
+
+  agent:
+    build:
+      context: ../server/agent
+      dockerfile: Dockerfile
+    environment:
+      <<: *default-env
+      # If your agent needs external API keys in dev, add them here or via an .env file
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - rabbitmq
+
+  web:
+    build:
+      context: ../app/web
+      dockerfile: Dockerfile
+    environment:
+      VITE_API_BASE: /api
+    ports:
+      - "5173:5173"
+
+
+volumes:
+  db_data:
