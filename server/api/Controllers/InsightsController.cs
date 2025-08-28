@@ -1,8 +1,9 @@
 // Controllers/InsightsController.cs
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using api.Data;
 using api.Dtos;
 using api.Models;
@@ -10,6 +11,7 @@ using api.Models;
 namespace api.Controllers;
 
 [Route("api/[controller]")]
+[Authorize]
 [ApiController]
 public class InsightsController : ControllerBase
 {

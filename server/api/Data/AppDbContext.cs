@@ -1,13 +1,19 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System.Reflection;
+﻿using System.Reflection;
 using api.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 
 namespace api.Data;
 
-public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
+
+public class AppDbContext : IdentityDbContext<AppUser, IdentityRole<int>, int>
 {
+    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) {}
+    
     public DbSet<Project> Projects => Set<Project>();
     public DbSet<Insight> Insights => Set<Insight>();
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
