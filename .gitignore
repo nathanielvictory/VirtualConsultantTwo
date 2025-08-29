@@ -807,3 +807,5 @@ FodyWeavers.xsd
 # Additional files built by Visual Studio
 
 # End of https://www.toptal.com/developers/gitignore/api/node,react,python,visualstudio,macos,linux,windows
+/server/agent/service_account.json
+/server/agent/testing.py
