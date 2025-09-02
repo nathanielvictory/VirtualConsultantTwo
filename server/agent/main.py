@@ -1,4 +1,4 @@
-from server.agent.service.slides.slidekit import SlideCreator, Title, Bullets, SheetsChart
+from service.slides.slidekit import SlideCreator, Title, Bullets, SheetsChart
 
 
 
