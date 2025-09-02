@@ -22,6 +22,7 @@ def _infer_value_columns(n_cols: int, headers: Optional[List[str]]) -> List[int]
     return cols
 
 
+# TODO doesn't support crosstab data, render a different chart if crosstab is sensed
 @register(ChartKind.PIE)
 def render_pie(
     *,
