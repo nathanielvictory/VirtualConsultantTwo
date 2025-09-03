@@ -10,3 +10,7 @@ if settings.AWS_SECRET_ACCESS_KEY and settings.AWS_ACCESS_KEY_ID:
     )
 else:
     s3_client = boto3.client("s3", region_name=settings.AWS_REGION)
+
+
+def get_survey_data_key(kbid, key_number):
+    return f"{settings.AWS_FILE_PREFIX}/survey-data/kbid={kbid}/key-number={key_number}/survey_data.json.gz"

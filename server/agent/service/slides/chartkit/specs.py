@@ -10,15 +10,12 @@ class PercentBase(str, Enum):
 @dataclass
 class ToplineSpec:
     varname: str
-    filters: Optional[Dict[str, Union[str, Sequence[str]]]] = None
-    percent_base: PercentBase = PercentBase.TOTAL
+    include_values: list[str] = None
 
 @dataclass
 class CrosstabSpec:
     varname: str
     by_varname: str
-    include_by_values: Optional[Sequence[str]] = None
-    filters: Optional[Dict[str, Union[str, Sequence[str]]]] = None
-    percent_base: PercentBase = PercentBase.ROW
+    include_by_values: list[str] = None
 
 DatasetSpec = Union[ToplineSpec, CrosstabSpec]

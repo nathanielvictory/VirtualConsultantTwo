@@ -11,7 +11,6 @@ class Renderer(Protocol):
         *,
         backend: SheetsBackend,
         title: str,
-        sheet_name: str,
         grid: Grid,
         legend_position: str,
     ) -> int | None: ...  # return chart_id (None for TABLE)

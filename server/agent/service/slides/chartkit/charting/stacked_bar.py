@@ -16,9 +16,9 @@ def _infer_value_columns(n_cols: int, headers: Optional[List[str]]) -> List[int]
     return cols
 
 @register(ChartKind.STACKED_BAR)
-def render_stacked_bar(*, backend: SheetsBackend, title: str, sheet_name: str, grid: Grid,
+def render_stacked_bar(*, backend: SheetsBackend, title: str, grid: Grid,
                        legend_position: str) -> int | None:
-    sheet_id, n_rows, n_cols = backend.write_grid(sheet_name, grid)
+    sheet_id, n_rows, n_cols = backend.write_grid(title, grid)
 
     headers = grid.headers if grid.headers else None
     value_cols = _infer_value_columns(n_cols, headers)

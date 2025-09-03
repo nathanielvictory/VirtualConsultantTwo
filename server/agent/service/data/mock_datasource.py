@@ -1,7 +1,7 @@
 from typing import Dict, List, Optional, Sequence, Union
 from abc import ABC, abstractmethod
 
-from .models import AnswerOption, Question, Grid
+from service.slides.chartkit.models import AnswerOption, Question, Grid
 
 class SurveyDataSource(ABC):
     """Interface to back with your real survey API later."""

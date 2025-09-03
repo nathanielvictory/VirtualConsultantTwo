@@ -46,6 +46,5 @@ class ChartKind(str, Enum):
 class ChartRequest:
     title: str
     dataset: DatasetSpec
-    sheet_name: str = "Data"
     kind: ChartKind = ChartKind.COLUMN
     legend_position: str = "BOTTOM_LEGEND"

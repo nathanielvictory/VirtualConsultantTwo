@@ -1,9 +1,8 @@
-from dataclasses import dataclass
 from typing import Optional
 
 from .models import Grid, ChartRef, ChartRequest
 from .specs import DatasetSpec, ToplineSpec, CrosstabSpec
-from .datasource import SurveyDataSource, MockSurveyData
+from service.data.mock_datasource import SurveyDataSource, MockSurveyData
 from .backend.sheets_backend import SheetsBackend
 from .charting.registry import get_renderer
 
@@ -48,7 +47,6 @@ class ChartCreator:
         chart_id = renderer(
             backend=self.sheets,
             title=req.title,
-            sheet_name=req.sheet_name,
             grid=grid,
             legend_position=req.legend_position,
         )

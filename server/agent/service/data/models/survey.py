@@ -9,6 +9,7 @@ class SurveyAnswer(BaseModel):
 
 class SurveyQuestion(BaseModel):
     question_number: int
+    question_varname: str
     question_text: str
     survey_answers: list[SurveyAnswer]
 
@@ -20,7 +21,9 @@ class CrosstabAnswer(BaseModel):
 
 
 class CrosstabQuestion(BaseModel):
+    vertical_varname: str
     vertical_question: str
+    horizontal_varname: str
     horizontal_question: str
     crosstab_answers: list[CrosstabAnswer]
 
