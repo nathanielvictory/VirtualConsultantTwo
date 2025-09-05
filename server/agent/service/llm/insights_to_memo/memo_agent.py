@@ -1,0 +1,1 @@
+# Take a list of unrelated blocks of text and turn them into a narrative for the memo
