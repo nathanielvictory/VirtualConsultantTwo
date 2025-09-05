@@ -34,6 +34,7 @@ class SheetsBackend:
         meta = self.sheets.spreadsheets().get(spreadsheetId=self.spreadsheet_id).execute()
         n = len(meta.get("sheets", []))
         sheet_name = f"{n}-{sheet_name}"
+        sheet_name = sheet_name[:80]
         resp = self.sheets.spreadsheets().batchUpdate(
             spreadsheetId=self.spreadsheet_id,
             body={"requests": [{"addSheet": {"properties": {"title": sheet_name}}}]},

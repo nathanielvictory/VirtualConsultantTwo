@@ -14,8 +14,7 @@ class SurveyDataSource(ABC):
         self,
         varname: str,
         *,
-        filters: Optional[Dict[str, Union[str, Sequence[str]]]] = None,
-        percent_base: str = "total",
+        include_values: Optional[Sequence[str]] = None,  # NEW
     ) -> Grid: ...
 
     @abstractmethod
@@ -25,8 +24,6 @@ class SurveyDataSource(ABC):
         by_varname: str,
         *,
         include_by_values: Optional[Sequence[str]] = None,
-        filters: Optional[Dict[str, Union[str, Sequence[str]]]] = None,
-        percent_base: str = "row",
     ) -> Grid: ...
 
 
@@ -96,8 +93,7 @@ class MockSurveyData(SurveyDataSource):
         self,
         varname: str,
         *,
-        filters: Optional[Dict[str, Union[str, Sequence[str]]]] = None,  # ignored in mock
-        percent_base: str = "total",  # ignored in mock
+        include_values: Optional[Sequence[str]] = None,  # NEW
     ) -> Grid:
         """
         Return only normalized fractions by answer.
@@ -130,8 +126,6 @@ class MockSurveyData(SurveyDataSource):
         by_varname: str,
         *,
         include_by_values: Optional[Sequence[str]] = None,
-        filters: Optional[Dict[str, Union[str, Sequence[str]]]] = None,  # ignored in mock
-        percent_base: str = "row",  # ignored in mock
     ) -> Grid:
         """
         Return normalized fraction rows by `by_varname`.

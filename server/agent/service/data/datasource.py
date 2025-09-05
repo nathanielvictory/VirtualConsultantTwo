@@ -170,8 +170,6 @@ class ReportingSurveyDataSource(SurveyDataSource):
             varname: str,
             *,
             include_values: Optional[Sequence[str]] = None,  # NEW
-            filters: Optional[Dict[str, Union[str, Sequence[str]]]] = None,  # unused passthrough
-            percent_base: str = "total",  # unused passthrough
     ) -> Grid:
         """
         Returns raw (but rounded) values as provided by the payload.
@@ -199,8 +197,6 @@ class ReportingSurveyDataSource(SurveyDataSource):
             by_varname: str,
             *,
             include_by_values: Optional[Sequence[str]] = None,
-            filters: Optional[Dict[str, Union[str, Sequence[str]]]] = None,  # unused passthrough
-            percent_base: str = "row",  # unused passthrough
     ) -> Grid:
         """
         Returns raw (but rounded) values as provided by the payload.
@@ -273,6 +269,14 @@ class ReportingSurveyDataSource(SurveyDataSource):
         blocks = [self.topline_text(q.question_varname, decimals=decimals)
                   for q in self._survey.survey_topline]
         return "\n\n".join(blocks)
+
+    def all_question_text(self) -> str:
+        all_questions = ""
+        for question in self._survey.survey_topline:
+            all_questions += ("Shortened Name: " + question.question_varname + '\n' + "Question Text: " + question.question_text )
+            all_questions += '\n\n'
+        return all_questions
+
 
     def crosstab_text(
             self,

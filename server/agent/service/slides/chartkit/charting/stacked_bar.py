@@ -15,6 +15,7 @@ def _infer_value_columns(n_cols: int, headers: Optional[List[str]]) -> List[int]
             cols = cols[:-1]
     return cols
 
+# TODO for topline make the diagonal like James showed
 @register(ChartKind.STACKED_BAR)
 def render_stacked_bar(*, backend: SheetsBackend, title: str, grid: Grid,
                        legend_position: str) -> int | None:

@@ -29,20 +29,21 @@ class ChartCreator:
     def _grid_from_spec(self, spec: DatasetSpec) -> Grid:
         if isinstance(spec, ToplineSpec):
             return self.data.get_topline(
-                spec.varname, filters=spec.filters, percent_base=spec.percent_base.value
+                spec.varname, include_values=spec.include_values
             )
         elif isinstance(spec, CrosstabSpec):
             return self.data.get_crosstab(
                 spec.varname, spec.by_varname,
                 include_by_values=spec.include_by_values,
-                filters=spec.filters,
-                percent_base=spec.percent_base.value,
             )
         else:
             raise TypeError(f"Unsupported dataset spec: {type(spec)}")
 
-    def render(self, req: ChartRequest) -> ChartRef:
-        grid = self._grid_from_spec(req.dataset)
+    def render(self, req: ChartRequest) -> ChartRef | None:
+        try:
+            grid = self._grid_from_spec(req.dataset)
+        except KeyError:
+            return None
         renderer = get_renderer(req.kind)
         chart_id = renderer(
             backend=self.sheets,

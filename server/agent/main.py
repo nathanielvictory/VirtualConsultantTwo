@@ -6,12 +6,12 @@ from service.slides.chartkit.chart_creator import ChartCreator
 from service.slides.chartkit.specs import ToplineSpec, CrosstabSpec
 from service.slides.chartkit.models import ChartKind, ChartRequest
 
-KBID = 'rec2La6ujFueDa5qG'
+KBID = 'reczmSWIH1WnOJ7VH'
 KEY_NUMBER = 0
 
 PRESENTATION_ID = '1xXayw9SkskXMQ8hO828sxz1BNdttoTcT7eXsOs78ADI'
 SHEETS_ID = '1US9PKrFlIZI-44lA7zZtfaWQoCSjVPOrfSCXQlwycXg'
-DOC_ID = '1C0k6bzXMYRvuP8hiqOFZKObek2aUG3D1'
+DOC_ID = '1R3iFZdvb-EHX8A5ZuHvss_0ZPJal15-uxMz4tOfTDS0'
 
 def main():
     reporting_datasource = ReportingSurveyDataSource(kbid=KBID, key_number=KEY_NUMBER)
