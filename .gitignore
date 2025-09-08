@@ -1,7 +1,7 @@
 # node
 node_modules/
 dist/
-
+.idea/*
 # python
 server/agent/.venv/
 **/__pycache__/
