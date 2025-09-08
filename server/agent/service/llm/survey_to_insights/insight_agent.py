@@ -2,11 +2,13 @@ from pydantic_ai import Agent, RunContext
 from dataclasses import dataclass
 from typing import Optional
 from pydantic import BaseModel, Field
+from logging import getLogger
 
 from ..base import model
 
 from service.data.datasource import ReportingSurveyDataSource
 
+logger = getLogger(__name__)
 
 @dataclass
 class InsightDependencies:
@@ -15,7 +17,9 @@ class InsightDependencies:
 
 
 class InsightOutput(BaseModel):
-    insights: list[str] = Field(description="List of insights", min_length=1, max_length=3)
+    main_insight: str = Field(description="Primary quality insight")
+    optional_insight_one: Optional[str] = Field(default=None, description="First optional supporting insight")
+    optional_insight_two: Optional[str] = Field(default=None, description="Second optional supporting insight")
 
 
 system_prompt = (
@@ -31,7 +35,7 @@ system_prompt = (
     "have no opinion or have never heard of a candidate or that young people find an issue disproportionately "
     "unpopular. Please keep insights contained to a single topic and one line of text only while "
     "including the short names of the questions these conclusions are drawn from. If you have lesser insights feel free "
-    "to provide up to three but providing only one solid one is fine. The client will optionally provide a focus for "
+    "to provide up to three but your main goal is to provide one quality insight. The client will optionally provide a focus for "
     "your insights to look into. "
 )
 
@@ -68,26 +72,30 @@ async def get_topline_data(ctx: RunContext[InsightDependencies], short_name: str
             str: A formatted string representation of the topline results.
         """
     try:
+        print(f"LLM requested topline for {short_name}")
         topline_data = ctx.deps.datasource.topline_text(short_name)
         return topline_data
     except KeyError:
+        print(f"No topline for {short_name}")
         return "I couldn't find any question with that short name."
 
 
 @insight_agent.tool
-async def get_crosstab_data(ctx: RunContext[InsightDependencies], short_name: str, by_short_name) -> str:
+async def get_crosstab_data(ctx: RunContext[InsightDependencies], short_name: str, by_short_name: str) -> str:
     """
-        Retrieves the crosstabulated survey results based on the provided vertical and horizontal question identifiers.
+        Retrieves the crosstabulated survey results based on the provided question short names.
 
         Args:
-            vertical_short_name (str): The short name (identifier) for the vertical axis question.
-            horizontal_short_name (str): The short name (identifier) for the horizontal axis question.
+            short_name (str): The short name (identifier) for the vertical axis question.
+            by_short_name (str): The short name (identifier) for the horizontal axis question.
 
         Returns:
             str: A formatted string representation of the crosstab results.
     """
     try:
+        print(f"LLM requested crosstab for {short_name} x {by_short_name}")
         crosstab_data = ctx.deps.datasource.crosstab_text(short_name, by_short_name)
         return crosstab_data
     except KeyError:
+        print(f"No crosstab for {short_name} x {by_short_name}")
         return "I couldn't find the crosstab with those short names."

@@ -28,11 +28,6 @@ def _canon(s: str) -> str:
     import re
     return re.sub(r"\s+", " ", s.strip().lower())
 
-def _looks_like_qnum(s: str) -> Optional[int]:
-    import re
-    m = re.fullmatch(r"[qQ]?(\d+)", s.strip())
-    return int(m.group(1)) if m else None
-
 def _round_row(values: Iterable[float], *, decimals: int = 1) -> List[float]:
     """Round each value; preserve original magnitudes (no normalization)."""
     return [round(0.0 if v is None else float(v), decimals) for v in values]
@@ -78,9 +73,6 @@ class ReportingSurveyDataSource(SurveyDataSource):
         self._topline_by_var: Dict[str, SurveyQuestion] = {
             _canon(q.question_varname): q for q in self._survey.survey_topline
         }
-        self._topline_by_qnum: Dict[int, SurveyQuestion] = {
-            q.question_number: q for q in self._survey.survey_topline
-        }
         self._crosstab_by_pair: Dict[Tuple[str, str], CrosstabQuestion] = {
             (_canon(ct.vertical_varname), _canon(ct.horizontal_varname)): ct
             for ct in self._survey.survey_crosstab
@@ -108,11 +100,6 @@ class ReportingSurveyDataSource(SurveyDataSource):
             crosstab_keys.add(hs)
         if key in crosstab_keys:
             return key
-
-        # 3) question number (Q17 / 17) → mapped to a topline varname
-        maybe_num = _looks_like_qnum(varname)
-        if maybe_num is not None and maybe_num in self._topline_by_qnum:
-            return _canon(self._topline_by_qnum[maybe_num].question_varname)
 
         # 4) fuzzy contains over topline, then over crosstab varnames
         for k in self._topline_by_var.keys():
@@ -260,7 +247,7 @@ class ReportingSurveyDataSource(SurveyDataSource):
     def topline_text(self, varname: str, *, decimals: int = 1) -> str:
         q = self.get_question(varname)
         grid = self.get_topline(varname)
-        lines = [q.varname, q.question_text]
+        lines = [f"Shortened Name: {q.varname}", f"Question Text: {q.question_text}"]
         for answer_text, val in grid.rows:
             lines.append(f"{answer_text} {val:.{decimals}f}")
         return "\n".join(lines)
