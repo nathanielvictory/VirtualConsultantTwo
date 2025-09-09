@@ -4,6 +4,7 @@ import Shell from "../layout/Shell";
 import HomePage from "../pages/Home/HomePage.tsx";
 import SettingsPage from "../pages/Settings/SettingsPage.tsx";
 import LoginPage from "../pages/Login/LoginPage.tsx";
+import DashboardPage from "../pages/Dashboard/DashboardPage.tsx";
 
 export default function AppRoutes({ mode, toggleMode }: { mode: "light" | "dark"; toggleMode: () => void }) {
     const [authed, setAuthed] = useState(false); // demo auth gate
@@ -12,8 +13,8 @@ export default function AppRoutes({ mode, toggleMode }: { mode: "light" | "dark"
         <Shell mode={mode} toggleMode={toggleMode}>
             <Routes>
                 <Route path="/" element={<HomePage />} />
-                <Route path="/dashboard" element={<HomePage />} />
                 <Route path="/settings" element={<SettingsPage />} />
+                <Route path="/dashboard" element={<DashboardPage />} />
                 <Route path="*" element={<Navigate to="/" />} />
             </Routes>
         </Shell>
