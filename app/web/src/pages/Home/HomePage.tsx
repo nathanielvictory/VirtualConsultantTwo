@@ -22,7 +22,7 @@ import {
     Tune,
     AutoAwesome,
 } from "@mui/icons-material";
-import StatCard, { type SparkPoint } from "../components/StatCard";
+import StatCard, { type SparkPoint } from "../../components/StatCard.tsx";
 import {
     ResponsiveContainer,
     LineChart,
@@ -35,7 +35,7 @@ import {
     Pie,
     Cell,
 } from "recharts";
-import { chartData } from "../data/chartData";
+import { chartData } from "../../data/chartData.ts";
 
 const sparkA: SparkPoint[] = [{ v: 6 }, { v: 9 }, { v: 7 }, { v: 12 }, { v: 10 }, { v: 14 }, { v: 16 }];
 const sparkB: SparkPoint[] = [{ v: 2 }, { v: 3 }, { v: 4 }, { v: 6 }, { v: 5 }, { v: 7 }, { v: 8 }];
