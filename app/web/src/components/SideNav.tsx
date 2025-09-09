@@ -1,0 +1,65 @@
+import { useState } from "react";
+import { Drawer, Box, Divider, List, ListItemButton, ListItemIcon, ListItemText, Chip, Collapse, ListSubheader } from "@mui/material";
+import { Home as HomeIcon, Dashboard as DashboardIcon, Settings as SettingsIcon, Logout as LogoutIcon, ExpandLess, ExpandMore, Folder as FolderIcon, Insights as InsightsIcon } from "@mui/icons-material";
+import { Link } from "react-router-dom";
+import Brand from "../components/Brand";
+
+const drawerWidth = 280;
+
+export default function SideNav({ mobileOpen, onClose }: { mobileOpen: boolean; onClose: () => void }) {
+    const [openProjects, setOpenProjects] = useState(true);
+
+    const nav = [
+        { label: "Home", icon: <HomeIcon />, to: "/" },
+        { label: "Dashboard", icon: <DashboardIcon />, to: "/dashboard" },
+        { label: "Settings", icon: <SettingsIcon />, to: "/settings" },
+    ];
+
+    const content = (
+        <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
+            <Box sx={{ p: 2, display: { xs: "flex", md: "none" } }}><Brand /></Box>
+            <Divider />
+            <List sx={{ p: 1 }} subheader={<ListSubheader disableSticky>Workspace</ListSubheader>}>
+                {nav.map((item) => (
+                    <ListItemButton key={item.to} component={Link} to={item.to} sx={{ borderRadius: 2, mb: 0.5 }} onClick={onClose}>
+                        <ListItemIcon>{item.icon}</ListItemIcon>
+                        <ListItemText primary={item.label} />
+                    </ListItemButton>
+                ))}
+            </List>
+
+            <List sx={{ p: 1 }} subheader={<ListSubheader disableSticky>Projects</ListSubheader>}>
+                <ListItemButton onClick={() => setOpenProjects((o) => !o)} sx={{ borderRadius: 2, mb: 0.5 }}>
+                    <ListItemIcon><FolderIcon /></ListItemIcon>
+                    <ListItemText primary="Virtual Consultant" secondary="Active" />
+                    {openProjects ? <ExpandLess /> : <ExpandMore />}
+                </ListItemButton>
+                <Collapse in={openProjects} timeout="auto" unmountOnExit>
+                    <List component="div" disablePadding>
+                        <ListItemButton component={Link} to="/dashboard" sx={{ ml: 4, borderRadius: 2, mb: 0.5 }} onClick={onClose}>
+                            <ListItemIcon><InsightsIcon /></ListItemIcon>
+                            <ListItemText primary="Model Insights" />
+                        </ListItemButton>
+                        <ListItemButton component={Link} to="/dashboard" sx={{ ml: 4, borderRadius: 2, mb: 0.5 }} onClick={onClose}>
+                            <ListItemIcon><DashboardIcon /></ListItemIcon>
+                            <ListItemText primary="Experiments" />
+                        </ListItemButton>
+                    </List>
+                </Collapse>
+            </List>
+
+            <Box sx={{ flexGrow: 1 }} />
+            <Divider />
+            <Box sx={{ p: 2 }}>
+                <Chip icon={<LogoutIcon />} label="Sign out" variant="outlined" color="primary" clickable />
+            </Box>
+        </Box>
+    );
+
+    return (
+        <>
+            <Drawer variant="temporary" open={mobileOpen} onClose={onClose} ModalProps={{ keepMounted: true }} sx={{ display: { xs: "block", md: "none" }, "& .MuiDrawer-paper": { width: drawerWidth } }}>{content}</Drawer>
+            <Drawer variant="permanent" sx={{ display: { xs: "none", md: "block" }, "& .MuiDrawer-paper": { width: drawerWidth, boxSizing: "border-box", borderRight: (t) => `1px solid ${t.palette.divider}` } }} open>{content}</Drawer>
+        </>
+    );
+}
