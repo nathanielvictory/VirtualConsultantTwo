@@ -19,15 +19,15 @@ import {
 } from "@mui/icons-material";
 import { Link, useLocation } from "react-router-dom";
 import { DRAWER_WIDTH } from "./SideNav.tsx";
+import {useThemeMode} from "../theme/useThemeMode.ts";
 
 interface TopBarProps {
     onMenu: () => void;
-    mode: "light" | "dark";
-    toggleMode: () => void;
 }
 
-export default function TopBar({ onMenu, mode, toggleMode }: TopBarProps) {
+export default function TopBar({ onMenu }: TopBarProps) {
     const location = useLocation();
+    const { mode, toggleMode } = useThemeMode();
     const path = location.pathname === "/" ? "Home" : location.pathname.replace("/", "");
 
     return (

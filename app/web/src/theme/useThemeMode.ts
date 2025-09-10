@@ -1,16 +1,25 @@
-import { useMemo, useState } from "react";
-import useMediaQuery from "@mui/material/useMediaQuery";
-import { createAppTheme } from "./theme.ts";
-import type { PaletteMode, Theme } from "@mui/material";
+// src/theme/useThemeMode.ts
+import { useMemo } from 'react';
+import { createAppTheme } from './theme';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { toggleThemeMode, setThemeMode } from '../store/settingsSlice';
+import type { PaletteMode, Theme } from '@mui/material';
 
 export function useThemeMode(): {
     mode: PaletteMode;
     toggleMode: () => void;
+    setMode: (m: PaletteMode) => void;
     theme: Theme;
 } {
-    const prefersDark = useMediaQuery("(prefers-color-scheme: dark)");
-    const [mode, setMode] = useState<PaletteMode>(prefersDark ? "dark" : "light");
+    const mode = useAppSelector(s => s.settings.themeMode);
+    const dispatch = useAppDispatch();
+
     const theme = useMemo(() => createAppTheme(mode), [mode]);
-    const toggleMode = () => setMode((m) => (m === "light" ? "dark" : "light"));
-    return { mode, toggleMode, theme };
+
+    return {
+        mode,
+        toggleMode: () => dispatch(toggleThemeMode()),
+        setMode: (m: PaletteMode) => dispatch(setThemeMode(m)),
+        theme,
+    };
 }

@@ -4,20 +4,12 @@ import { Box, Toolbar } from "@mui/material";
 import TopBar from "./TopBar.tsx";
 import SideNav, { DRAWER_WIDTH } from "./SideNav.tsx"; // export this constant from SideNav
 
-export default function Shell({
-                                  children,
-                                  mode,
-                                  toggleMode,
-                              }: {
-    children: ReactNode;
-    mode: "light" | "dark";
-    toggleMode: () => void;
-}) {
+export default function Shell({ children }: { children: ReactNode }) {
     const [mobileOpen, setMobileOpen] = useState(false);
 
     return (
         <Box sx={{ display: "flex", minHeight: "100dvh", bgcolor: "background.default" }}>
-            <TopBar onMenu={() => setMobileOpen(true)} mode={mode} toggleMode={toggleMode} />
+            <TopBar onMenu={() => setMobileOpen(true)} />
             <SideNav mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} />
 
             <Box

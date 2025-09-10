@@ -4,12 +4,12 @@ import AppRoutes from "./routes/AppRoutes";
 import { useThemeMode } from "./theme/useThemeMode";
 
 export default function App() {
-    const { theme, mode, toggleMode } = useThemeMode();
+    const { theme } = useThemeMode();
     return (
         <ThemeProvider theme={theme}>
             <CssBaseline />
             <BrowserRouter>
-                <AppRoutes mode={mode} toggleMode={toggleMode} />
+                <AppRoutes />
             </BrowserRouter>
         </ThemeProvider>
     );

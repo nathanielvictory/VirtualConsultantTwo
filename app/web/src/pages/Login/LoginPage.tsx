@@ -1,42 +1,34 @@
 import {
-    Box,
-    Paper,
-    Stack,
-    Typography,
-    TextField,
-    InputAdornment,
-    Button,
+    Box, Paper, Stack, Typography, TextField, InputAdornment, Button,
 } from "@mui/material";
+import { useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useAppDispatch } from "../../store/hooks";
+import { login } from "../../store/authSlice";
 import vmodLogo from "/vmod_logo.png";
 
-export default function LoginPage({ onLogin }: { onLogin: () => void }) {
-    return (
-        // Full-screen, centers content; layout-only styles
-        <Box
-            component="main"
-            sx={{
-                position: "fixed",
-                inset: 0,
-                display: "grid",
-                placeItems: "center",
-                overflow: "auto",
-            }}
-        >
-            {/* Natural width with a cap; no visual overrides */}
-            <Box sx={{ width: "100%", maxWidth: 480, px: { xs: 2, sm: 0 } }}>
-                {/* Paper uses theme defaults (shape, elevation, colors) */}
-                <Paper>
-                    {/* Internal spacing via Stack so theme spacing scales */}
-                    <Stack spacing={3} sx={{ p: { xs: 3, sm: 4 } }} alignItems="center">
-                        {/* Logo */}
-                        <Box
-                            component="img"
-                            src={vmodLogo}
-                            alt="Victory Modeling Logo"
-                            sx={{ width: "100%", maxWidth: 220, height: "auto" }}
-                        />
+export default function LoginPage() {
+    const dispatch = useAppDispatch();
+    const navigate = useNavigate();
+    const location = useLocation() as { state?: { from?: Location } };
 
-                        {/* Copy (no weight/color overrides so theme can control) */}
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState(""); // kept for form completeness
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!email) return;
+        dispatch(login(email));
+        const to = location.state?.from?.pathname ?? "/";
+        navigate(to, { replace: true });
+    };
+
+    return (
+        <Box component="main" sx={{ position: "fixed", inset: 0, display: "grid", placeItems: "center", overflow: "auto" }}>
+            <Box sx={{ width: "100%", maxWidth: 480, px: { xs: 2, sm: 0 } }}>
+                <Paper>
+                    <Stack spacing={3} sx={{ p: { xs: 3, sm: 4 } }} alignItems="center">
+                        <Box component="img" src={vmodLogo} alt="Victory Modeling Logo" sx={{ width: "100%", maxWidth: 220, height: "auto" }} />
                         <Stack spacing={0.5} alignItems="center" sx={{ textAlign: "center", width: "100%" }}>
                             <Typography variant="h5">Welcome to Virtual Consultant</Typography>
                             <Typography variant="body2" color="text.secondary">
@@ -44,35 +36,26 @@ export default function LoginPage({ onLogin }: { onLogin: () => void }) {
                             </Typography>
                         </Stack>
 
-                        {/* Form */}
-                        <Box
-                            component="form"
-                            onSubmit={(e) => {
-                                e.preventDefault();
-                                onLogin();
-                            }}
-                            sx={{ width: "100%" }}
-                        >
+                        <Box component="form" onSubmit={handleSubmit} sx={{ width: "100%" }}>
                             <Stack spacing={2}>
                                 <TextField
                                     fullWidth
                                     label="Email"
                                     type="email"
+                                    value={email}
+                                    onChange={e => setEmail(e.target.value)}
                                     required
-                                    InputProps={{
-                                        startAdornment: <InputAdornment position="start">📧</InputAdornment>,
-                                    }}
+                                    InputProps={{ startAdornment: <InputAdornment position="start">📧</InputAdornment> }}
                                 />
                                 <TextField
                                     fullWidth
                                     label="Password"
                                     type="password"
+                                    value={password}
+                                    onChange={e => setPassword(e.target.value)}
                                     required
-                                    InputProps={{
-                                        startAdornment: <InputAdornment position="start">🔒</InputAdornment>,
-                                    }}
+                                    InputProps={{ startAdornment: <InputAdornment position="start">🔒</InputAdornment> }}
                                 />
-                                {/* Use variant props only; no inline colors/shapes */}
                                 <Button type="submit" variant="contained" fullWidth>
                                     Sign in
                                 </Button>
