@@ -22,8 +22,10 @@ import {
     Folder as FolderIcon,
     Insights as InsightsIcon,
 } from "@mui/icons-material";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Brand from "./Brand.tsx";
+import { logout } from "../store/authSlice";
+import { useAppDispatch } from "../store/hooks";
 
 export const DRAWER_WIDTH = 280;
 
@@ -35,6 +37,14 @@ export default function SideNav({
     onClose: () => void;
 }) {
     const [openProjects, setOpenProjects] = useState(true);
+    const dispatch = useAppDispatch();
+    const navigate = useNavigate();
+
+    const handleSignOut = () => {                                   // ⬅️
+        dispatch(logout());
+        onClose?.();
+        navigate("/login", { replace: true });
+    };
 
     const nav = [
         { label: "Home", icon: <HomeIcon />, to: "/" },
@@ -120,6 +130,7 @@ export default function SideNav({
                     variant="outlined"
                     color="primary"
                     clickable
+                    onClick={handleSignOut}
                 />
             </Box>
         </Box>
