@@ -21,6 +21,13 @@ services:
     depends_on:
       - db
 
+  frontend:
+    container_name: consultant_frontend
+    build:
+      context: ../app/web
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
 
 volumes:
   consultant_db_data:
