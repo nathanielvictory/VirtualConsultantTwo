@@ -8,17 +8,18 @@ export default function Shell({ children }: { children: ReactNode }) {
     const [mobileOpen, setMobileOpen] = useState(false);
 
     return (
-        <Box sx={{ display: "flex", minHeight: "100dvh", bgcolor: "background.default" }}>
+        <Box sx={{ minHeight: "100dvh", display: "flex" }}>
             <TopBar onMenu={() => setMobileOpen(true)} />
             <SideNav mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} />
 
             <Box
                 component="main"
                 sx={{
-                    flexGrow: 1,
-                    minWidth: 0,
-                    // Reserve horizontal space for the permanent drawer at md+
+                    flex: 1,                     // <-- take remaining horizontal space
                     ml: { md: `${DRAWER_WIDTH}px` },
+                    display: "flex",             // <-- make a vertical flex column
+                    flexDirection: "column",
+                    minWidth: 0,                 // <-- prevent overflow from long content
                 }}
             >
                 {/* Reserve vertical space equal to AppBar height without hardcoding pixels */}

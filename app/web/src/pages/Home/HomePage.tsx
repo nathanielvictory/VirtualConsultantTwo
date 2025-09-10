@@ -1,118 +1,51 @@
-// src/pages/Home/HomePage.tsx
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
-    Container,
-    Box,
-    Paper,
-    Stack,
-    Typography,
-    Button,
-    List,
-    ListItem,
-    ListItemAvatar,
-    ListItemText,
-    Avatar,
-    Divider,
-    Chip,
-} from "@mui/material";
-import {
-    Home as HomeIcon,
-    CloudUpload,
-    PlayCircle,
-    Tune,
-    AutoAwesome,
-} from "@mui/icons-material";
+    Container, Paper, Stack, Typography, Divider, Box,
+} from '@mui/material';
+import { Home as HomeIcon } from '@mui/icons-material';
+import { useAppSelector } from '../../store/hooks';
+import DeckSheetPanel from '../../components/google/DeckSheetPanel';
 
 export default function HomePage() {
+    const navigate = useNavigate();
+    const token = useAppSelector((s) => s.auth.google.accessToken);
+
+    // Redirect to settings if not connected
+    useEffect(() => {
+        if (!token) {
+            navigate('/settings', { replace: true });
+        }
+    }, [token, navigate]);
+
+    if (!token) {
+        // Brief guard render while redirecting
+        return null;
+    }
+
     return (
-        <Container maxWidth="lg" sx={{ py: 4 }}>
-            {/* Welcome / hero */}
+        <Container maxWidth={false} sx={{ py: 4 }}>
             <Paper>
                 <Stack spacing={2} sx={{ p: { xs: 2.5, md: 3 } }}>
                     <Stack direction="row" alignItems="center" spacing={1}>
                         <HomeIcon />
-                        <Typography variant="h5">Welcome</Typography>
+                        <Typography variant="h5">Home</Typography>
                     </Stack>
 
                     <Typography color="text.secondary">
-                        This is your home screen. We’ll add content and visualizations here soon.
+                        Connected to Google. Use the panel below to create a Doc and append text.
                     </Typography>
-
-                    {/* Quick actions (examples only; wire up as needed) */}
-                    <Stack direction="row" spacing={1} flexWrap="wrap">
-                        <Button startIcon={<PlayCircle />} variant="contained">
-                            Start
-                        </Button>
-                        <Button startIcon={<CloudUpload />} variant="outlined">
-                            Upload
-                        </Button>
-                        <Button startIcon={<Tune />} variant="text">
-                            Configure
-                        </Button>
-                    </Stack>
-
-                    <Stack direction="row" spacing={1} flexWrap="wrap">
-                        <Chip size="small" label="Getting started" />
-                        <Chip size="small" icon={<AutoAwesome />} label="Tips" />
-                    </Stack>
                 </Stack>
             </Paper>
 
-            {/* Content rows */}
-            <Box sx={{ mt: 2, display: "flex", flexDirection: { xs: "column", lg: "row" }, gap: 2 }}>
-                {/* Left column */}
-                <Box sx={{ flex: 2, minWidth: 0, display: "flex", flexDirection: "column", gap: 2 }}>
-                    <Paper>
-                        <Stack spacing={1.5} sx={{ p: { xs: 2, md: 2.5 } }}>
-                            <Typography variant="h6">Recent activity</Typography>
-                            <List>
-                                <ListItem>
-                                    <ListItemAvatar>
-                                        <Avatar>VM</Avatar>
-                                    </ListItemAvatar>
-                                    <ListItemText primary="Welcome to Victory Modeling" secondary="A moment ago" />
-                                </ListItem>
-                                <Divider component="li" />
-                                <ListItem>
-                                    <ListItemAvatar>
-                                        <Avatar>
-                                            <CloudUpload />
-                                        </Avatar>
-                                    </ListItemAvatar>
-                                    <ListItemText primary="No uploads yet" secondary="Upload a file to get started" />
-                                </ListItem>
-                                <Divider component="li" />
-                                <ListItem>
-                                    <ListItemAvatar>
-                                        <Avatar>
-                                            <Tune />
-                                        </Avatar>
-                                    </ListItemAvatar>
-                                    <ListItemText primary="No configurations yet" secondary="Set preferences in Settings" />
-                                </ListItem>
-                            </List>
-                        </Stack>
-                    </Paper>
-                </Box>
-
-                {/* Right column */}
-                <Box sx={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 2 }}>
-                    <Paper>
-                        <Stack spacing={1} sx={{ p: { xs: 2, md: 2.5 } }}>
-                            <Typography variant="h6">Shortcuts</Typography>
-                            <Stack spacing={1}>
-                                <Button fullWidth variant="contained" startIcon={<PlayCircle />}>
-                                    Open Assistant
-                                </Button>
-                                <Button fullWidth variant="outlined" startIcon={<CloudUpload />}>
-                                    Upload a Dataset
-                                </Button>
-                                <Button fullWidth variant="text" startIcon={<Tune />}>
-                                    Settings
-                                </Button>
-                            </Stack>
-                        </Stack>
-                    </Paper>
-                </Box>
+            <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <Paper variant="outlined" sx={{ p: { xs: 2, md: 2.5 } }}>
+                    <Stack spacing={2}>
+                        <Typography variant="h6">Docs Playground</Typography>
+                        <Divider />
+                        <DeckSheetPanel />
+                    </Stack>
+                </Paper>
             </Box>
         </Container>
     );
