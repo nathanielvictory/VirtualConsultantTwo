@@ -99,6 +99,17 @@ builder.Services.AddAuthorization();
 
 
 builder.Services.AddAutoMapper(typeof(Program));
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
 var app = builder.Build();
 
 await IdentitySeed.EnsureAdminAsync(app.Services, app.Configuration);
@@ -115,6 +126,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors("AllowAll");
+
 // pipeline
 app.UseAuthentication();
 app.UseAuthorization();
