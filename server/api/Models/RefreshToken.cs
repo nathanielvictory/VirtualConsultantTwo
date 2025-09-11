@@ -14,5 +14,5 @@ public class RefreshToken
     public string? UserAgent { get; set; }
     public string? IpAddress { get; set; }
 
-    public AppUser? User { get; set; }
+    public User? User { get; set; }
 }

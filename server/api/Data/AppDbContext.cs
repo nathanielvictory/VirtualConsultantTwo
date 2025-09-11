@@ -7,13 +7,15 @@ using Microsoft.EntityFrameworkCore;
 namespace api.Data;
 
 
-public class AppDbContext : IdentityDbContext<AppUser, IdentityRole<int>, int>
+public class AppDbContext : IdentityDbContext<User, IdentityRole<int>, int>
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) {}
     
     public DbSet<Project> Projects => Set<Project>();
     public DbSet<Insight> Insights => Set<Insight>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<Memo> Memos => Set<Memo>();
+    public DbSet<Slidedeck> Slidedecks => Set<Slidedeck>();
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

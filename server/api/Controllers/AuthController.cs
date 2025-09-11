@@ -17,8 +17,8 @@ namespace api.Controllers;
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
 {
-    private readonly UserManager<AppUser> _users;
-    private readonly SignInManager<AppUser> _signIn;
+    private readonly UserManager<User> _users;
+    private readonly SignInManager<User> _signIn;
     private readonly IConfiguration _config;
     private readonly AppDbContext _context;       // <— ADD
 
@@ -27,8 +27,8 @@ public class AuthController : ControllerBase
     private static readonly TimeSpan RefreshLifetime = TimeSpan.FromDays(30);
 
     public AuthController(
-        UserManager<AppUser> users,
-        SignInManager<AppUser> signIn,
+        UserManager<User> users,
+        SignInManager<User> signIn,
         IConfiguration config,
         AppDbContext context)                     // <— ADD
     {
@@ -63,7 +63,7 @@ public class AuthController : ControllerBase
         };
     }
 
-    private async Task SetRefreshCookieAsync(AppUser user)
+    private async Task SetRefreshCookieAsync(User user)
     {
         var now = DateTime.UtcNow;
         var raw = GenerateRawRefreshToken();
@@ -112,7 +112,7 @@ public class AuthController : ControllerBase
         return rt;
     }
     
-    private async Task<RefreshToken> RotateRefreshTokenAsync(RefreshToken current, AppUser user)
+    private async Task<RefreshToken> RotateRefreshTokenAsync(RefreshToken current, User user)
     {
         current.RevokedAtUtc = DateTime.UtcNow;
 

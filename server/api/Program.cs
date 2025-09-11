@@ -20,7 +20,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services
-    .AddIdentityCore<AppUser>(opts =>
+    .AddIdentityCore<User>(opts =>
     {
         // keep passwords simple for dev; tighten later
         opts.Password.RequiredLength = 8;

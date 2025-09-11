@@ -13,10 +13,10 @@ namespace api.Controllers;
 [Route("api/[controller]")]
 public class UsersController : ControllerBase
 {
-    private readonly UserManager<AppUser> _users;
+    private readonly UserManager<User> _users;
     private readonly RoleManager<IdentityRole<int>> _roles;
 
-    public UsersController(UserManager<AppUser> users, RoleManager<IdentityRole<int>> roles)
+    public UsersController(UserManager<User> users, RoleManager<IdentityRole<int>> roles)
     {
         _users = users; _roles = roles;
     }
@@ -24,7 +24,7 @@ public class UsersController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<object>> Create(CreateUserDto dto)
     {
-        var user = new AppUser { UserName = dto.Username };
+        var user = new User { UserName = dto.Username };
         var result = await _users.CreateAsync(user, dto.Password);
         if (!result.Succeeded)
         {

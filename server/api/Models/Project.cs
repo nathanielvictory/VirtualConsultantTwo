@@ -14,8 +14,12 @@ public class Project
     public string OrganizationId { get; set; } = string.Empty;
 
     public bool IsActive { get; set; }
-    public bool HasData { get; set; }
-    
-    
+
+    // New: optional context
+    public string? ProjectContext { get; set; }
+
+    // Navigations
     public List<Insight> Insights { get; set; } = new();
+    public List<Memo> Memos { get; set; } = new();
+    public List<Slidedeck> Slidedecks { get; set; } = new();
 }

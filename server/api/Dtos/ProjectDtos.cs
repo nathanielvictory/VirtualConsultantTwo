@@ -1,40 +1,39 @@
-// Dtos/ProjectDtos.cs
 using System.ComponentModel.DataAnnotations;
-using api.Models;
 
 namespace api.Dtos;
 
 public record ProjectListItemDto(
     int Id,
+    string Kbid,
     string Name,
     string OrganizationId,
+    string? ProjectContext,
     bool IsActive,
-    bool HasData,
-    DateTime? LastRefreshed,
     DateTime CreatedAt,
-    DateTime UpdatedAt);
+    DateTime UpdatedAt,
+    DateTime? LastRefreshed);
 
 public record ProjectDetailDto(
     int Id,
     string Kbid,
     string Name,
     string OrganizationId,
+    string? ProjectContext,
     bool IsActive,
-    bool HasData,
-    DateTime? LastRefreshed,
     DateTime CreatedAt,
     DateTime UpdatedAt,
-    IReadOnlyList<InsightListItemDto> Insights);
+    DateTime? LastRefreshed);
 
 public record CreateProjectDto(
-    [Required, MaxLength(64)] string Kbid,
+    [Required] string Kbid,
     [Required] string Name,
-    [Required, MaxLength(64)] string OrganizationId,
-    bool IsActive,
-    bool HasData);
+    [Required] string OrganizationId,
+    string? ProjectContext,
+    bool IsActive = true);
 
 public record UpdateProjectDto(
+    string? Kbid,
     string? Name,
-    bool? IsActive,
-    bool? HasData,
-    DateTime? LastRefreshed);
+    string? OrganizationId,
+    string? ProjectContext,
+    bool? IsActive);
