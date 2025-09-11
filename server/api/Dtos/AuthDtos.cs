@@ -12,6 +12,13 @@ public record CreateUserDto(
     string[]? Roles                   // e.g. ["External","ReadOnly"] or ["Internal"]
 );
 
+public record UpdateUserDto(
+    string? Username,
+    string? Password,          // admin reset
+    string? OrganizationId,    // null = no change; "" (empty) = remove claim
+    string[]? Roles            // null = no change; [] = remove all roles
+);
+
 // OAuth2 "password" grant request (form-encoded)
 public class TokenRequest
 {
