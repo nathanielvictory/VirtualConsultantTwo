@@ -7,12 +7,14 @@ using AutoMapper.QueryableExtensions;
 using api.Data;
 using api.Dtos;
 using api.Models;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace api.Controllers;
 
 [Route("api/[controller]")]
 [Authorize]
 [ApiController]
+[SwaggerTag("Insights")]
 public class InsightsController : ControllerBase
 {
     private readonly AppDbContext _context;

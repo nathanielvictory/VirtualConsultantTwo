@@ -110,6 +110,11 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddSwaggerGen(c =>
+{
+    c.EnableAnnotations(); // <-- enables [SwaggerOperation]/[SwaggerTag]
+});
+
 var app = builder.Build();
 
 await IdentitySeed.EnsureAdminAsync(app.Services, app.Configuration);

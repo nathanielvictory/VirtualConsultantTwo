@@ -4,12 +4,14 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using api.Dtos;
 using api.Models;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace api.Controllers;
 
 [Authorize(Roles = "Admin")]
 [ApiController]
 [Route("api/[controller]")]
+[SwaggerTag("Users")]
 public class UsersController : ControllerBase
 {
     private readonly UserManager<User> _users;

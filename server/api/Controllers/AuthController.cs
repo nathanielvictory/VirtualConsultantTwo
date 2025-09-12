@@ -10,11 +10,13 @@ using api.Dtos;
 using api.Models;
 using api.Auth;
 using api.Data;                                   // <— ADD
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[SwaggerTag("Auth")]
 public class AuthController : ControllerBase
 {
     private readonly UserManager<User> _users;

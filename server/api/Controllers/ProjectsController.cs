@@ -6,10 +6,12 @@ using AutoMapper.QueryableExtensions;
 using api.Data;
 using api.Dtos;
 using api.Models;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace api.Controllers;
 
 [Route("api/[controller]")]
+[SwaggerTag("Projects")]
 [Authorize]
 [ApiController]
 public class ProjectsController : ControllerBase

@@ -6,10 +6,12 @@ using AutoMapper.QueryableExtensions;
 using api.Data;
 using api.Dtos;
 using api.Models;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace api.Controllers;
 
 [Route("api/[controller]")]
+[SwaggerTag("Memos")]
 [Authorize]
 [ApiController]
 public class MemosController : ControllerBase
