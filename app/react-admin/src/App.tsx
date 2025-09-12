@@ -3,6 +3,7 @@ import { authProvider } from "./authProvider";
 import { dataProvider } from "./dataProvider";
 import ProjectsList from "./resources/projectsList.tsx";
 import ProjectsCreate from "./resources/projectsCreate.tsx";
+import InsightCreate from "./resources/insightCreate.tsx";
 
 export default function App() {
     return (
@@ -11,7 +12,7 @@ export default function App() {
             <Resource name="memos"       list={ListGuesser} edit={EditGuesser} show={ShowGuesser} />
             <Resource name="users"       list={ListGuesser} edit={EditGuesser} show={ShowGuesser} />
             <Resource name="slidedecks"  list={ListGuesser} edit={EditGuesser} show={ShowGuesser} />
-            <Resource name="insights"    list={ListGuesser} edit={EditGuesser} show={ShowGuesser} />
+            <Resource name="insights"    list={ListGuesser} edit={EditGuesser} show={ShowGuesser} create={InsightCreate} />
         </Admin>
     );
 }

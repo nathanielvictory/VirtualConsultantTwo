@@ -1,60 +1,70 @@
 import { emptySplitApi as api } from "./emptyApi";
-const injectedRtkApi = api.injectEndpoints({
-  endpoints: (build) => ({
-    getApiProjects: build.query<
-      GetApiProjectsApiResponse,
-      GetApiProjectsApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/api/Projects`,
-        params: {
-          orgId: queryArg.orgId,
-          search: queryArg.search,
-          isActive: queryArg.isActive,
-          page: queryArg.page,
-          pageSize: queryArg.pageSize,
-          sort: queryArg.sort,
-        },
+export const addTagTypes = ["Projects"] as const;
+const injectedRtkApi = api
+  .enhanceEndpoints({
+    addTagTypes,
+  })
+  .injectEndpoints({
+    endpoints: (build) => ({
+      getApiProjects: build.query<
+        GetApiProjectsApiResponse,
+        GetApiProjectsApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/api/Projects`,
+          params: {
+            orgId: queryArg.orgId,
+            search: queryArg.search,
+            isActive: queryArg.isActive,
+            page: queryArg.page,
+            pageSize: queryArg.pageSize,
+            sort: queryArg.sort,
+          },
+        }),
+        providesTags: ["Projects"],
+      }),
+      postApiProjects: build.mutation<
+        PostApiProjectsApiResponse,
+        PostApiProjectsApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/api/Projects`,
+          method: "POST",
+          body: queryArg.createProjectDto,
+        }),
+        invalidatesTags: ["Projects"],
+      }),
+      getApiProjectsById: build.query<
+        GetApiProjectsByIdApiResponse,
+        GetApiProjectsByIdApiArg
+      >({
+        query: (queryArg) => ({ url: `/api/Projects/${queryArg.id}` }),
+        providesTags: ["Projects"],
+      }),
+      patchApiProjectsById: build.mutation<
+        PatchApiProjectsByIdApiResponse,
+        PatchApiProjectsByIdApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/api/Projects/${queryArg.id}`,
+          method: "PATCH",
+          body: queryArg.updateProjectDto,
+        }),
+        invalidatesTags: ["Projects"],
+      }),
+      deleteApiProjectsById: build.mutation<
+        DeleteApiProjectsByIdApiResponse,
+        DeleteApiProjectsByIdApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/api/Projects/${queryArg.id}`,
+          method: "DELETE",
+        }),
+        invalidatesTags: ["Projects"],
       }),
     }),
-    postApiProjects: build.mutation<
-      PostApiProjectsApiResponse,
-      PostApiProjectsApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/api/Projects`,
-        method: "POST",
-        body: queryArg.createProjectDto,
-      }),
-    }),
-    getApiProjectsById: build.query<
-      GetApiProjectsByIdApiResponse,
-      GetApiProjectsByIdApiArg
-    >({
-      query: (queryArg) => ({ url: `/api/Projects/${queryArg.id}` }),
-    }),
-    patchApiProjectsById: build.mutation<
-      PatchApiProjectsByIdApiResponse,
-      PatchApiProjectsByIdApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/api/Projects/${queryArg.id}`,
-        method: "PATCH",
-        body: queryArg.updateProjectDto,
-      }),
-    }),
-    deleteApiProjectsById: build.mutation<
-      DeleteApiProjectsByIdApiResponse,
-      DeleteApiProjectsByIdApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/api/Projects/${queryArg.id}`,
-        method: "DELETE",
-      }),
-    }),
-  }),
-  overrideExisting: false,
-});
+    overrideExisting: false,
+  });
 export { injectedRtkApi as projectsApi };
 export type GetApiProjectsApiResponse =
   /** status 200 OK */ ProjectListItemDtoPagedResultDto;

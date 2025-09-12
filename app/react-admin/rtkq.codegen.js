@@ -11,7 +11,7 @@ const config = {
     apiFile: "./src/api/emptyApi.ts",
     apiImport: "emptySplitApi",
     hooks: true,
-    tags: true,
+    tag: true,
     // Generate one bundle per controller into src/api/
     outputFiles: {
         "./src/api/authApi.ts": {

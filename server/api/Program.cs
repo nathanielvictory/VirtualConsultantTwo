@@ -56,7 +56,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "VC API", Version = "v1" });
-
+    c.EnableAnnotations();
     // OAuth2 (Password grant) pointing at /api/auth/token
     c.AddSecurityDefinition("OAuth2", new OpenApiSecurityScheme
     {
@@ -108,11 +108,6 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod()
               .AllowAnyHeader();
     });
-});
-
-builder.Services.AddSwaggerGen(c =>
-{
-    c.EnableAnnotations(); // <-- enables [SwaggerOperation]/[SwaggerTag]
 });
 
 var app = builder.Build();

@@ -1,59 +1,69 @@
 import { emptySplitApi as api } from "./emptyApi";
-const injectedRtkApi = api.injectEndpoints({
-  endpoints: (build) => ({
-    getApiSlidedecks: build.query<
-      GetApiSlidedecksApiResponse,
-      GetApiSlidedecksApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/api/Slidedecks`,
-        params: {
-          projectId: queryArg.projectId,
-          search: queryArg.search,
-          page: queryArg.page,
-          pageSize: queryArg.pageSize,
-          sort: queryArg.sort,
-        },
+export const addTagTypes = ["Slidedecks"] as const;
+const injectedRtkApi = api
+  .enhanceEndpoints({
+    addTagTypes,
+  })
+  .injectEndpoints({
+    endpoints: (build) => ({
+      getApiSlidedecks: build.query<
+        GetApiSlidedecksApiResponse,
+        GetApiSlidedecksApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/api/Slidedecks`,
+          params: {
+            projectId: queryArg.projectId,
+            search: queryArg.search,
+            page: queryArg.page,
+            pageSize: queryArg.pageSize,
+            sort: queryArg.sort,
+          },
+        }),
+        providesTags: ["Slidedecks"],
+      }),
+      postApiSlidedecks: build.mutation<
+        PostApiSlidedecksApiResponse,
+        PostApiSlidedecksApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/api/Slidedecks`,
+          method: "POST",
+          body: queryArg.createSlidedeckDto,
+        }),
+        invalidatesTags: ["Slidedecks"],
+      }),
+      getApiSlidedecksById: build.query<
+        GetApiSlidedecksByIdApiResponse,
+        GetApiSlidedecksByIdApiArg
+      >({
+        query: (queryArg) => ({ url: `/api/Slidedecks/${queryArg.id}` }),
+        providesTags: ["Slidedecks"],
+      }),
+      patchApiSlidedecksById: build.mutation<
+        PatchApiSlidedecksByIdApiResponse,
+        PatchApiSlidedecksByIdApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/api/Slidedecks/${queryArg.id}`,
+          method: "PATCH",
+          body: queryArg.updateSlidedeckDto,
+        }),
+        invalidatesTags: ["Slidedecks"],
+      }),
+      deleteApiSlidedecksById: build.mutation<
+        DeleteApiSlidedecksByIdApiResponse,
+        DeleteApiSlidedecksByIdApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/api/Slidedecks/${queryArg.id}`,
+          method: "DELETE",
+        }),
+        invalidatesTags: ["Slidedecks"],
       }),
     }),
-    postApiSlidedecks: build.mutation<
-      PostApiSlidedecksApiResponse,
-      PostApiSlidedecksApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/api/Slidedecks`,
-        method: "POST",
-        body: queryArg.createSlidedeckDto,
-      }),
-    }),
-    getApiSlidedecksById: build.query<
-      GetApiSlidedecksByIdApiResponse,
-      GetApiSlidedecksByIdApiArg
-    >({
-      query: (queryArg) => ({ url: `/api/Slidedecks/${queryArg.id}` }),
-    }),
-    patchApiSlidedecksById: build.mutation<
-      PatchApiSlidedecksByIdApiResponse,
-      PatchApiSlidedecksByIdApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/api/Slidedecks/${queryArg.id}`,
-        method: "PATCH",
-        body: queryArg.updateSlidedeckDto,
-      }),
-    }),
-    deleteApiSlidedecksById: build.mutation<
-      DeleteApiSlidedecksByIdApiResponse,
-      DeleteApiSlidedecksByIdApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/api/Slidedecks/${queryArg.id}`,
-        method: "DELETE",
-      }),
-    }),
-  }),
-  overrideExisting: false,
-});
+    overrideExisting: false,
+  });
 export { injectedRtkApi as slidedecksApi };
 export type GetApiSlidedecksApiResponse =
   /** status 200 OK */ SlidedeckListItemDtoPagedResultDto;

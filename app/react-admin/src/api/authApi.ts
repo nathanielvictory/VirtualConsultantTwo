@@ -1,31 +1,39 @@
 import { emptySplitApi as api } from "./emptyApi";
-const injectedRtkApi = api.injectEndpoints({
-  endpoints: (build) => ({
-    postApiAuthToken: build.mutation<
-      PostApiAuthTokenApiResponse,
-      PostApiAuthTokenApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/api/Auth/token`,
-        method: "POST",
-        body: queryArg.body,
+export const addTagTypes = ["Auth"] as const;
+const injectedRtkApi = api
+  .enhanceEndpoints({
+    addTagTypes,
+  })
+  .injectEndpoints({
+    endpoints: (build) => ({
+      postApiAuthToken: build.mutation<
+        PostApiAuthTokenApiResponse,
+        PostApiAuthTokenApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/api/Auth/token`,
+          method: "POST",
+          body: queryArg.body,
+        }),
+        invalidatesTags: ["Auth"],
+      }),
+      postApiAuthRefresh: build.mutation<
+        PostApiAuthRefreshApiResponse,
+        PostApiAuthRefreshApiArg
+      >({
+        query: () => ({ url: `/api/Auth/refresh`, method: "POST" }),
+        invalidatesTags: ["Auth"],
+      }),
+      postApiAuthLogout: build.mutation<
+        PostApiAuthLogoutApiResponse,
+        PostApiAuthLogoutApiArg
+      >({
+        query: () => ({ url: `/api/Auth/logout`, method: "POST" }),
+        invalidatesTags: ["Auth"],
       }),
     }),
-    postApiAuthRefresh: build.mutation<
-      PostApiAuthRefreshApiResponse,
-      PostApiAuthRefreshApiArg
-    >({
-      query: () => ({ url: `/api/Auth/refresh`, method: "POST" }),
-    }),
-    postApiAuthLogout: build.mutation<
-      PostApiAuthLogoutApiResponse,
-      PostApiAuthLogoutApiArg
-    >({
-      query: () => ({ url: `/api/Auth/logout`, method: "POST" }),
-    }),
-  }),
-  overrideExisting: false,
-});
+    overrideExisting: false,
+  });
 export { injectedRtkApi as authApi };
 export type PostApiAuthTokenApiResponse = /** status 200 OK */ TokenResponseDto;
 export type PostApiAuthTokenApiArg = {

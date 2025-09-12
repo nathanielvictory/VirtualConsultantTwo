@@ -1,51 +1,63 @@
 import { emptySplitApi as api } from "./emptyApi";
-const injectedRtkApi = api.injectEndpoints({
-  endpoints: (build) => ({
-    postApiUsers: build.mutation<PostApiUsersApiResponse, PostApiUsersApiArg>({
-      query: (queryArg) => ({
-        url: `/api/Users`,
-        method: "POST",
-        body: queryArg.createUserDto,
-      }),
-    }),
-    getApiUsers: build.query<GetApiUsersApiResponse, GetApiUsersApiArg>({
-      query: (queryArg) => ({
-        url: `/api/Users`,
-        params: {
-          search: queryArg.search,
-          page: queryArg.page,
-          pageSize: queryArg.pageSize,
+export const addTagTypes = ["Users"] as const;
+const injectedRtkApi = api
+  .enhanceEndpoints({
+    addTagTypes,
+  })
+  .injectEndpoints({
+    endpoints: (build) => ({
+      postApiUsers: build.mutation<PostApiUsersApiResponse, PostApiUsersApiArg>(
+        {
+          query: (queryArg) => ({
+            url: `/api/Users`,
+            method: "POST",
+            body: queryArg.createUserDto,
+          }),
+          invalidatesTags: ["Users"],
         },
+      ),
+      getApiUsers: build.query<GetApiUsersApiResponse, GetApiUsersApiArg>({
+        query: (queryArg) => ({
+          url: `/api/Users`,
+          params: {
+            search: queryArg.search,
+            page: queryArg.page,
+            pageSize: queryArg.pageSize,
+          },
+        }),
+        providesTags: ["Users"],
+      }),
+      getApiUsersById: build.query<
+        GetApiUsersByIdApiResponse,
+        GetApiUsersByIdApiArg
+      >({
+        query: (queryArg) => ({ url: `/api/Users/${queryArg.id}` }),
+        providesTags: ["Users"],
+      }),
+      patchApiUsersById: build.mutation<
+        PatchApiUsersByIdApiResponse,
+        PatchApiUsersByIdApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/api/Users/${queryArg.id}`,
+          method: "PATCH",
+          body: queryArg.updateUserDto,
+        }),
+        invalidatesTags: ["Users"],
+      }),
+      deleteApiUsersById: build.mutation<
+        DeleteApiUsersByIdApiResponse,
+        DeleteApiUsersByIdApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/api/Users/${queryArg.id}`,
+          method: "DELETE",
+        }),
+        invalidatesTags: ["Users"],
       }),
     }),
-    getApiUsersById: build.query<
-      GetApiUsersByIdApiResponse,
-      GetApiUsersByIdApiArg
-    >({
-      query: (queryArg) => ({ url: `/api/Users/${queryArg.id}` }),
-    }),
-    patchApiUsersById: build.mutation<
-      PatchApiUsersByIdApiResponse,
-      PatchApiUsersByIdApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/api/Users/${queryArg.id}`,
-        method: "PATCH",
-        body: queryArg.updateUserDto,
-      }),
-    }),
-    deleteApiUsersById: build.mutation<
-      DeleteApiUsersByIdApiResponse,
-      DeleteApiUsersByIdApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/api/Users/${queryArg.id}`,
-        method: "DELETE",
-      }),
-    }),
-  }),
-  overrideExisting: false,
-});
+    overrideExisting: false,
+  });
 export { injectedRtkApi as usersApi };
 export type PostApiUsersApiResponse = unknown;
 export type PostApiUsersApiArg = {

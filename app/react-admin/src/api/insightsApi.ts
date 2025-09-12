@@ -1,60 +1,70 @@
 import { emptySplitApi as api } from "./emptyApi";
-const injectedRtkApi = api.injectEndpoints({
-  endpoints: (build) => ({
-    getApiInsights: build.query<
-      GetApiInsightsApiResponse,
-      GetApiInsightsApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/api/Insights`,
-        params: {
-          projectId: queryArg.projectId,
-          source: queryArg.source,
-          search: queryArg.search,
-          page: queryArg.page,
-          pageSize: queryArg.pageSize,
-          sort: queryArg.sort,
-        },
+export const addTagTypes = ["Insights"] as const;
+const injectedRtkApi = api
+  .enhanceEndpoints({
+    addTagTypes,
+  })
+  .injectEndpoints({
+    endpoints: (build) => ({
+      getApiInsights: build.query<
+        GetApiInsightsApiResponse,
+        GetApiInsightsApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/api/Insights`,
+          params: {
+            projectId: queryArg.projectId,
+            source: queryArg.source,
+            search: queryArg.search,
+            page: queryArg.page,
+            pageSize: queryArg.pageSize,
+            sort: queryArg.sort,
+          },
+        }),
+        providesTags: ["Insights"],
+      }),
+      postApiInsights: build.mutation<
+        PostApiInsightsApiResponse,
+        PostApiInsightsApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/api/Insights`,
+          method: "POST",
+          body: queryArg.createInsightDto,
+        }),
+        invalidatesTags: ["Insights"],
+      }),
+      getApiInsightsById: build.query<
+        GetApiInsightsByIdApiResponse,
+        GetApiInsightsByIdApiArg
+      >({
+        query: (queryArg) => ({ url: `/api/Insights/${queryArg.id}` }),
+        providesTags: ["Insights"],
+      }),
+      patchApiInsightsById: build.mutation<
+        PatchApiInsightsByIdApiResponse,
+        PatchApiInsightsByIdApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/api/Insights/${queryArg.id}`,
+          method: "PATCH",
+          body: queryArg.updateInsightDto,
+        }),
+        invalidatesTags: ["Insights"],
+      }),
+      deleteApiInsightsById: build.mutation<
+        DeleteApiInsightsByIdApiResponse,
+        DeleteApiInsightsByIdApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/api/Insights/${queryArg.id}`,
+          method: "DELETE",
+        }),
+        invalidatesTags: ["Insights"],
       }),
     }),
-    postApiInsights: build.mutation<
-      PostApiInsightsApiResponse,
-      PostApiInsightsApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/api/Insights`,
-        method: "POST",
-        body: queryArg.createInsightDto,
-      }),
-    }),
-    getApiInsightsById: build.query<
-      GetApiInsightsByIdApiResponse,
-      GetApiInsightsByIdApiArg
-    >({
-      query: (queryArg) => ({ url: `/api/Insights/${queryArg.id}` }),
-    }),
-    patchApiInsightsById: build.mutation<
-      PatchApiInsightsByIdApiResponse,
-      PatchApiInsightsByIdApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/api/Insights/${queryArg.id}`,
-        method: "PATCH",
-        body: queryArg.updateInsightDto,
-      }),
-    }),
-    deleteApiInsightsById: build.mutation<
-      DeleteApiInsightsByIdApiResponse,
-      DeleteApiInsightsByIdApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/api/Insights/${queryArg.id}`,
-        method: "DELETE",
-      }),
-    }),
-  }),
-  overrideExisting: false,
-});
+    overrideExisting: false,
+  });
 export { injectedRtkApi as insightsApi };
 export type GetApiInsightsApiResponse =
   /** status 200 OK */ InsightListItemDtoPagedResultDto;

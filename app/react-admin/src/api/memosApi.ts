@@ -1,53 +1,65 @@
 import { emptySplitApi as api } from "./emptyApi";
-const injectedRtkApi = api.injectEndpoints({
-  endpoints: (build) => ({
-    getApiMemos: build.query<GetApiMemosApiResponse, GetApiMemosApiArg>({
-      query: (queryArg) => ({
-        url: `/api/Memos`,
-        params: {
-          projectId: queryArg.projectId,
-          search: queryArg.search,
-          page: queryArg.page,
-          pageSize: queryArg.pageSize,
-          sort: queryArg.sort,
+export const addTagTypes = ["Memos"] as const;
+const injectedRtkApi = api
+  .enhanceEndpoints({
+    addTagTypes,
+  })
+  .injectEndpoints({
+    endpoints: (build) => ({
+      getApiMemos: build.query<GetApiMemosApiResponse, GetApiMemosApiArg>({
+        query: (queryArg) => ({
+          url: `/api/Memos`,
+          params: {
+            projectId: queryArg.projectId,
+            search: queryArg.search,
+            page: queryArg.page,
+            pageSize: queryArg.pageSize,
+            sort: queryArg.sort,
+          },
+        }),
+        providesTags: ["Memos"],
+      }),
+      postApiMemos: build.mutation<PostApiMemosApiResponse, PostApiMemosApiArg>(
+        {
+          query: (queryArg) => ({
+            url: `/api/Memos`,
+            method: "POST",
+            body: queryArg.createMemoDto,
+          }),
+          invalidatesTags: ["Memos"],
         },
+      ),
+      getApiMemosById: build.query<
+        GetApiMemosByIdApiResponse,
+        GetApiMemosByIdApiArg
+      >({
+        query: (queryArg) => ({ url: `/api/Memos/${queryArg.id}` }),
+        providesTags: ["Memos"],
+      }),
+      patchApiMemosById: build.mutation<
+        PatchApiMemosByIdApiResponse,
+        PatchApiMemosByIdApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/api/Memos/${queryArg.id}`,
+          method: "PATCH",
+          body: queryArg.updateMemoDto,
+        }),
+        invalidatesTags: ["Memos"],
+      }),
+      deleteApiMemosById: build.mutation<
+        DeleteApiMemosByIdApiResponse,
+        DeleteApiMemosByIdApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/api/Memos/${queryArg.id}`,
+          method: "DELETE",
+        }),
+        invalidatesTags: ["Memos"],
       }),
     }),
-    postApiMemos: build.mutation<PostApiMemosApiResponse, PostApiMemosApiArg>({
-      query: (queryArg) => ({
-        url: `/api/Memos`,
-        method: "POST",
-        body: queryArg.createMemoDto,
-      }),
-    }),
-    getApiMemosById: build.query<
-      GetApiMemosByIdApiResponse,
-      GetApiMemosByIdApiArg
-    >({
-      query: (queryArg) => ({ url: `/api/Memos/${queryArg.id}` }),
-    }),
-    patchApiMemosById: build.mutation<
-      PatchApiMemosByIdApiResponse,
-      PatchApiMemosByIdApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/api/Memos/${queryArg.id}`,
-        method: "PATCH",
-        body: queryArg.updateMemoDto,
-      }),
-    }),
-    deleteApiMemosById: build.mutation<
-      DeleteApiMemosByIdApiResponse,
-      DeleteApiMemosByIdApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/api/Memos/${queryArg.id}`,
-        method: "DELETE",
-      }),
-    }),
-  }),
-  overrideExisting: false,
-});
+    overrideExisting: false,
+  });
 export { injectedRtkApi as memosApi };
 export type GetApiMemosApiResponse =
   /** status 200 OK */ MemoListItemDtoPagedResultDto;
