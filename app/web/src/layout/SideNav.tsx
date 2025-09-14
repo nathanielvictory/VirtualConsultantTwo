@@ -22,9 +22,10 @@ import {
     Folder as FolderIcon,
     Insights as InsightsIcon,
 } from "@mui/icons-material";
+import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import { Link, useNavigate } from "react-router-dom";
 import Brand from "./Brand.tsx";
-import { logout } from "../store/authSlice";
+import { clearBackendAuth } from "../store/authSlice";
 import { useAppDispatch } from "../store/hooks";
 
 export const DRAWER_WIDTH = 280;
@@ -41,7 +42,7 @@ export default function SideNav({
     const navigate = useNavigate();
 
     const handleSignOut = () => {                                   // ⬅️
-        dispatch(logout());
+        dispatch(clearBackendAuth());
         onClose?.();
         navigate("/login", { replace: true });
     };
@@ -50,6 +51,7 @@ export default function SideNav({
         { label: "Home", icon: <HomeIcon />, to: "/" },
         { label: "Dashboard", icon: <DashboardIcon />, to: "/dashboard" },
         { label: "Settings", icon: <SettingsIcon />, to: "/settings" },
+        { label: "Admin", icon: <AdminPanelSettingsIcon />, to: "/admin" },
     ];
 
     const content = (

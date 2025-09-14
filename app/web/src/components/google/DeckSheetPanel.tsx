@@ -31,7 +31,7 @@ function timestampedTitle(prefix = 'POC Pair') {
 }
 
 export default function DeckSheetPanel() {
-    const google = useAppSelector((s) => s.auth.google);
+    const google = useAppSelector((s) => s.googleAuth);
     const token = google?.accessToken;
 
     const [loadingSlides, setLoadingSlides] = useState(false);

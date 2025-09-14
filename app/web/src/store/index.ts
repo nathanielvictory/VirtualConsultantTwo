@@ -1,3 +1,4 @@
+// src/store/index.ts
 import { configureStore, combineReducers } from '@reduxjs/toolkit';
 import {
     persistReducer,
@@ -12,9 +13,11 @@ import {
 import storage from 'redux-persist/lib/storage';
 
 import settingsReducer from './settingsSlice';
-import authReducer from './authSlice';
+import authReducer from './authSlice';            // backend auth (new)
+import googleAuthReducer from './googleAuthSlice';// google auth (new)
 
-// Persist configs
+import { emptySplitApi } from '../api/emptyApi';
+
 const settingsPersistConfig = {
     key: 'settings',
     storage,
@@ -26,12 +29,14 @@ const authPersistConfig = {
     key: 'auth',
     storage,
     version: 1,
-    whitelist: ['email'],
+    whitelist: ['email'], // only email persisted
 };
 
 const rootReducer = combineReducers({
     settings: persistReducer(settingsPersistConfig, settingsReducer),
     auth: persistReducer(authPersistConfig, authReducer),
+    googleAuth: googleAuthReducer,
+    [emptySplitApi.reducerPath]: emptySplitApi.reducer,
 });
 
 export const store = configureStore({
@@ -41,10 +46,9 @@ export const store = configureStore({
             serializableCheck: {
                 ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
             },
-        }),
+        }).concat(emptySplitApi.middleware),
 });
 
 export const persistor = persistStore(store);
-
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;

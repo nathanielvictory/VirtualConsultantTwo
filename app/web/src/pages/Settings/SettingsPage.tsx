@@ -1,11 +1,11 @@
 import { Container, Typography, Divider, Paper, Stack, Button, Chip } from '@mui/material';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { beginGoogleAuth, setGoogleToken, googleAuthError, clearGoogleAuth } from '../../store/authSlice';
+import { beginGoogleAuth, setGoogleToken, googleAuthError, clearGoogleAuth } from '../../store/googleAuthSlice.ts';
 import { requestAccessToken, revokeAccessToken, DEFAULT_SCOPES } from '../../integrations/google';
 
 export default function SettingsPage() {
     const dispatch = useAppDispatch();
-    const google = useAppSelector((s) => s.auth.google);
+    const google = useAppSelector((s) => s.googleAuth);
 
     const connected = !!google.accessToken;
     const expiresInSec =

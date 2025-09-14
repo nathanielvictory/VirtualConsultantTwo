@@ -9,7 +9,7 @@ import DeckSheetPanel from '../../components/google/DeckSheetPanel';
 
 export default function HomePage() {
     const navigate = useNavigate();
-    const token = useAppSelector((s) => s.auth.google.accessToken);
+    const token = useAppSelector((s) => s.googleAuth.accessToken);
 
     // Redirect to settings if not connected
     useEffect(() => {
