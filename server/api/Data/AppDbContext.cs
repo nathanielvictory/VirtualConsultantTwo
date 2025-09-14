@@ -16,6 +16,7 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<int>, int>
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<Memo> Memos => Set<Memo>();
     public DbSet<Slidedeck> Slidedecks => Set<Slidedeck>();
+    public DbSet<Organization> Organizations => Set<Organization>();
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -277,6 +277,26 @@ namespace api.Migrations
                     b.ToTable("memos", (string)null);
                 });
 
+            modelBuilder.Entity("api.Models.Organization", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("text")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("name");
+
+                    b.HasKey("Id")
+                        .HasName("pk_organizations");
+
+                    b.HasIndex("Name")
+                        .HasDatabaseName("ix_organizations_name");
+
+                    b.ToTable("organizations", (string)null);
+                });
+
             modelBuilder.Entity("api.Models.Project", b =>
                 {
                     b.Property<int>("Id")
@@ -333,6 +353,9 @@ namespace api.Migrations
                     b.HasIndex("Kbid")
                         .IsUnique()
                         .HasDatabaseName("ix_projects_kbid");
+
+                    b.HasIndex("OrganizationId")
+                        .HasDatabaseName("ix_projects_organization_id");
 
                     b.ToTable("projects", (string)null);
                 });
@@ -623,6 +646,18 @@ namespace api.Migrations
                     b.Navigation("Project");
                 });
 
+            modelBuilder.Entity("api.Models.Project", b =>
+                {
+                    b.HasOne("api.Models.Organization", "Organization")
+                        .WithMany("Projects")
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_projects_organizations_organization_id");
+
+                    b.Navigation("Organization");
+                });
+
             modelBuilder.Entity("api.Models.RefreshToken", b =>
                 {
                     b.HasOne("api.Models.User", "User")
@@ -654,6 +689,11 @@ namespace api.Migrations
                     b.Navigation("CreatedBy");
 
                     b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("api.Models.Organization", b =>
+                {
+                    b.Navigation("Projects");
                 });
 
             modelBuilder.Entity("api.Models.Project", b =>

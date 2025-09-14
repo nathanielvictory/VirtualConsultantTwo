@@ -6,6 +6,7 @@ using Microsoft.OpenApi.Models;
 using System.Text;
 using api.Data;
 using api.Models;
+using api.Middleware;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -131,6 +132,8 @@ app.UseCors("AllowAll");
 // pipeline
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseMiddleware<DbConstraintExceptionMiddleware>();
 
 app.MapControllers();
 

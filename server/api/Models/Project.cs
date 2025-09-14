@@ -12,7 +12,8 @@ public class Project
 
     public string Name { get; set; } = string.Empty;
     public string OrganizationId { get; set; } = string.Empty;
-
+    public Organization Organization { get; set; } = null!;
+    
     public bool IsActive { get; set; }
 
     // New: optional context

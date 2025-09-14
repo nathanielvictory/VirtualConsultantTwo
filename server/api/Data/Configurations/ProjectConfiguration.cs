@@ -28,5 +28,10 @@ public class ProjectConfiguration : IEntityTypeConfiguration<Project>
 
         // Optional timestamp; explicit TZ type retained from your style
         e.Property(p => p.LastRefreshed).HasColumnType("timestamp with time zone");
+        
+        e.HasOne(p => p.Organization)
+            .WithMany(o => o.Projects)
+            .HasForeignKey(p => p.OrganizationId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
