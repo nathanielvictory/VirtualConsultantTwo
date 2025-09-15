@@ -23,4 +23,5 @@ public class Project
     public List<Insight> Insights { get; set; } = new();
     public List<Memo> Memos { get; set; } = new();
     public List<Slidedeck> Slidedecks { get; set; } = new();
+    public List<TaskJob> Tasks { get; set; } = new();
 }

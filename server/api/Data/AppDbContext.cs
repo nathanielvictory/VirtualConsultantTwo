@@ -17,6 +17,8 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<int>, int>
     public DbSet<Memo> Memos => Set<Memo>();
     public DbSet<Slidedeck> Slidedecks => Set<Slidedeck>();
     public DbSet<Organization> Organizations => Set<Organization>();
+    public DbSet<TaskJob> Tasks => Set<TaskJob>();
+    public DbSet<TaskArtifact> TaskArtifacts => Set<TaskArtifact>();
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -77,6 +77,7 @@ public class ProjectsController : ControllerBase
     }
 
     [HttpGet("{id:int}")]
+
     public async Task<ActionResult<ProjectDetailDto>> GetProject(int id)
     {
         var dto = await _context.Projects.AsNoTracking()

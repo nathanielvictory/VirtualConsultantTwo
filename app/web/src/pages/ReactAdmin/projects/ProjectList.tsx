@@ -5,15 +5,12 @@ import {
     TextField,
     BooleanField,
     DateField,
-    TopToolbar,
-    CreateButton,
     TextInput,
     BooleanInput,
     ReferenceInput,
     AutocompleteInput,
     ReferenceField,
 } from "react-admin";
-import { Box } from "@mui/material";
 
 const filters = [
     // Full-text search -> mapped to { search } by your dataProvider
@@ -38,19 +35,11 @@ const filters = [
     <BooleanInput key="active" source="isActive" label="Active only" />,
 ];
 
-const ListActions = () => (
-    <TopToolbar>
-        <Box sx={{ flex: 1 }} />
-        <CreateButton />
-    </TopToolbar>
-);
-
 export function ProjectList() {
     return (
         <List
             title="Projects"
             filters={filters}
-            actions={<ListActions />}
             sort={{ field: "updatedAt", order: "DESC" }}
             perPage={25}
         >
