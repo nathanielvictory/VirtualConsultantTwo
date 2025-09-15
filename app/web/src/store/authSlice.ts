@@ -27,6 +27,7 @@ const slice = createSlice({
             state.accessToken = null;
             state.tokenType = null;
             state.expiresAt = null;
+            state.email = null;
         },
         // ⬇️ minimal addition used by the refresh helper
         setBackendToken(

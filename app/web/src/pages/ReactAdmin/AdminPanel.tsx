@@ -1,21 +1,36 @@
 // src/pages/ReactAdmin/AdminPanel.tsx
-import { Admin, Resource } from "react-admin";
+import { Admin, Resource, Layout } from "react-admin";
 import PeopleIcon from "@mui/icons-material/People";
 import DomainIcon from "@mui/icons-material/Domain";
 import FolderIcon from "@mui/icons-material/Folder";
 import ArticleIcon from "@mui/icons-material/Article";
 import InsightsIcon from "@mui/icons-material/Insights";
-import {dataProvider} from "./providers/dataProvider.ts";
-import {ProjectList, ProjectCreate, ProjectEdit, ProjectShow} from "./projects";
+
+import { dataProvider } from "./providers/dataProvider";
+import { ProjectList, ProjectCreate, ProjectEdit, ProjectShow } from "./projects";
 import { OrganizationList, OrganizationCreate, OrganizationEdit, OrganizationShow } from "./organizations";
 import { InsightList, InsightShow, InsightCreate, InsightEdit } from "./insights";
 import { MemoList, MemoShow, MemoCreate, MemoEdit } from "./memos";
 import { SlidedeckList, SlidedeckShow, SlidedeckCreate, SlidedeckEdit } from "./slidedecks";
 import { UserList, UserShow, UserCreate, UserEdit } from "./users";
+import { useThemeMode } from "../../theme/useThemeMode";
+
+// remove the RA topbar, keep sidebar
+const EmptyAppBar = () => null;
+const CustomLayout = (props: any) => <Layout {...props} appBar={EmptyAppBar} />;
 
 export default function AdminPanel() {
+    const { theme } = useThemeMode();
+
     return (
-        <Admin basename="/admin" dataProvider={dataProvider}>
+        <Admin
+            basename="/admin"
+            dataProvider={dataProvider}
+            layout={CustomLayout}
+            theme={theme}
+            lightTheme={theme}
+            darkTheme={theme}
+        >
             <Resource
                 name="users"
                 list={UserList}
@@ -48,7 +63,6 @@ export default function AdminPanel() {
                 edit={MemoEdit}
                 icon={ArticleIcon}
             />
-
             <Resource
                 name="slidedecks"
                 list={SlidedeckList}
