@@ -1,28 +1,9 @@
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
-    Container, Paper, Stack, Typography, Divider, Box,
+    Container, Paper, Stack, Typography, Box,
 } from '@mui/material';
 import { Home as HomeIcon } from '@mui/icons-material';
-import { useAppSelector } from '../../store/hooks';
-import DeckSheetPanel from '../../components/google/DeckSheetPanel';
 
 export default function HomePage() {
-    const navigate = useNavigate();
-    const token = useAppSelector((s) => s.googleAuth.accessToken);
-
-    // Redirect to settings if not connected
-    useEffect(() => {
-        if (!token) {
-            navigate('/settings', { replace: true });
-        }
-    }, [token, navigate]);
-
-    if (!token) {
-        // Brief guard render while redirecting
-        return null;
-    }
-
     return (
         <Container maxWidth={false} sx={{ py: 4 }}>
             <Paper>
@@ -42,8 +23,6 @@ export default function HomePage() {
                 <Paper variant="outlined" sx={{ p: { xs: 2, md: 2.5 } }}>
                     <Stack spacing={2}>
                         <Typography variant="h6">Docs Playground</Typography>
-                        <Divider />
-                        <DeckSheetPanel />
                     </Stack>
                 </Paper>
             </Box>

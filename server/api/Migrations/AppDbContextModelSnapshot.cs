@@ -473,6 +473,175 @@ namespace api.Migrations
                     b.ToTable("slidedecks", (string)null);
                 });
 
+            modelBuilder.Entity("api.Models.SystemPrompt", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now() at time zone 'utc'");
+
+                    b.Property<string>("Prompt")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("text")
+                        .HasColumnName("prompt");
+
+                    b.Property<string>("PromptType")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("prompt_type");
+
+                    b.HasKey("Id")
+                        .HasName("pk_system_prompts");
+
+                    b.HasIndex("PromptType")
+                        .HasDatabaseName("ix_system_prompts_prompt_type");
+
+                    b.HasIndex("PromptType", "CreatedAt")
+                        .HasDatabaseName("ix_system_prompts_prompt_type_created_at");
+
+                    b.ToTable("system_prompts", (string)null);
+                });
+
+            modelBuilder.Entity("api.Models.TaskArtifact", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("action");
+
+                    b.Property<int?>("CompletionTokens")
+                        .HasColumnType("integer")
+                        .HasColumnName("completion_tokens");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now() at time zone 'utc'");
+
+                    b.Property<string>("Model")
+                        .HasColumnType("text")
+                        .HasColumnName("model");
+
+                    b.Property<int?>("PromptTokens")
+                        .HasColumnType("integer")
+                        .HasColumnName("prompt_tokens");
+
+                    b.Property<string>("ResourceId")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("resource_id");
+
+                    b.Property<string>("ResourceType")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("resource_type");
+
+                    b.Property<int>("TaskId")
+                        .HasColumnType("integer")
+                        .HasColumnName("task_id");
+
+                    b.Property<int?>("TotalTokens")
+                        .HasColumnType("integer")
+                        .HasColumnName("total_tokens");
+
+                    b.HasKey("Id")
+                        .HasName("pk_task_artifacts");
+
+                    b.HasIndex("TaskId", "CreatedAt")
+                        .HasDatabaseName("ix_task_artifacts_task_id_created_at");
+
+                    b.ToTable("task_artifacts", (string)null);
+                });
+
+            modelBuilder.Entity("api.Models.TaskJob", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTimeOffset?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("completed_at");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now() at time zone 'utc'");
+
+                    b.Property<int>("CreatedByUserId")
+                        .HasColumnType("integer")
+                        .HasColumnName("created_by_user_id");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasColumnType("text")
+                        .HasColumnName("error_message");
+
+                    b.Property<int>("JobStatus")
+                        .HasColumnType("integer")
+                        .HasColumnName("job_status");
+
+                    b.Property<int>("JobType")
+                        .HasColumnType("integer")
+                        .HasColumnName("job_type");
+
+                    b.Property<string>("PayloadJson")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("{}")
+                        .HasColumnName("payload_json");
+
+                    b.Property<int?>("Progress")
+                        .HasColumnType("integer")
+                        .HasColumnName("progress");
+
+                    b.Property<int>("ProjectId")
+                        .HasColumnType("integer")
+                        .HasColumnName("project_id");
+
+                    b.Property<DateTimeOffset?>("StartedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("started_at");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("now() at time zone 'utc'");
+
+                    b.HasKey("Id")
+                        .HasName("pk_tasks");
+
+                    b.HasIndex("CreatedByUserId")
+                        .HasDatabaseName("ix_tasks_created_by_user_id");
+
+                    b.HasIndex("ProjectId", "CreatedAt")
+                        .HasDatabaseName("ix_tasks_project_id_created_at");
+
+                    b.ToTable("tasks", (string)null);
+                });
+
             modelBuilder.Entity("api.Models.User", b =>
                 {
                     b.Property<int>("Id")
@@ -691,6 +860,39 @@ namespace api.Migrations
                     b.Navigation("Project");
                 });
 
+            modelBuilder.Entity("api.Models.TaskArtifact", b =>
+                {
+                    b.HasOne("api.Models.TaskJob", "Task")
+                        .WithMany("Artifacts")
+                        .HasForeignKey("TaskId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_task_artifacts_tasks_task_id");
+
+                    b.Navigation("Task");
+                });
+
+            modelBuilder.Entity("api.Models.TaskJob", b =>
+                {
+                    b.HasOne("api.Models.User", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_tasks_users_created_by_user_id");
+
+                    b.HasOne("api.Models.Project", "Project")
+                        .WithMany("Tasks")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_tasks_projects_project_id");
+
+                    b.Navigation("CreatedByUser");
+
+                    b.Navigation("Project");
+                });
+
             modelBuilder.Entity("api.Models.Organization", b =>
                 {
                     b.Navigation("Projects");
@@ -703,6 +905,13 @@ namespace api.Migrations
                     b.Navigation("Memos");
 
                     b.Navigation("Slidedecks");
+
+                    b.Navigation("Tasks");
+                });
+
+            modelBuilder.Entity("api.Models.TaskJob", b =>
+                {
+                    b.Navigation("Artifacts");
                 });
 #pragma warning restore 612, 618
         }

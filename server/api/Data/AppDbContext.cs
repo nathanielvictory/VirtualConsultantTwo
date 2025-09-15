@@ -19,6 +19,7 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<int>, int>
     public DbSet<Organization> Organizations => Set<Organization>();
     public DbSet<TaskJob> Tasks => Set<TaskJob>();
     public DbSet<TaskArtifact> TaskArtifacts => Set<TaskArtifact>();
+    public DbSet<SystemPrompt> SystemPrompts => Set<SystemPrompt>();
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
