@@ -42,6 +42,14 @@ const config = {
             exportName: "organizationsApi",
             filterEndpoints: [/Organizations?/i],
         },
+        "./src/api/tasksApi.ts": {
+            exportName: "tasksApi",
+            filterEndpoints: [/Tasks?/i],
+        },
+        "./src/api/systemPromptsApi.ts": {
+            exportName: "systemPromptsApi",
+            filterEndpoints: [/SystemPrompts?/i],
+        },
     },
 };
 

@@ -9,6 +9,15 @@ services:
     volumes:
       - consultant_db_data:/var/lib/postgresql/data
 
+  rabbit:
+    container_name: consultant_rabbit
+    image: rabbitmq:4.1-management
+    env_file:
+      - .env
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
   api:
     container_name: consultant_api
     build:
@@ -20,6 +29,7 @@ services:
       - "8080:8080"
     depends_on:
       - db
+      - rabbit
 
   frontend:
     container_name: consultant_frontend

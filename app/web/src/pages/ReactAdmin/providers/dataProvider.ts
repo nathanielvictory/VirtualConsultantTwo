@@ -10,6 +10,8 @@ import { usersApi } from "../../../api/usersApi";
 import { slidedecksApi } from "../../../api/slidedecksApi";
 import { insightsApi } from "../../../api/insightsApi";
 import { organizationsApi } from "../../../api/organizationsApi";
+import { tasksApi } from "../../../api/tasksApi";
+import { systemPromptsApi } from "../../../api/systemPromptsApi";
 
 /** Prefer numeric ids when possible (except resources that are string-ids) */
 const toId = (id: any) =>
@@ -176,6 +178,38 @@ const resources: Record<string, Bundle> = {
         mapListArgs: makeListMapper(),
         idOf,
     },
+    tasks: {
+        list: (arg) => tasksApi.endpoints.getApiTasks.initiate(arg),
+        getOne: ({ id }) => tasksApi.endpoints.getApiTasksById.initiate({ id: toId(id) }),
+        create: ({ data }) =>
+            tasksApi.endpoints.postApiTasks.initiate({ createTaskDto: data }),
+        update: ({ id, data }) =>
+            tasksApi.endpoints.patchApiTasksById.initiate({
+                id: toId(id),
+                updateTaskDto: data,
+            }),
+        deleteOne: ({ id }) =>
+            tasksApi.endpoints.deleteApiTasksById.initiate({ id: toId(id) }),
+        mapListArgs: makeListMapper((f) => ({
+            orgId: f.orgId,
+            isActive: typeof f.isActive === "boolean" ? f.isActive : undefined,
+        })),
+        idOf,
+    },
+    systemPrompts: {
+        list: (arg) => systemPromptsApi.endpoints.getApiSystemPrompts.initiate(arg),
+        getOne: ({ id }) => systemPromptsApi.endpoints.getApiSystemPromptsById.initiate({ id: toId(id) }),
+        create: ({ data }) =>
+            systemPromptsApi.endpoints.postApiSystemPrompts.initiate({ createSystemPromptDto: data }),
+        update: () => Promise.resolve({} as any),
+        deleteOne: () => Promise.resolve({} as any),
+        mapListArgs: makeListMapper((f) => ({
+            orgId: f.orgId,
+            isActive: typeof f.isActive === "boolean" ? f.isActive : undefined,
+        })),
+        idOf,
+    },
+
 };
 
 export const dataProvider: DataProvider = {

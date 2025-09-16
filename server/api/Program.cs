@@ -7,6 +7,8 @@ using System.Text;
 using api.Data;
 using api.Models;
 using api.Middleware;
+using api.Messaging.RabbitMq;
+using api.Messaging.Abstractions;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -97,7 +99,8 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 builder.Services.AddAuthorization();
-
+builder.Services.Configure<RabbitMqOptions>(builder.Configuration.GetSection("RabbitMq"));
+builder.Services.AddSingleton<ITaskEventPublisher, RabbitMqTaskEventPublisher>();
 
 builder.Services.AddAutoMapper(typeof(Program));
 

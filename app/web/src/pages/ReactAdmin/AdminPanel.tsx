@@ -5,6 +5,8 @@ import DomainIcon from "@mui/icons-material/Domain";
 import FolderIcon from "@mui/icons-material/Folder";
 import ArticleIcon from "@mui/icons-material/Article";
 import InsightsIcon from "@mui/icons-material/Insights";
+import AssignmentTurnedInIcon from "@mui/icons-material/AssignmentTurnedIn";
+import ChatIcon from "@mui/icons-material/Chat";
 
 import { dataProvider } from "./providers/dataProvider";
 import { ProjectList, ProjectCreate, ProjectEdit, ProjectShow } from "./projects";
@@ -13,6 +15,8 @@ import { InsightList, InsightShow, InsightCreate, InsightEdit } from "./insights
 import { MemoList, MemoShow, MemoCreate, MemoEdit } from "./memos";
 import { SlidedeckList, SlidedeckShow, SlidedeckCreate, SlidedeckEdit } from "./slidedecks";
 import { UserList, UserShow, UserCreate, UserEdit } from "./users";
+import { TaskList, TaskShow, TaskCreate, TaskEdit } from "./tasks";
+import { SystemPromptList, SystemPromptShow, SystemPromptCreate } from "./systemPrompts";
 import { useThemeMode } from "../../theme/useThemeMode";
 
 // remove the RA topbar, keep sidebar
@@ -78,6 +82,21 @@ export default function AdminPanel() {
                 create={InsightCreate}
                 edit={InsightEdit}
                 icon={InsightsIcon}
+            />
+            <Resource
+                name="tasks"
+                list={TaskList}
+                show={TaskShow}
+                create={TaskCreate}
+                edit={TaskEdit}
+                icon={AssignmentTurnedInIcon}
+            />
+            <Resource
+                name="systemPrompts"
+                list={SystemPromptList}
+                show={SystemPromptShow}
+                create={SystemPromptCreate}
+                icon={ChatIcon}
             />
         </Admin>
     );
