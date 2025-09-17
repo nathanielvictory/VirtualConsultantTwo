@@ -1,14 +1,27 @@
-﻿namespace api.Dtos;
-
-public class CreateFocusDto
+﻿namespace api.Dtos
 {
-    // Optional freeform hint the worker can use
-    public string? Prompt { get; set; }
+    public class QueueCreateInsightsTaskDto
+    {
+        public int ProjectId { get; set; }
+    }
 
-    // Arbitrary passthrough values for the worker
-    public IDictionary<string, string>? Metadata { get; set; }
+    public class QueueCreateFullReportTaskDto
+    {
+        public int ProjectId { get; set; }
+    }
 
-    // For easy smoke-testing: allow passing an explicit creator ID.
-    // In production you’ll read this from the auth claims instead.
-    public int? CreatedByUserId { get; set; }
+    public class QueueCreateMemoTaskDto
+    {
+        public int ProjectId { get; set; }
+    }
+
+    public class QueueCreateSlidesTaskDto
+    {
+        public int ProjectId { get; set; }
+    }
+
+    public class QueueCreateSurveyDataTaskDto
+    {
+        public int ProjectId { get; set; }
+    }
 }

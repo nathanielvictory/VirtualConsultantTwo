@@ -1,9 +1,10 @@
-﻿using System.Text;
+﻿// Messaging/RabbitMq/RabbitMqTaskEventPublisher.cs
+using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using api.Messaging.Abstractions;
-using api.Messaging.IntegrationEvents;
+using api.Models;
 
 namespace api.Messaging.RabbitMq;
 
@@ -12,7 +13,6 @@ public sealed class RabbitMqTaskEventPublisher : ITaskEventPublisher, IAsyncDisp
     private readonly RabbitMqOptions _options;
     private readonly IConnection _conn;
     private readonly IChannel _channel;
-    private static readonly JsonSerializerOptions JsonOpts = new(JsonSerializerDefaults.Web);
 
     public RabbitMqTaskEventPublisher(IOptions<RabbitMqOptions> options)
     {
@@ -25,65 +25,65 @@ public sealed class RabbitMqTaskEventPublisher : ITaskEventPublisher, IAsyncDisp
             VirtualHost = _options.VirtualHost,
             UserName = _options.UserName,
             Password = _options.Password,
-            AutomaticRecoveryEnabled = true,   // optional, but handy in dev
+            AutomaticRecoveryEnabled = true,
             TopologyRecoveryEnabled  = true
         };
 
-        // v7 is async-only: block here once at startup to keep constructor simple
-        _conn = factory.CreateConnectionAsync().GetAwaiter().GetResult();
+        _conn    = factory.CreateConnectionAsync().GetAwaiter().GetResult();
         _channel = _conn.CreateChannelAsync().GetAwaiter().GetResult();
 
-        // declare a durable topic exchange once (idempotent)
+        // durable topic exchange (idempotent)
         _channel.ExchangeDeclareAsync(
-            exchange: _options.Exchange,
-            type:    ExchangeType.Topic,
-            durable: true,
+            exchange:   _options.Exchange,
+            type:       ExchangeType.Topic,
+            durable:    true,
             autoDelete: false,
-            arguments: null,
-            noWait: false,
+            arguments:  null,
+            noWait:     false,
             cancellationToken: CancellationToken.None
         ).GetAwaiter().GetResult();
     }
 
-    public async Task PublishTaskCreatedAsync(TaskCreatedEvent evt, CancellationToken ct = default)
+    public async Task PublishAsync(TaskJobType jobType, string payloadJson, CancellationToken ct = default)
     {
         if (ct.IsCancellationRequested) return;
 
-        var body = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(evt, JsonOpts));
+        // Body is EXACTLY the worker schema JSON
+        var body = Encoding.UTF8.GetBytes(payloadJson);
 
         var props = new BasicProperties
         {
             ContentType  = "application/json",
-            DeliveryMode = DeliveryModes.Persistent, // durable message
+            DeliveryMode = DeliveryModes.Persistent,
             MessageId    = Guid.NewGuid().ToString(),
-            Type         = nameof(TaskCreatedEvent),
+            // 'Type' header is fine; worker validates body only
+            Type         = RoutingKeyFor(jobType),
             Timestamp    = new AmqpTimestamp(DateTimeOffset.UtcNow.ToUnixTimeSeconds())
         };
 
         await _channel.BasicPublishAsync(
-            exchange: _options.Exchange,
-            routingKey: _options.RoutingKeyTaskCreated,
-            mandatory: false,
+            exchange:       _options.Exchange,
+            routingKey:     RoutingKeyFor(jobType),
+            mandatory:      false,
             basicProperties: props,
-            body: body,
+            body:           body,
             cancellationToken: ct
         );
     }
 
+    private static string RoutingKeyFor(TaskJobType t) => t switch
+    {
+        TaskJobType.Insights   => "task.insights",
+        TaskJobType.FullReport => "task.full_report",
+        TaskJobType.Memo       => "task.memo",
+        TaskJobType.Slides     => "task.slides",
+        TaskJobType.SurveyData => "task.survey_data",
+        _ => "task.unknown"
+    };
+
     public async ValueTask DisposeAsync()
     {
-        try
-        {
-            await _channel.CloseAsync();
-            await _channel.DisposeAsync();
-        }
-        catch { /* ignore */ }
-
-        try
-        {
-            await _conn.CloseAsync();
-            await _conn.DisposeAsync();
-        }
-        catch { /* ignore */ }
+        try { await _channel.CloseAsync(); await _channel.DisposeAsync(); } catch { }
+        try { await _conn.CloseAsync();    await _conn.DisposeAsync();    } catch { }
     }
 }

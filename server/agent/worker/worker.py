@@ -44,7 +44,7 @@ class Worker:
         )
         self._conn = pika.BlockingConnection(params)
         ch = self._conn.channel()
-        self._ch.basic_qos(prefetch_count=1)
+        ch.basic_qos(prefetch_count=1)
 
         ch.exchange_declare(exchange=self.exchange, exchange_type="topic", durable=True)
 
