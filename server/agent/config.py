@@ -24,8 +24,8 @@ class Settings(BaseSettings):
     RABBIT_HOST: str = Field(default='localhost', validation_alias='RabbitMq__HostName')
     RABBIT_PORT: int = Field(default=5672, validation_alias='RabbitMq__Port')
     RABBIT_VHOST: str = Field(default='/', validation_alias='RabbitMq__VirtualHost')
-    RABBIT_USER: str = Field(default='guest', validation_alias='RabbitMq__UserName')
-    RABBIT_PASS: str = Field(default='guest', validation_alias='RabbitMq__Password')
+    RABBIT_USER: str = Field(default='consultant', validation_alias='RabbitMq__UserName')
+    RABBIT_PASS: str = Field(default='consultant_pass', validation_alias='RabbitMq__Password')
 
     RABBIT_EXCHANGE: str = Field(default='app.tasks', validation_alias='RabbitMq__Exchange')
     RABBIT_ROUTING_KEY_TASK_CREATED: str = Field(default='task.created',

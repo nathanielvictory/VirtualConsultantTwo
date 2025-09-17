@@ -39,11 +39,12 @@ class Worker:
             port=settings.RABBIT_PORT,
             virtual_host=settings.RABBIT_VHOST,
             credentials=creds,
-            heartbeat=30,
+            heartbeat=300,
             blocked_connection_timeout=60,
         )
         self._conn = pika.BlockingConnection(params)
         ch = self._conn.channel()
+        self._ch.basic_qos(prefetch_count=1)
 
         ch.exchange_declare(exchange=self.exchange, exchange_type="topic", durable=True)
 
