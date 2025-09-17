@@ -10,7 +10,7 @@ import signal
 
 import pika
 
-from config import settings
+from config import settings, setup_logging
 from worker.listeners import HANDLERS
 
 logging.basicConfig(level=logging.INFO, format="[%(asctime)s] %(levelname)s: %(message)s")
@@ -92,4 +92,5 @@ class Worker:
 
 
 if __name__ == "__main__":
+    setup_logging()
     Worker().run()

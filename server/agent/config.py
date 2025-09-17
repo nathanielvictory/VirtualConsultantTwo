@@ -39,3 +39,26 @@ class Settings(BaseSettings):
     )
 
 settings = Settings()
+
+_DEFAULT_FMT = (
+    "%(asctime)s %(levelname)s "
+    "[%(name)s] %(message)s"
+)  # ISO-like time makes Loki queries easier
+
+def setup_logging(
+    level: str | None = None,
+    fmt: str = _DEFAULT_FMT,
+    *,
+    force: bool = True,
+) -> None:
+    level = (level or os.getenv("LOG_LEVEL", "INFO")).upper()
+    logging.basicConfig(
+        level=level,
+        format=fmt,
+        datefmt="%Y-%m-%dT%H:%M:%S%z",
+        force=force,  # py≥3.8 – guarantees idempotent setup
+    )
+
+    # Optional: quiet noisy third-party libs at INFO while we’re at it
+    for noisy in ("botocore", "urllib3", "paramiko.transport", "pandas"):
+        logging.getLogger(noisy).setLevel(logging.ERROR)
