@@ -31,6 +31,17 @@ services:
       - db
       - rabbit
 
+  worker:
+    container_name: consultant_worker
+    build:
+      context: ../server/agent
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    depends_on:
+      - rabbit
+    restart: unless-stopped
+      
   frontend:
     container_name: consultant_frontend
     build:

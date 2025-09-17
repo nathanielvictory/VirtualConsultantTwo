@@ -9,7 +9,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 # App code
 COPY . .
 
-# Agent (FastAPI)
-EXPOSE 8000
-# Default command runs the HTTP agent; the worker service overrides CMD with a Celery command
-CMD ["uvicorn","main:app","--host","0.0.0.0","--port","8000","--reload"]
+CMD ["python", "-m", "worker.worker"]
