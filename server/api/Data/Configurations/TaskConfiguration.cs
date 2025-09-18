@@ -46,12 +46,15 @@ public class TaskArtifactConfiguration : IEntityTypeConfiguration<TaskArtifact>
     {
         e.HasKey(a => a.Id);
 
+        // Required enums
         e.Property(a => a.ResourceType).IsRequired();
-        e.Property(a => a.ResourceId).IsRequired();
         e.Property(a => a.Action).IsRequired();
 
-        e.Property(a => a.CreatedAt).HasDefaultValueSql("now() at time zone 'utc'");
+        // Optional properties
+        e.Property(a => a.CreatedResourceId).IsRequired(false);
+        e.Property(a => a.TotalTokens).IsRequired(false);
 
+        // Indexes
         e.HasIndex(a => new { a.TaskId, a.CreatedAt });
     }
 }

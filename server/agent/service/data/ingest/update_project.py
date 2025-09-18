@@ -8,7 +8,7 @@ from service.data.s3_client import s3_client, get_survey_data_key
 from ..reporting_api.get_survey_data import get_survey_data
 
 
-def update_project(kbid: str, key_number: int = 0):
+def update_project(kbid: str, key_number: int = 0) -> bool:
     survey_data = get_survey_data(kbid, key_number)
     survey_dict = survey_data.model_dump()
     s3_key = get_survey_data_key(kbid, key_number)
@@ -25,4 +25,4 @@ def update_project(kbid: str, key_number: int = 0):
         ExtraArgs={"ContentType": "application/json", "ContentEncoding": "gzip"},
     )
 
-    return survey_data
+    return True

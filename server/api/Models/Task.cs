@@ -11,11 +11,11 @@ public enum TaskJobType
 
 public enum TaskJobStatus
 {
-    Queued,
-    Running,
-    Succeeded,
-    Failed,
-    Canceled
+    Queued = 0,
+    Running = 1,
+    Succeeded = 2,
+    Failed = 3,
+    Canceled = 4
 }
 
 public class TaskJob
@@ -45,6 +45,20 @@ public class TaskJob
     public List<TaskArtifact> Artifacts { get; set; } = new();
 }
 
+
+public enum TaskArtifactResourceType
+{
+    Insight   = 0,
+    Memo      = 1,
+    Slidedeck = 2
+}
+
+public enum TaskArtifactActionType
+{
+    Create   = 0,
+    Edit      = 1
+}
+
 public class TaskArtifact
 {
     public int Id { get; set; }
@@ -52,14 +66,13 @@ public class TaskArtifact
     public int TaskId { get; set; }
     public TaskJob Task { get; set; } = null!;
 
-    public string ResourceType { get; set; } = null!; // "Insight" | "Memo" | "Slidedeck"
-    public string ResourceId { get; set; } = null!;
-    public string Action { get; set; } = "Create"; // "Create" | "Append" | "Edit" | "Populate"
+    public TaskArtifactResourceType ResourceType { get; set; }   // now enum
+    public int? CreatedResourceId { get; set; }
 
-    public string? Model { get; set; }
-    public int? PromptTokens { get; set; }
-    public int? CompletionTokens { get; set; }
+    public TaskArtifactActionType Action { get; set; } = TaskArtifactActionType.Create;
+    
     public int? TotalTokens { get; set; }
 
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
 }
+

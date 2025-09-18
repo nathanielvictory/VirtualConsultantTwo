@@ -36,4 +36,5 @@ public record UpdateProjectDto(
     string? Name,
     string? OrganizationId,
     string? ProjectContext,
-    bool? IsActive);
+    bool? IsActive,
+    DateTime? LastRefreshed);

@@ -31,6 +31,11 @@ class Settings(BaseSettings):
     RABBIT_ROUTING_KEY_TASK_CREATED: str = Field(default='task.created',
                                                  validation_alias='RabbitMq__RoutingKeyTaskCreated')
 
+    # -- Conultant API --
+    CONSULTANT_URL: str = 'http://localhost:8080/api'
+    CONSULTANT_USERNAME: str = ''
+    CONSULTANT_PASSWORD: str = ''
+
     model_config = SettingsConfigDict(
         env_file=(
             BASE_DIR / ".env",

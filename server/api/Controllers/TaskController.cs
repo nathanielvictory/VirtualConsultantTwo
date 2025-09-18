@@ -22,7 +22,7 @@ public class TasksController : ControllerBase
     public TasksController(AppDbContext context, IMapper mapper)
     {
         _context = context;
-        _mapper = mapper;
+        _mapper  = mapper;
     }
 
     /// <summary>
@@ -146,6 +146,56 @@ public class TasksController : ControllerBase
         if (entity is null) return NotFound();
 
         _context.Tasks.Remove(entity);
+        await _context.SaveChangesAsync();
+        return NoContent();
+    }
+
+    // ----------------------------
+    //     ARTIFACT ENDPOINTS
+    // ----------------------------
+
+    /// <summary>
+    /// Create an artifact for a task.
+    /// </summary>
+    [HttpPost("{id:int}/artifacts")]
+    [ProducesResponseType(typeof(TaskArtifactDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<TaskArtifactDto>> CreateArtifact(
+        int id,
+        [FromBody] CreateTaskArtifactDto dto)
+    {
+        var taskExists = await _context.Tasks.AsNoTracking().AnyAsync(t => t.Id == id);
+        if (!taskExists) return NotFound();
+
+        var entity = _mapper.Map<TaskArtifact>(dto);
+        entity.TaskId = id;
+
+        _context.TaskArtifacts.Add(entity);
+        await _context.SaveChangesAsync();
+
+        var created = await _context.TaskArtifacts.AsNoTracking()
+            .Where(a => a.Id == entity.Id)
+            .ProjectTo<TaskArtifactDto>(_mapper.ConfigurationProvider)
+            .FirstAsync();
+
+        // Point Location to the parent task since single-task view includes artifacts.
+        return CreatedAtAction(nameof(GetTask), new { id }, created);
+    }
+
+    /// <summary>
+    /// Delete an artifact.
+    /// </summary>
+    [HttpDelete("{id:int}/artifacts/{artifactId:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteArtifact(int id, int artifactId)
+    {
+        var entity = await _context.TaskArtifacts
+            .FirstOrDefaultAsync(a => a.TaskId == id && a.Id == artifactId);
+
+        if (entity is null) return NotFound();
+
+        _context.TaskArtifacts.Remove(entity);
         await _context.SaveChangesAsync();
         return NoContent();
     }

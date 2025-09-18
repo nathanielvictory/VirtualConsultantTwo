@@ -39,7 +39,7 @@ class Worker:
             port=settings.RABBIT_PORT,
             virtual_host=settings.RABBIT_VHOST,
             credentials=creds,
-            heartbeat=300,
+            heartbeat=0,
             blocked_connection_timeout=60,
         )
         self._conn = pika.BlockingConnection(params)
@@ -75,12 +75,15 @@ class Worker:
         signal.signal(signal.SIGINT, self._request_stop)
 
         def on_message(ch, method, properties, body) -> None:
+            ch.basic_ack(delivery_tag=method.delivery_tag)
             handler = HANDLERS.get(method.routing_key)
             if handler:
-                handler(body)
+                try:
+                    handler(body)
+                except Exception as e:
+                    logger.warning(f"Exception {repr(e)} on {method.routing_key}: {body}")
             else:
                 logger.info("no handler for %r: %r", method.routing_key, body)
-            ch.basic_ack(delivery_tag=method.delivery_tag)
 
         for q in self._queues:
             self._ch.basic_consume(queue=q, on_message_callback=on_message, auto_ack=False)
