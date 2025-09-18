@@ -43,8 +43,9 @@ public class QueueTaskController : ControllerBase
                 task_id = task.Id,
                 project_id = proj.Id,
                 kbid = proj.KbId,
-                key_number = proj.KeyNumber
-                // token_limit optional; omit for now
+                key_number = proj.KeyNumber,
+                number_of_insights = dto.NumberOfInsights,
+                focus = string.IsNullOrWhiteSpace(dto.Focus) ? null : dto.Focus
             });
 
     // POST api/QueueTask/full-report

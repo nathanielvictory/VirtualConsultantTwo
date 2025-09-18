@@ -1,10 +1,3 @@
-"""
-Minimal RabbitMQ worker (listen-only) with graceful shutdown.
-- Declares durable topic exchange and per-routing-key durable queues.
-- Auto-discovers handlers from worker.listeners package; no worker edits needed to add/remove keys.
-"""
-from __future__ import annotations
-
 import logging
 import signal
 

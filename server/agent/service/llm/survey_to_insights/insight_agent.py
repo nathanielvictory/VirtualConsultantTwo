@@ -72,11 +72,11 @@ async def get_topline_data(ctx: RunContext[InsightDependencies], short_name: str
             str: A formatted string representation of the topline results.
         """
     try:
-        print(f"LLM requested topline for {short_name}")
+        logger.info(f"LLM requested topline for {short_name}")
         topline_data = ctx.deps.datasource.topline_text(short_name)
         return topline_data
     except KeyError:
-        print(f"No topline for {short_name}")
+        logger.info(f"No topline for {short_name}")
         return "I couldn't find any question with that short name."
 
 
@@ -93,9 +93,9 @@ async def get_crosstab_data(ctx: RunContext[InsightDependencies], short_name: st
             str: A formatted string representation of the crosstab results.
     """
     try:
-        print(f"LLM requested crosstab for {short_name} x {by_short_name}")
+        logger.info(f"LLM requested crosstab for {short_name} x {by_short_name}")
         crosstab_data = ctx.deps.datasource.crosstab_text(short_name, by_short_name)
         return crosstab_data
     except KeyError:
-        print(f"No crosstab for {short_name} x {by_short_name}")
+        logger.info(f"No crosstab for {short_name} x {by_short_name}")
         return "I couldn't find the crosstab with those short names."

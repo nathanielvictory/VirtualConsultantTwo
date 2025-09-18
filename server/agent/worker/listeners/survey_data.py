@@ -17,7 +17,7 @@ ROUTING_KEY = "task.survey_data"
 def handle(body):
     try:
         survey_data_schema = SurveyDataSchema.model_validate_json(body)
-        logger.debug("task.survey_data: %s", survey_data_schema.model_dump_json(indent=2))
+        logger.info("task.survey_data: %s", survey_data_schema.model_dump_json())
     except ValidationError as e:
         logger.error("task.survey_data body didn't validate: %r", body)
         return

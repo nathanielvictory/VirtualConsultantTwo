@@ -1,9 +1,10 @@
+import re
 from typing import Dict, List, Optional, Sequence, Tuple, Union, Iterable
 
-from pydantic import BaseModel
 import io
 import json
 import gzip
+from logging import getLogger
 
 from config import settings
 from .s3_client import s3_client, get_survey_data_key
@@ -13,6 +14,14 @@ from service.slides.chartkit.models import AnswerOption, Question, Grid
 from .mock_datasource import SurveyDataSource
 from .models.survey import Survey, SurveyQuestion, CrosstabQuestion
 
+
+class SurveyDataLoadError(Exception):
+    def __init__(self, kbid: str, key_number: int, message: str = None):
+        self.kbid = kbid
+        self.key_number = key_number
+        if message is None:
+            message = f"Failed to load survey data for kbid={kbid}, key_number={key_number}"
+        super().__init__(message)
 
 def _download_survey_data(kbid, key_number):
     s3_key = get_survey_data_key(kbid, key_number)
@@ -25,7 +34,6 @@ def _download_survey_data(kbid, key_number):
 
 
 def _canon(s: str) -> str:
-    import re
     return re.sub(r"\s+", " ", s.strip().lower())
 
 def _round_row(values: Iterable[float], *, decimals: int = 1) -> List[float]:
@@ -66,9 +74,13 @@ class ReportingSurveyDataSource(SurveyDataSource):
         key_number: int,
         preloaded_survey: Optional[Survey] = None,
     ) -> None:
+        self.logger = getLogger(__name__)
         self._kbid = kbid
         self._key_number = key_number
-        self._survey: Survey = preloaded_survey or _download_survey_data(kbid, key_number)
+        try:
+            self._survey: Survey = preloaded_survey or _download_survey_data(kbid, key_number)
+        except Exception as e:
+            raise SurveyDataLoadError(kbid, key_number) from e
 
         self._topline_by_var: Dict[str, SurveyQuestion] = {
             _canon(q.question_varname): q for q in self._survey.survey_topline
@@ -101,13 +113,20 @@ class ReportingSurveyDataSource(SurveyDataSource):
         if key in crosstab_keys:
             return key
 
+        is_question = re.compile(r'^[Qq]\d{1,2}')
         # 4) fuzzy contains over topline, then over crosstab varnames
         for k in self._topline_by_var.keys():
             if key == k or key in k or k in key:
                 return k
+
+            if is_question.search(key) and is_question.search(k):
+                if is_question.search(key).group(0) == is_question.search(k).group(0):
+                    return k
+
         for k in crosstab_keys:
             if key == k or key in k or k in key:
                 return k
+
 
         raise KeyError(f"Unknown varname: {varname}")
 

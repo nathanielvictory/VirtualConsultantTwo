@@ -1,8 +1,17 @@
-﻿namespace api.Dtos
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace api.Dtos
 {
     public class QueueCreateInsightsTaskDto
     {
         public int ProjectId { get; set; }
+
+        // Optional integer between 0 and 5 (inclusive)
+        [Range(0, 5, ErrorMessage = "number_of_insights must be between 0 and 5.")]
+        public int? NumberOfInsights { get; set; }
+
+        // Optional free-form focus string
+        public string? Focus { get; set; }
     }
 
     public class QueueCreateFullReportTaskDto

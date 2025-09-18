@@ -6,4 +6,6 @@ class Insights(BaseModel):
     kbid: str
     key_number: int
     token_limit: int | None = None
+    focus: str | None = None
+    number_of_insights: int | None = None
     model_config = ConfigDict(extra="forbid")

@@ -54,7 +54,6 @@ class SurveyToInsightsAgent:
                 if output.optional_insight_two:
                     all_insights.append(output.optional_insight_two)
                     total += 1
-            print(f"Generated {total} insights from {focus}.")
         return all_insights
 
 
@@ -73,8 +72,6 @@ class SurveyToInsightsAgent:
             except (UnexpectedModelBehavior, ClientError) as e:
                 attempts += 1
                 if attempts >= retries:
-                    print("Attempts exceeded")
                     return None
             except UsageLimitExceeded:
-                print("Usage Limit exceeded")
                 return None
