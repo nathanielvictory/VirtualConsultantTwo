@@ -6,7 +6,9 @@ public enum TaskJobType
     FullReport  = 1, // task.full_report
     Memo        = 2, // task.memo
     Slides      = 3, // task.slides
-    SurveyData  = 4  // task.survey_data
+    SurveyData  = 4,  // task.survey_data
+    MemoBlock = 5,
+    SlideOutline = 6
 }
 
 public enum TaskJobStatus

@@ -6,6 +6,7 @@ using Microsoft.OpenApi.Models;
 using System.Text;
 using System.Text.Json.Serialization;
 using api.Data;
+using api.Infrastructure;
 using api.Models;
 using api.Middleware;
 using api.Messaging.RabbitMq;
@@ -123,7 +124,7 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-await IdentitySeed.EnsureAdminAsync(app.Services, app.Configuration);
+await app.MigrateAndSeedAsync();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

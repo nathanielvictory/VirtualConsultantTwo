@@ -33,7 +33,9 @@ def handle(body):
             focus = insights_schema.focus if insights_schema.focus else "The client has not provided a specific focus."
             new_insights = agent.get_insights([focus], min(num, 5))
 
+        tokens_per_insight = (agent.usage.input_tokens + agent.usage.output_tokens) // len(new_insights)
         for index, insight in enumerate(new_insights):
+            
             logger.info(f"{index+1}. {insight}")
 
         return
