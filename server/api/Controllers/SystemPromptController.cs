@@ -25,10 +25,9 @@ public class SystemPromptsController : ControllerBase
         _mapper = mapper;
     }
 
-    // List revisions (optionally filter by type, optionally only latest per type)
     [HttpGet]
     public async Task<ActionResult<PagedResultDto<SystemPromptListItemDto>>> GetSystemPrompts(
-        [FromQuery] string? type = null,
+        [FromQuery] TaskJobType? type = null,
         [FromQuery] bool latestOnly = false,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 50)
@@ -38,16 +37,12 @@ public class SystemPromptsController : ControllerBase
 
         var q = _context.SystemPrompts.AsNoTracking().AsQueryable();
 
-        if (!string.IsNullOrWhiteSpace(type) &&
-            Enum.TryParse<SystemPromptType>(type, ignoreCase: true, out var t))
-        {
-            q = q.Where(p => p.PromptType == t);
-        }
+        if (type is not null)
+            q = q.Where(p => p.PromptType == type);
+        
 
         if (latestOnly)
         {
-            // Latest per type:
-            // GroupBy + FirstOrDefault is translated by EF Core/Npgsql.
             q = q.GroupBy(p => p.PromptType)
                  .Select(g => g.OrderByDescending(x => x.CreatedAt).ThenByDescending(x => x.Id).First());
         }
@@ -67,7 +62,6 @@ public class SystemPromptsController : ControllerBase
             items, page, pageSize, total, totalPages, page > 1, page < totalPages));
     }
 
-    // Get single revision
     [HttpGet("{id:int}")]
     public async Task<ActionResult<SystemPromptDetailDto>> GetSystemPrompt(int id)
     {
@@ -79,7 +73,6 @@ public class SystemPromptsController : ControllerBase
         return dto is null ? NotFound() : Ok(dto);
     }
 
-    // Create a new revision (append-only)
     [HttpPost]
     public async Task<ActionResult<SystemPromptDetailDto>> PostSystemPrompt(CreateSystemPromptDto dto)
     {
@@ -94,6 +87,4 @@ public class SystemPromptsController : ControllerBase
 
         return CreatedAtAction(nameof(GetSystemPrompt), new { id = created.Id }, created);
     }
-
-    // Intentionally no PATCH/PUT to keep history immutable.
 }

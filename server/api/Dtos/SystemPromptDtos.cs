@@ -1,20 +1,21 @@
 using System.ComponentModel.DataAnnotations;
+using api.Models;
 
 namespace api.Dtos;
 
-// Using strings for PromptType in DTOs makes the API extra friendly to the frontend
+
 public record SystemPromptListItemDto(
     int Id,
-    string PromptType,
+    TaskJobType PromptType,
     string Prompt,
     DateTime CreatedAt);
 
 public record SystemPromptDetailDto(
     int Id,
-    string PromptType,
+    TaskJobType PromptType,
     string Prompt,
     DateTime CreatedAt);
 
 public record CreateSystemPromptDto(
-    [Required] string PromptType,
+    [Required] TaskJobType PromptType,
     [Required] string Prompt);
