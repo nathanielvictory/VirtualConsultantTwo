@@ -1,11 +1,66 @@
 import { emptySplitApi as api } from "./emptyApi.ts";
-export const addTagTypes = ["Tasks"] as const;
+export const addTagTypes = ["QueueTask", "Tasks"] as const;
 const injectedRtkApi = api
   .enhanceEndpoints({
     addTagTypes,
   })
   .injectEndpoints({
     endpoints: (build) => ({
+      postApiQueueTaskInsights: build.mutation<
+        PostApiQueueTaskInsightsApiResponse,
+        PostApiQueueTaskInsightsApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/api/QueueTask/insights`,
+          method: "POST",
+          body: queryArg.queueCreateInsightsTaskDto,
+        }),
+        invalidatesTags: ["QueueTask"],
+      }),
+      postApiQueueTaskFullReport: build.mutation<
+        PostApiQueueTaskFullReportApiResponse,
+        PostApiQueueTaskFullReportApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/api/QueueTask/full-report`,
+          method: "POST",
+          body: queryArg.queueCreateFullReportTaskDto,
+        }),
+        invalidatesTags: ["QueueTask"],
+      }),
+      postApiQueueTaskMemo: build.mutation<
+        PostApiQueueTaskMemoApiResponse,
+        PostApiQueueTaskMemoApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/api/QueueTask/memo`,
+          method: "POST",
+          body: queryArg.queueCreateMemoTaskDto,
+        }),
+        invalidatesTags: ["QueueTask"],
+      }),
+      postApiQueueTaskSlides: build.mutation<
+        PostApiQueueTaskSlidesApiResponse,
+        PostApiQueueTaskSlidesApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/api/QueueTask/slides`,
+          method: "POST",
+          body: queryArg.queueCreateSlidesTaskDto,
+        }),
+        invalidatesTags: ["QueueTask"],
+      }),
+      postApiQueueTaskSurveyData: build.mutation<
+        PostApiQueueTaskSurveyDataApiResponse,
+        PostApiQueueTaskSurveyDataApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/api/QueueTask/survey-data`,
+          method: "POST",
+          body: queryArg.queueCreateSurveyDataTaskDto,
+        }),
+        invalidatesTags: ["QueueTask"],
+      }),
       getApiTasks: build.query<GetApiTasksApiResponse, GetApiTasksApiArg>({
         query: (queryArg) => ({
           url: `/api/Tasks`,
@@ -61,10 +116,51 @@ const injectedRtkApi = api
         }),
         invalidatesTags: ["Tasks"],
       }),
+      postApiTasksByIdArtifacts: build.mutation<
+        PostApiTasksByIdArtifactsApiResponse,
+        PostApiTasksByIdArtifactsApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/api/Tasks/${queryArg.id}/artifacts`,
+          method: "POST",
+          body: queryArg.createTaskArtifactDto,
+        }),
+        invalidatesTags: ["Tasks"],
+      }),
+      deleteApiTasksByIdArtifactsAndArtifactId: build.mutation<
+        DeleteApiTasksByIdArtifactsAndArtifactIdApiResponse,
+        DeleteApiTasksByIdArtifactsAndArtifactIdApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/api/Tasks/${queryArg.id}/artifacts/${queryArg.artifactId}`,
+          method: "DELETE",
+        }),
+        invalidatesTags: ["Tasks"],
+      }),
     }),
     overrideExisting: false,
   });
 export { injectedRtkApi as tasksApi };
+export type PostApiQueueTaskInsightsApiResponse = unknown;
+export type PostApiQueueTaskInsightsApiArg = {
+  queueCreateInsightsTaskDto: QueueCreateInsightsTaskDto;
+};
+export type PostApiQueueTaskFullReportApiResponse = unknown;
+export type PostApiQueueTaskFullReportApiArg = {
+  queueCreateFullReportTaskDto: QueueCreateFullReportTaskDto;
+};
+export type PostApiQueueTaskMemoApiResponse = unknown;
+export type PostApiQueueTaskMemoApiArg = {
+  queueCreateMemoTaskDto: QueueCreateMemoTaskDto;
+};
+export type PostApiQueueTaskSlidesApiResponse = unknown;
+export type PostApiQueueTaskSlidesApiArg = {
+  queueCreateSlidesTaskDto: QueueCreateSlidesTaskDto;
+};
+export type PostApiQueueTaskSurveyDataApiResponse = unknown;
+export type PostApiQueueTaskSurveyDataApiArg = {
+  queueCreateSurveyDataTaskDto: QueueCreateSurveyDataTaskDto;
+};
 export type GetApiTasksApiResponse =
   /** status 200 OK */ TaskListItemDtoPagedResultDto;
 export type GetApiTasksApiArg = {
@@ -95,13 +191,53 @@ export type DeleteApiTasksByIdApiResponse = unknown;
 export type DeleteApiTasksByIdApiArg = {
   id: number;
 };
-export type TaskJobType = 0 | 1 | 2;
-export type TaskStatus = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
+export type PostApiTasksByIdArtifactsApiResponse =
+  /** status 201 Created */ TaskArtifactDto;
+export type PostApiTasksByIdArtifactsApiArg = {
+  id: number;
+  createTaskArtifactDto: CreateTaskArtifactDto;
+};
+export type DeleteApiTasksByIdArtifactsAndArtifactIdApiResponse = unknown;
+export type DeleteApiTasksByIdArtifactsAndArtifactIdApiArg = {
+  id: number;
+  artifactId: number;
+};
+export type QueueCreateInsightsTaskDto = {
+  projectId?: number;
+  numberOfInsights?: number | null;
+  focus?: string | null;
+};
+export type QueueCreateFullReportTaskDto = {
+  projectId?: number;
+};
+export type QueueCreateMemoTaskDto = {
+  projectId?: number;
+};
+export type QueueCreateSlidesTaskDto = {
+  projectId?: number;
+};
+export type QueueCreateSurveyDataTaskDto = {
+  projectId?: number;
+};
+export type TaskJobType =
+  | "Insights"
+  | "FullReport"
+  | "Memo"
+  | "Slides"
+  | "SurveyData"
+  | "MemoBlock"
+  | "SlideOutline";
+export type TaskJobStatus =
+  | "Queued"
+  | "Running"
+  | "Succeeded"
+  | "Failed"
+  | "Canceled";
 export type TaskListItemDto = {
   id?: number;
   projectId?: number;
   jobType?: TaskJobType;
-  status?: TaskStatus;
+  status?: TaskJobStatus;
   progress?: number | null;
   createdByUserId?: number;
   createdAt?: string;
@@ -118,16 +254,14 @@ export type TaskListItemDtoPagedResultDto = {
   hasPrevious?: boolean;
   hasNext?: boolean;
 };
-export type TaskJobStatus = 0 | 1 | 2 | 3 | 4;
+export type TaskArtifactResourceType = "Insight" | "Memo" | "Slidedeck";
+export type TaskArtifactActionType = "Create" | "Edit";
 export type TaskArtifactDto = {
   id?: number;
   taskId?: number;
-  resourceType?: string | null;
-  resourceId?: string | null;
-  action?: string | null;
-  model?: string | null;
-  promptTokens?: number | null;
-  completionTokens?: number | null;
+  resourceType?: TaskArtifactResourceType;
+  createdResourceId?: number | null;
+  action?: TaskArtifactActionType;
   totalTokens?: number | null;
   createdAt?: string;
 };
@@ -135,7 +269,7 @@ export type TaskDetailDto = {
   id?: number;
   projectId?: number;
   jobType?: TaskJobType;
-  status?: TaskStatus;
+  status?: TaskJobStatus;
   progress?: number | null;
   createdByUserId?: number;
   payloadJson?: string | null;
@@ -154,17 +288,38 @@ export type CreateTaskDto = {
 };
 export type UpdateTaskDto = {
   type?: TaskJobType;
-  status?: TaskStatus;
+  status?: TaskJobStatus;
   progress?: number | null;
   payloadJson?: string | null;
   errorMessage?: string | null;
   startedAt?: string | null;
   completedAt?: string | null;
 };
+export type ProblemDetails = {
+  type?: string | null;
+  title?: string | null;
+  status?: number | null;
+  detail?: string | null;
+  instance?: string | null;
+  [key: string]: any;
+};
+export type CreateTaskArtifactDto = {
+  resourceType?: TaskArtifactResourceType;
+  action?: TaskArtifactActionType;
+  createdResourceId?: number | null;
+  totalTokens?: number | null;
+};
 export const {
+  usePostApiQueueTaskInsightsMutation,
+  usePostApiQueueTaskFullReportMutation,
+  usePostApiQueueTaskMemoMutation,
+  usePostApiQueueTaskSlidesMutation,
+  usePostApiQueueTaskSurveyDataMutation,
   useGetApiTasksQuery,
   usePostApiTasksMutation,
   useGetApiTasksByIdQuery,
   usePatchApiTasksByIdMutation,
   useDeleteApiTasksByIdMutation,
+  usePostApiTasksByIdArtifactsMutation,
+  useDeleteApiTasksByIdArtifactsAndArtifactIdMutation,
 } = injectedRtkApi;

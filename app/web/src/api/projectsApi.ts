@@ -138,6 +138,7 @@ export type UpdateProjectDto = {
   organizationId?: string | null;
   projectContext?: string | null;
   isActive?: boolean | null;
+  lastRefreshed?: string | null;
 };
 export const {
   useGetApiProjectsQuery,

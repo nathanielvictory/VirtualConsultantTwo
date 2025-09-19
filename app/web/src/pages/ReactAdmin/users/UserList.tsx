@@ -44,7 +44,7 @@ export function UserList() {
         <List title="Users" filters={filters} actions={<ListActions />} perPage={25}>
             <Datagrid rowClick="show">
                 <NumberField source="id" />
-                <TextField source="username" label="Username" />
+                <TextField source="userName" label="Username" />
                 <ReferenceField
                     label="Organization"
                     source="organizationId"

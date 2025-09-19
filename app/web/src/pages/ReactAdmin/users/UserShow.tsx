@@ -24,7 +24,7 @@ export function UserShow() {
         <Show title="User" actions={<ShowActions />}>
             <SimpleShowLayout>
                 <NumberField source="id" />
-                <TextField source="username" label="Username" />
+                <TextField source="userName" label="Username" />
                 <ReferenceField
                     label="Organization"
                     source="organizationId"

@@ -1,5 +1,5 @@
 import { emptySplitApi as api } from "./emptyApi.ts";
-export const addTagTypes = ["Insights"] as const;
+export const addTagTypes = ["Insights", "QueueTask"] as const;
 const injectedRtkApi = api
   .enhanceEndpoints({
     addTagTypes,
@@ -62,6 +62,17 @@ const injectedRtkApi = api
         }),
         invalidatesTags: ["Insights"],
       }),
+      postApiQueueTaskInsights: build.mutation<
+        PostApiQueueTaskInsightsApiResponse,
+        PostApiQueueTaskInsightsApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/api/QueueTask/insights`,
+          method: "POST",
+          body: queryArg.queueCreateInsightsTaskDto,
+        }),
+        invalidatesTags: ["QueueTask"],
+      }),
     }),
     overrideExisting: false,
   });
@@ -94,7 +105,11 @@ export type DeleteApiInsightsByIdApiResponse = unknown;
 export type DeleteApiInsightsByIdApiArg = {
   id: number;
 };
-export type InsightSource = 0 | 1;
+export type PostApiQueueTaskInsightsApiResponse = unknown;
+export type PostApiQueueTaskInsightsApiArg = {
+  queueCreateInsightsTaskDto: QueueCreateInsightsTaskDto;
+};
+export type InsightSource = "Llm" | "User";
 export type InsightListItemDto = {
   id?: number;
   projectId?: number;
@@ -129,10 +144,16 @@ export type UpdateInsightDto = {
   source?: InsightSource;
   orderIndex?: number | null;
 };
+export type QueueCreateInsightsTaskDto = {
+  projectId?: number;
+  numberOfInsights?: number | null;
+  focus?: string | null;
+};
 export const {
   useGetApiInsightsQuery,
   usePostApiInsightsMutation,
   useGetApiInsightsByIdQuery,
   usePatchApiInsightsByIdMutation,
   useDeleteApiInsightsByIdMutation,
+  usePostApiQueueTaskInsightsMutation,
 } = injectedRtkApi;

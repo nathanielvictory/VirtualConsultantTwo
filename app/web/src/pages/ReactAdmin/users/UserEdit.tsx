@@ -27,7 +27,7 @@ export function UserEdit() {
                 <TextInput source="id" disabled />
 
                 <TextInput
-                    source="username"
+                    source="userName"
                     label="Username"
                     validate={[required()]}
                     fullWidth

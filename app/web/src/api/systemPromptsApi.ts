@@ -46,7 +46,7 @@ export { injectedRtkApi as systemPromptsApi };
 export type GetApiSystemPromptsApiResponse =
   /** status 200 OK */ SystemPromptListItemDtoPagedResultDto;
 export type GetApiSystemPromptsApiArg = {
-  type?: string;
+  type?: TaskJobType;
   latestOnly?: boolean;
   page?: number;
   pageSize?: number;
@@ -61,9 +61,17 @@ export type GetApiSystemPromptsByIdApiResponse =
 export type GetApiSystemPromptsByIdApiArg = {
   id: number;
 };
+export type TaskJobType =
+  | "Insights"
+  | "FullReport"
+  | "Memo"
+  | "Slides"
+  | "SurveyData"
+  | "MemoBlock"
+  | "SlideOutline";
 export type SystemPromptListItemDto = {
   id?: number;
-  promptType?: string | null;
+  promptType?: TaskJobType;
   prompt?: string | null;
   createdAt?: string;
 };
@@ -78,12 +86,12 @@ export type SystemPromptListItemDtoPagedResultDto = {
 };
 export type SystemPromptDetailDto = {
   id?: number;
-  promptType?: string | null;
+  promptType?: TaskJobType;
   prompt?: string | null;
   createdAt?: string;
 };
 export type CreateSystemPromptDto = {
-  promptType?: string | null;
+  promptType?: TaskJobType;
   prompt?: string | null;
 };
 export const {
