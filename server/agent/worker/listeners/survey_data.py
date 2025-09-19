@@ -1,10 +1,8 @@
 import logging
 from pydantic import ValidationError
 import requests
-from datetime import datetime, timezone
 
 
-from config import settings
 from ..schema.survey_data import SurveyData as SurveyDataSchema
 from service.data.reporting_api.get_project_data import get_project_data
 from service.data.ingest.update_project import update_project
@@ -36,5 +34,5 @@ def handle(body):
         logger.info(f"Updated project data for {survey_data_schema.kbid}")
         headers = task_manager.get_headers()
         data = {"lastRefreshed": task_manager.get_current_timestamp()}
-        requests.patch(settings.CONSULTANT_URL + f'/Projects/{survey_data_schema.project_id}', headers=headers, json=data)
+        requests.patch(task_manager.get_base_url() + f'/Projects/{survey_data_schema.project_id}', headers=headers, json=data)
         return

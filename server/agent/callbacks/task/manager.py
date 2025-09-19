@@ -19,7 +19,7 @@ def TaskManager(task_id):
         def get_token(self): return self._auth.get_token()
 
         @staticmethod
-        def get_base_url(): return settings.CONSULT_BASE_URL
+        def get_base_url(): return settings.CONSULTANT_URL
 
         def get_headers(self):
             return {

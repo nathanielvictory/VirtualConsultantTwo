@@ -108,6 +108,16 @@ public class InsightsController : ControllerBase
     public async Task<ActionResult<InsightDetailDto>> PostInsight(CreateInsightDto dto)
     {
         var entity = _mapper.Map<api.Models.Insight>(dto);
+
+        if (dto.OrderIndex == null)
+        {
+            var maxOrder = await _context.Insights
+                .Where(i => i.ProjectId == dto.ProjectId)
+                .MaxAsync(i => (int?)i.OrderIndex) ?? 0;
+
+            entity.OrderIndex = maxOrder + 1;
+        }
+
         _context.Insights.Add(entity);
         await _context.SaveChangesAsync();
 

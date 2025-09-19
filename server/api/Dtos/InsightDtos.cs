@@ -22,7 +22,7 @@ public record CreateInsightDto(
     [Required] int ProjectId,
     [Required] string Content,
     InsightSource Source,
-    int OrderIndex);
+    int? OrderIndex);
 
 public record UpdateInsightDto(
     string? Content,

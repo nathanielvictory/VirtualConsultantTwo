@@ -3,7 +3,7 @@ from pydantic import ValidationError
 import requests
 from datetime import datetime, timezone
 
-
+from callbacks.task.artifact_schema import Artifact
 from config import settings
 from ..schema.insights import Insights as InsightsSchema
 from service.data.reporting_api.get_project_data import get_project_data
@@ -33,18 +33,17 @@ def handle(body):
             focus = insights_schema.focus if insights_schema.focus else "The client has not provided a specific focus."
             new_insights = agent.get_insights([focus], min(num, 5))
 
-        tokens_per_insight = (agent.usage.input_tokens + agent.usage.output_tokens) // len(new_insights)
-        for index, insight in enumerate(new_insights):
-            
-            logger.info(f"{index+1}. {insight}")
-
-        return
-        if not success:
-            logger.info(f"Failed to update project data for {insights_schema.kbid}")
-            return
-
-        logger.info(f"Updated project data for {insights_schema.kbid}")
-        headers = task_manager.get_headers()
-        data = {"lastRefreshed": task_manager.get_current_timestamp()}
-        requests.patch(settings.CONSULTANT_URL + f'/Projects/{insights_schema.project_id}', headers=headers, json=data)
+        tokens_per_insight = (agent.usage.input_tokens + agent.usage.output_tokens * 3) // len(new_insights)
+        for insight in new_insights:
+            headers = task_manager.get_headers()
+            data = {"projectId": insights_schema.project_id, 'content': insight, 'source': 'Llm'}
+            response = requests.post(task_manager.get_base_url() + f'/Insights', headers=headers, json=data)
+            insight_id = response.json().get('id')
+            task_manager.add_artifact(Artifact(
+                resource_type='Insight',
+                action='Create',
+                created_resource_id=insight_id,
+                total_tokens=tokens_per_insight,
+            ))
+        logger.info(f"Generated {len(new_insights)} insights for {insights_schema.kbid}")
         return
