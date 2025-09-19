@@ -1,12 +1,9 @@
 import logging
 from pydantic import ValidationError
 import requests
-from datetime import datetime, timezone
 
 from callbacks.task.artifact_schema import Artifact
-from config import settings
 from ..schema.insights import Insights as InsightsSchema
-from service.data.reporting_api.get_project_data import get_project_data
 from service.llm.survey_to_insights import SurveyToInsightsAgent
 from callbacks import TaskManager
 
