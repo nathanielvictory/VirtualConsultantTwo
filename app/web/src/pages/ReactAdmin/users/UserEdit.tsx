@@ -57,7 +57,7 @@ export function UserEdit() {
                     helperText="Leave blank to keep the current password"
                     fullWidth
                 />
-            </SimpleForm>c
+            </SimpleForm>
         </Edit>
     );
 }
