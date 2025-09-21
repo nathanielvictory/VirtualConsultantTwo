@@ -50,6 +50,10 @@ const config = {
             exportName: "systemPromptsApi",
             filterEndpoints: [/SystemPrompts?/i],
         },
+        "./src/api/queueTaskApi.ts": {
+            exportName: "queueTaskApi",
+            filterEndpoints: [/QueueTask?/i],
+        },
     },
 };
 

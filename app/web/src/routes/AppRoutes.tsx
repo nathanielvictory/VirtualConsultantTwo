@@ -15,6 +15,7 @@ import InsightsPage from "../pages/Project/InsightsPage";
 import MemoPage from "../pages/Project/MemoPage";
 import SlidesPage from "../pages/Project/SlidesPage";
 import DataReviewPage from "../pages/DataReview/DataReviewPage";
+import ProjectSelectPage from "../pages/Project/ProjectSelectPage.tsx";
 
 export default function AppRoutes() {
     return (
@@ -45,6 +46,7 @@ export default function AppRoutes() {
                                 <Route path="/data-review" element={<DataReviewPage />} />
 
                                 {/* Project workflow */}
+                                <Route path="/projects/select" element={<ProjectSelectPage />} />
                                 <Route path="/projects/:id" element={<ProjectOverviewPage />} />
                                 <Route path="/projects/:id/import" element={<ImportSetupPage />} />
                                 <Route path="/projects/:id/insights" element={<InsightsPage />} />

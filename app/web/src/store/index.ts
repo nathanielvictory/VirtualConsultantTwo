@@ -13,8 +13,9 @@ import {
 import storage from 'redux-persist/lib/storage';
 
 import settingsReducer from './settingsSlice';
-import authReducer from './authSlice';            // backend auth (new)
-import googleAuthReducer from './googleAuthSlice';// google auth (new)
+import authReducer from './authSlice';
+import googleAuthReducer from './googleAuthSlice';
+import selectedReducer from './selectedSlice'; // <-- NEW
 
 import { emptySplitApi } from '../api/emptyApi';
 
@@ -29,13 +30,22 @@ const authPersistConfig = {
     key: 'auth',
     storage,
     version: 1,
-    whitelist: ['email'], // only email persisted
+    whitelist: ['email'],
+};
+
+// Persist only the projectId so we remember the last selected project.
+const selectedPersistConfig = {
+    key: 'selected',
+    storage,
+    version: 1,
+    whitelist: ['projectId'], // <-- only persist projectId
 };
 
 const rootReducer = combineReducers({
     settings: persistReducer(settingsPersistConfig, settingsReducer),
     auth: persistReducer(authPersistConfig, authReducer),
     googleAuth: googleAuthReducer,
+    selected: persistReducer(selectedPersistConfig, selectedReducer), // <-- NEW
     [emptySplitApi.reducerPath]: emptySplitApi.reducer,
 });
 

@@ -1,30 +1,14 @@
-import { useState } from "react";
+// SideNav.tsx
+import { useState, useMemo } from "react";
 import {
-    Drawer,
-    Box,
-    Divider,
-    List,
-    ListItemButton,
-    ListItemIcon,
-    ListItemText,
-    Collapse,
-    ListSubheader,
-    Chip,
-    Button,
-    Stack,
+    Drawer, Box, Divider, List, ListItemButton, ListItemIcon, ListItemText,
+    Collapse, ListSubheader, Chip, Button, Stack
 } from "@mui/material";
 import {
-    Home as HomeIcon,
-    Settings as SettingsIcon,
-    Logout as LogoutIcon,
-    ExpandLess,
-    ExpandMore,
-    Folder as FolderIcon,
-    Insights as InsightsIcon,
-    Description as DescriptionIcon,
-    Slideshow as SlideshowIcon,
-    CloudUpload as CloudUploadIcon,
-    TableChart as TableChartIcon,
+    Home as HomeIcon, Settings as SettingsIcon, Logout as LogoutIcon,
+    ExpandLess, ExpandMore, Folder as FolderIcon, Insights as InsightsIcon,
+    Description as DescriptionIcon, Slideshow as SlideshowIcon,
+    CloudUpload as CloudUploadIcon, TableChart as TableChartIcon,
 } from "@mui/icons-material";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import { Link, useNavigate } from "react-router-dom";
@@ -32,7 +16,20 @@ import Brand from "./Brand";
 import { clearBackendAuth } from "../store/authSlice";
 import { useAppDispatch } from "../store/hooks";
 
+// NEW imports:
+import { useSelector } from "react-redux";
+import type { RootState } from "../store";
+import { useGetApiProjectsByIdQuery } from "../api/projectsApi";
+
 export const DRAWER_WIDTH = 280;
+
+// Small helper for an abbreviated date like "Jan 3, 2025"
+function formatDateAbbrev(iso?: string) {
+    if (!iso) return "—";
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return "—";
+    return new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric", year: "numeric" }).format(d);
+}
 
 export default function SideNav({
                                     mobileOpen,
@@ -51,9 +48,23 @@ export default function SideNav({
         navigate("/login", { replace: true });
     };
 
-    // Mock: single active project (replace with your store later)
-    const activeProjectId = "vc-001";
-    const projectBase = `/projects/${activeProjectId}`;
+    // NEW: get the selected projectId from Redux
+    const projectId = useSelector((s: RootState) => s.selected.projectId);
+
+    // NEW: fetch project details when we have an id
+    const { data: project, isFetching: projLoading } = useGetApiProjectsByIdQuery({id: projectId as number}, {
+        skip: projectId == null,
+    });
+
+    // NEW: derive display name and created date
+    const projectName = projLoading ? "Loading…" : (project?.name ?? "—");
+    const projectCreated = projLoading ? "…" : formatDateAbbrev(project?.createdAt);
+
+    // NEW: build base route safely
+    const projectBase = useMemo(
+        () => (projectId != null ? `/projects/${projectId}` : "/projects/select"),
+        [projectId]
+    );
 
     const nav = [
         { label: "Home", icon: <HomeIcon />, to: "/" },
@@ -85,26 +96,26 @@ export default function SideNav({
             </List>
 
             <List sx={{ p: 1 }} subheader={<ListSubheader disableSticky>Projects</ListSubheader>}>
-                {/* New project CTA */}
                 <Stack direction="row" sx={{ px: 1, pb: 1 }}>
                     <Button
                         size="small"
                         variant="outlined"
                         fullWidth
-                        onClick={() => navigate("/projects/new")}
+                        onClick={() => navigate("/projects/select")}
                     >
-                        + New Project
+                        Select Project
                     </Button>
                 </Stack>
 
-                {/* Active project group */}
+                {/* Project group header now shows Name + abbreviated CreatedAt */}
                 <ListItemButton onClick={() => setOpenProjects((o) => !o)} sx={{ borderRadius: 2, mb: 0.5 }}>
                     <ListItemIcon>
                         <FolderIcon />
                     </ListItemIcon>
-                    <ListItemText primary="Virtual Consultant" secondary="Active" />
+                    <ListItemText primary={projectName} secondary={projectCreated} />
                     {openProjects ? <ExpandLess /> : <ExpandMore />}
                 </ListItemButton>
+
                 <Collapse in={openProjects} timeout="auto" unmountOnExit>
                     <List component="div" disablePadding>
                         <ListItemButton component={Link} to={projectBase} sx={{ ml: 4, borderRadius: 2, mb: 0.5 }} onClick={onClose}>
@@ -117,7 +128,7 @@ export default function SideNav({
                             <ListItemIcon>
                                 <CloudUploadIcon />
                             </ListItemIcon>
-                            <ListItemText primary="Import & Setup" />
+                            <ListItemText primary="Data Refresh" />
                         </ListItemButton>
                         <ListItemButton component={Link} to={`${projectBase}/insights`} sx={{ ml: 4, borderRadius: 2, mb: 0.5 }} onClick={onClose}>
                             <ListItemIcon>
@@ -144,7 +155,14 @@ export default function SideNav({
             <Box sx={{ flexGrow: 1 }} />
             <Divider />
             <Box sx={{ p: 2 }}>
-                <Chip icon={<LogoutIcon />} label="Sign out" variant="outlined" color="primary" clickable onClick={handleSignOut} />
+                <Chip
+                    icon={<LogoutIcon />}
+                    label="Sign out"
+                    variant="outlined"
+                    color="primary"
+                    clickable
+                    onClick={handleSignOut}
+                />
             </Box>
         </Box>
     );

@@ -137,7 +137,7 @@ export type CreateInsightDto = {
   projectId?: number;
   content?: string | null;
   source?: InsightSource;
-  orderIndex?: number;
+  orderIndex?: number | null;
 };
 export type UpdateInsightDto = {
   content?: string | null;
