@@ -14,11 +14,7 @@ import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import { Link, useNavigate } from "react-router-dom";
 import Brand from "./Brand";
 import { clearBackendAuth } from "../store/authSlice";
-import { useAppDispatch } from "../store/hooks";
-
-// NEW imports:
-import { useSelector } from "react-redux";
-import type { RootState } from "../store";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { useGetApiProjectsByIdQuery } from "../api/projectsApi";
 
 export const DRAWER_WIDTH = 280;
@@ -49,7 +45,7 @@ export default function SideNav({
     };
 
     // NEW: get the selected projectId from Redux
-    const projectId = useSelector((s: RootState) => s.selected.projectId);
+    const projectId = useAppSelector((s) => s.selected.projectId);
 
     // NEW: fetch project details when we have an id
     const { data: project, isFetching: projLoading } = useGetApiProjectsByIdQuery({id: projectId as number}, {
