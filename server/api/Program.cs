@@ -11,6 +11,7 @@ using api.Models;
 using api.Middleware;
 using api.Messaging.RabbitMq;
 using api.Messaging.Abstractions;
+using Microsoft.AspNetCore.HttpLogging;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -122,6 +123,14 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddHttpLogging(o =>
+{
+    o.LoggingFields =
+        HttpLoggingFields.RequestMethod |
+        HttpLoggingFields.RequestPath |
+        HttpLoggingFields.ResponseStatusCode;
+});
+
 var app = builder.Build();
 
 await app.MigrateAndSeedAsync();
@@ -136,7 +145,7 @@ if (app.Environment.IsDevelopment())
         // For password flow, no PKCE/redirect config needed.
     });
 }
-
+app.UseHttpLogging();
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
 
