@@ -13,8 +13,5 @@ public class SystemPromptConfiguration : IEntityTypeConfiguration<SystemPrompt>
 
         e.HasIndex(p => p.PromptType);
         e.HasIndex(p => new { p.PromptType, p.CreatedAt });
-
-        e.Property(p => p.CreatedAt)
-            .HasDefaultValueSql("now() at time zone 'utc'");
     }
 }

@@ -13,5 +13,5 @@ public class SystemPrompt
     [Required]
     public string Prompt { get; set; } = string.Empty;
 
-    public DateTime CreatedAt { get; set; }
+    public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
 }

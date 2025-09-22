@@ -14,9 +14,9 @@ import type {
     CrosstabQuestion,
 } from "../../types/survey";
 import surveyJson from "../../data/survey.json";
-import QuestionAutocomplete from "../../components/QuestionAutocomplete";
-import ToplinePreviewer from "../../components/ToplinePreviewer.tsx";
-import CrosstabPreviewer from "../../components/CrosstabPreviewer.tsx";
+import QuestionAutocomplete from "../../components/QuestionAutocomplete.tsx";
+import ToplinePreviewer from "../DataReview/components/ToplinePreviewer.tsx";
+import CrosstabPreviewer from "../DataReview/components/CrosstabPreviewer.tsx";
 
 type Mode = "topline" | "crosstab";
 

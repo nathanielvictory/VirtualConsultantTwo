@@ -23,8 +23,5 @@ public class SlidedeckConfiguration : IEntityTypeConfiguration<Slidedeck>
             .OnDelete(DeleteBehavior.Restrict);
 
         e.HasIndex(s => s.ProjectId);
-
-        e.Property(s => s.CreatedAt).HasDefaultValueSql("now() at time zone 'utc'");
-        e.Property(s => s.UpdatedAt).HasDefaultValueSql("now() at time zone 'utc'");
     }
 }

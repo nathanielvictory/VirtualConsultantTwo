@@ -8,13 +8,13 @@ public record SystemPromptListItemDto(
     int Id,
     TaskJobType PromptType,
     string Prompt,
-    DateTime CreatedAt);
+    DateTimeOffset CreatedAt);
 
 public record SystemPromptDetailDto(
     int Id,
     TaskJobType PromptType,
     string Prompt,
-    DateTime CreatedAt);
+    DateTimeOffset CreatedAt);
 
 public record CreateSystemPromptDto(
     [Required] TaskJobType PromptType,

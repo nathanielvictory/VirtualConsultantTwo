@@ -18,7 +18,7 @@ import {
     Chip,
     Tooltip,
 } from "@mui/material";
-import type { CrosstabQuestion } from "../types/survey";
+import type { CrosstabQuestion } from "../../../types/survey.ts";
 import {
     ResponsiveContainer,
     BarChart,

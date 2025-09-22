@@ -16,7 +16,7 @@ import {
     TableCell,
     TableBody,
 } from "@mui/material";
-import type { SurveyQuestion } from "../types/survey";
+import type { SurveyQuestion } from "../../../types/survey.ts";
 import {
     ResponsiveContainer,
     BarChart,

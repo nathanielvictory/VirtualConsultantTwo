@@ -10,8 +10,8 @@ public record SlidedeckListItemDto(
     string? SheetsId,
     string? PromptFocus,
     int CreatedById,
-    DateTime CreatedAt,
-    DateTime UpdatedAt);
+    DateTimeOffset CreatedAt,
+    DateTimeOffset UpdatedAt);
 
 public record SlidedeckDetailDto(
     int Id,
@@ -21,8 +21,8 @@ public record SlidedeckDetailDto(
     string? SheetsId,
     string? PromptFocus,
     int CreatedById,
-    DateTime CreatedAt,
-    DateTime UpdatedAt);
+    DateTimeOffset CreatedAt,
+    DateTimeOffset UpdatedAt);
 
 public record CreateSlidedeckDto(
     [Required] int ProjectId,

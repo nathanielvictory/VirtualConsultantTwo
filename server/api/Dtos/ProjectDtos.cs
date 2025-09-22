@@ -9,9 +9,9 @@ public record ProjectListItemDto(
     string OrganizationId,
     string? ProjectContext,
     bool IsActive,
-    DateTime CreatedAt,
-    DateTime UpdatedAt,
-    DateTime? LastRefreshed);
+    DateTimeOffset CreatedAt,
+    DateTimeOffset UpdatedAt,
+    DateTimeOffset? LastRefreshed);
 
 public record ProjectDetailDto(
     int Id,
@@ -20,9 +20,9 @@ public record ProjectDetailDto(
     string OrganizationId,
     string? ProjectContext,
     bool IsActive,
-    DateTime CreatedAt,
-    DateTime UpdatedAt,
-    DateTime? LastRefreshed);
+    DateTimeOffset CreatedAt,
+    DateTimeOffset UpdatedAt,
+    DateTimeOffset? LastRefreshed);
 
 public record CreateProjectDto(
     [Required] string Kbid,
@@ -37,4 +37,4 @@ public record UpdateProjectDto(
     string? OrganizationId,
     string? ProjectContext,
     bool? IsActive,
-    DateTime? LastRefreshed);
+    DateTimeOffset? LastRefreshed);

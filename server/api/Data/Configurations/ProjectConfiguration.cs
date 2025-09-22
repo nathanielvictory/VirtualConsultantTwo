@@ -21,12 +21,6 @@ public class ProjectConfiguration : IEntityTypeConfiguration<Project>
 
         // Booleans with defaults
         e.Property(p => p.IsActive).HasDefaultValue(true);
-
-        // Timestamps (database-side defaults; UTC)
-        e.Property(p => p.CreatedAt).HasDefaultValueSql("now() at time zone 'utc'");
-        e.Property(p => p.UpdatedAt).HasDefaultValueSql("now() at time zone 'utc'");
-        e.Property(p => p.LastRefreshed)
-            .HasColumnType("timestamp without time zone");
         
         e.HasOne(p => p.Organization)
             .WithMany(o => o.Projects)

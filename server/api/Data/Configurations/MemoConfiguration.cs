@@ -23,8 +23,5 @@ public class MemoConfiguration : IEntityTypeConfiguration<Memo>
             .OnDelete(DeleteBehavior.Restrict);
 
         e.HasIndex(m => m.ProjectId);
-
-        e.Property(m => m.CreatedAt).HasDefaultValueSql("now() at time zone 'utc'");
-        e.Property(m => m.UpdatedAt).HasDefaultValueSql("now() at time zone 'utc'");
     }
 }

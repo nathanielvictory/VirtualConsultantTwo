@@ -9,8 +9,8 @@ public record MemoListItemDto(
     string? DocId,
     string? PromptFocus,
     int CreatedById,
-    DateTime CreatedAt,
-    DateTime UpdatedAt);
+    DateTimeOffset CreatedAt,
+    DateTimeOffset UpdatedAt);
 
 public record MemoDetailDto(
     int Id,
@@ -19,8 +19,8 @@ public record MemoDetailDto(
     string? DocId,
     string? PromptFocus,
     int CreatedById,
-    DateTime CreatedAt,
-    DateTime UpdatedAt);
+    DateTimeOffset CreatedAt,
+    DateTimeOffset UpdatedAt);
 
 public record CreateMemoDto(
     [Required] int ProjectId,
