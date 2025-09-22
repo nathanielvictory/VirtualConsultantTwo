@@ -1,59 +1,117 @@
-import { Container, Paper, Stack, Typography, Button, Chip, TextField, Divider, Card, CardContent, CardActions, Box } from "@mui/material";
+import { useState } from 'react';
+import {
+    Box,
+    Button,
+    Container,
+    Stack,
+    Tooltip,
+    Typography,
+} from "@mui/material";
+import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import ProjectStepper from "./ProjectStepper";
 import { useParams } from "react-router-dom";
 
-const MockInsight = ({ i }: { i: number }) => (
-    <Card variant="outlined">
-        <CardContent>
-            <Typography variant="subtitle1">Insight #{i}</Typography>
-            <Typography color="text.secondary" variant="body2">Static description placeholder…</Typography>
-            <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
-                <Chip label="Tag A" size="small" />
-                <Chip label="Tag B" size="small" />
-            </Stack>
-        </CardContent>
-        <CardActions>
-            <Button size="small">Refine</Button>
-            <Button size="small">View data</Button>
-            <Button size="small">Add to memo</Button>
-        </CardActions>
-    </Card>
-);
+import { useAppSelector } from "../../store/hooks";
+import CreateInsight from "./insightComponents/CreateInsight";
+import InsightsList from "./insightComponents/InsightsList";
+import GenerateInsightsDialog from "./insightComponents/GenerateInsightsDialog";
+import InsightTaskList from "./insightComponents/InsightTaskList.tsx";
+// (coming next)
+// import InsightTaskList from "./insightComponents/InsightTaskList";
 
 export default function InsightsPage() {
-    const { id = "vc-001" } = useParams();
+    const selectedProjectId = useAppSelector((s) => s.selected.projectId);
+    const { id: routeId } = useParams<{ id: string }>();
+    const projectId =
+        (selectedProjectId as number | undefined) ?? (routeId ? Number(routeId) : undefined);
+
+    // UI state for dialog + pending tasks
+    const [showGenerateDialog, setShowGenerateDialog] = useState(false);
+    const [hasPendingTask, setHasPendingTask] = useState(true);
+    const [lastQueuedTaskId, setLastQueuedTaskId] = useState<number | null>(null);
+    const [listRefreshKey, setListRefreshKey] = useState(0);
+
     return (
-        <Container maxWidth="xl" sx={{ py: 3 }}>
+        <Container maxWidth="lg" sx={{ py: 3 }}>
             <ProjectStepper active="insights" />
 
-            <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
-                <Paper sx={{ flex: 1, p: 2 }}>
-                    <Typography variant="subtitle1">Focus</Typography>
-                    <TextField label="What should we explore?" placeholder="Drivers of NPS among Gen Z" fullWidth sx={{ mt: 1 }} />
-                    <Stack direction="row" spacing={1} sx={{ mt: 1, flexWrap: "wrap" }}>
-                        <Chip label="Gen Z" />
-                        <Chip label="NPS" />
-                    </Stack>
-                    <Divider sx={{ my: 2 }} />
-                    <Button fullWidth variant="contained">Generate insights</Button>
-                    <Button fullWidth sx={{ mt: 1 }}>Add manual insight</Button>
-                </Paper>
+            <Box
+                sx={{
+                    p: { xs: 2, md: 3 },
+                    mt: 2,
+                    borderRadius: 3,
+                    border: (t) => `1px solid ${t.palette.divider}`,
+                    bgcolor: "background.paper",
+                }}
+            >
+                {/* Header / actions */}
+                <Stack
+                    direction={{ xs: "column", sm: "row" }}
+                    justifyContent="space-between"
+                    alignItems={{ xs: "flex-start", sm: "center" }}
+                    gap={1.5}
+                    sx={{ mb: 2 }}
+                >
+                    <Typography variant="h6">Insights</Typography>
 
-                <Box flex={2}>
-                    <Stack spacing={1.5}>
-                        {[1, 2, 3].map((i) => <MockInsight key={i} i={i} />)}
-                    </Stack>
-                </Box>
+                    <Tooltip title="Generate insights with background task">
+            <span>
+              <Button
+                  variant="outlined"
+                  startIcon={<AutoAwesomeIcon />}
+                  onClick={() => setShowGenerateDialog(true)}
+                  disabled={!projectId}
+              >
+                Generate Insights
+              </Button>
+            </span>
+                    </Tooltip>
+                </Stack>
 
-                <Paper sx={{ flex: 1, p: 2 }}>
-                    <Typography variant="subtitle1">Selected for memo</Typography>
-                    <Stack sx={{ mt: 1 }} spacing={1}>
-                        <Chip label="Top driver" />
-                        <Chip label="Segment diff" />
-                    </Stack>
-                    <Button href={`/projects/${id}/memo`} variant="contained" sx={{ mt: 2 }} fullWidth>Proceed to Memo</Button>
-                </Paper>
-            </Stack>
+                {/* Pending tasks view (next step) */}
+                {true && (
+                    <InsightTaskList
+                        projectId={projectId}
+                        highlightTaskId={lastQueuedTaskId}
+                        listPollEveryMs={2000}
+                        taskPollEveryMs={1500}
+                        onAnyTaskCompleted={() => {
+                            // bump key to remount <InsightsList> and trigger fresh fetch
+                            setListRefreshKey((k) => k + 1);
+                        }}
+                        onComplete={() => {
+                            setHasPendingTask(false);
+                            setLastQueuedTaskId(null);
+                        }}
+                    />
+                )}
+
+
+                {/* Create insight */}
+                <CreateInsight
+                    projectId={projectId}
+                    defaultSource="User"
+                    onCreated={() => {
+                        // InsightsList handles its own refetch.
+                    }}
+                />
+
+                {/* List */}
+                <InsightsList key={listRefreshKey} projectId={projectId} />
+            </Box>
+
+            {showGenerateDialog && (
+                <GenerateInsightsDialog
+                    open
+                    projectId={projectId}
+                    onCancel={() => setShowGenerateDialog(false)}
+                    onSuccess={(taskId) => {
+                        setShowGenerateDialog(false);
+                        setHasPendingTask(true);
+                        setLastQueuedTaskId(taskId);
+                    }}
+                />
+            )}
         </Container>
     );
 }
