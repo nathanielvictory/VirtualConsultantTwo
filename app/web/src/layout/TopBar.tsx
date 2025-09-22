@@ -3,10 +3,12 @@ import { Brightness4 as DarkIcon, Brightness7 as LightIcon, Notifications as Not
 import { Link, useLocation } from "react-router-dom";
 import { DRAWER_WIDTH } from "./SideNav";
 import { useThemeMode } from "../theme/useThemeMode";
+import { useAppSelector } from '../store/hooks';
 
 export default function TopBar({ onMenu }: { onMenu: () => void }) {
     const location = useLocation();
     const { mode, toggleMode } = useThemeMode();
+    const userEmail = useAppSelector((s) => s.auth.email);
 
     // Derived crumbs: /projects/:id/<step>
     const parts = location.pathname.split("/").filter(Boolean);
@@ -55,7 +57,9 @@ export default function TopBar({ onMenu }: { onMenu: () => void }) {
                 </Tooltip>
                 <Tooltip title="Account">
                     <IconButton component={Link} to="/settings" aria-label="Account settings">
-                        <Avatar sx={{ width: 32, height: 32 }}>JD</Avatar>
+                        <Avatar sx={{ width: 32, height: 32 }}>
+                            {userEmail ? userEmail[0].toUpperCase() : "?"}
+                        </Avatar>
                     </IconButton>
                 </Tooltip>
             </Toolbar>
