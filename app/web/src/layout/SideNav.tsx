@@ -107,49 +107,82 @@ export default function SideNav({
                     </Button>
                 </Stack>
 
-                {/* Project group header now shows Name + abbreviated CreatedAt */}
-                <ListItemButton onClick={() => setOpenProjects((o) => !o)} sx={{ borderRadius: 2, mb: 0.5 }}>
-                    <ListItemIcon>
-                        <FolderIcon />
-                    </ListItemIcon>
-                    <ListItemText primary={projectName} secondary={projectCreated} />
-                    {openProjects ? <ExpandLess /> : <ExpandMore />}
-                </ListItemButton>
-
-                <Collapse in={openProjects} timeout="auto" unmountOnExit>
-                    <List component="div" disablePadding>
-                        <ListItemButton component={Link} to={projectBase} sx={{ ml: 4, borderRadius: 2, mb: 0.5 }} onClick={onClose}>
+                {/* Only show the project folder dropdown if a project is selected */}
+                {projectId != null && (
+                    <>
+                        {/* Project group header now shows Name + abbreviated CreatedAt */}
+                        <ListItemButton
+                            onClick={() => setOpenProjects((o) => !o)}
+                            sx={{ borderRadius: 2, mb: 0.5 }}
+                        >
                             <ListItemIcon>
                                 <FolderIcon />
                             </ListItemIcon>
-                            <ListItemText primary="Overview" />
+                            <ListItemText primary={projectName} secondary={projectCreated} />
+                            {openProjects ? <ExpandLess /> : <ExpandMore />}
                         </ListItemButton>
-                        <ListItemButton component={Link} to={`${projectBase}/import`} sx={{ ml: 4, borderRadius: 2, mb: 0.5 }} onClick={onClose}>
-                            <ListItemIcon>
-                                <CloudUploadIcon />
-                            </ListItemIcon>
-                            <ListItemText primary="Data Refresh" />
-                        </ListItemButton>
-                        <ListItemButton component={Link} to={`${projectBase}/insights`} sx={{ ml: 4, borderRadius: 2, mb: 0.5 }} onClick={onClose}>
-                            <ListItemIcon>
-                                <InsightsIcon />
-                            </ListItemIcon>
-                            <ListItemText primary="Insights" />
-                        </ListItemButton>
-                        <ListItemButton component={Link} to={`${projectBase}/memo`} sx={{ ml: 4, borderRadius: 2, mb: 0.5 }} onClick={onClose}>
-                            <ListItemIcon>
-                                <DescriptionIcon />
-                            </ListItemIcon>
-                            <ListItemText primary="Memo" />
-                        </ListItemButton>
-                        <ListItemButton component={Link} to={`${projectBase}/slides`} sx={{ ml: 4, borderRadius: 2, mb: 0.5 }} onClick={onClose}>
-                            <ListItemIcon>
-                                <SlideshowIcon />
-                            </ListItemIcon>
-                            <ListItemText primary="Slides" />
-                        </ListItemButton>
-                    </List>
-                </Collapse>
+
+                        <Collapse in={openProjects} timeout="auto" unmountOnExit>
+                            <List component="div" disablePadding>
+                                <ListItemButton
+                                    component={Link}
+                                    to={projectBase}
+                                    sx={{ ml: 4, borderRadius: 2, mb: 0.5 }}
+                                    onClick={onClose}
+                                >
+                                    <ListItemIcon>
+                                        <FolderIcon />
+                                    </ListItemIcon>
+                                    <ListItemText primary="Overview" />
+                                </ListItemButton>
+                                <ListItemButton
+                                    component={Link}
+                                    to={`${projectBase}/import`}
+                                    sx={{ ml: 4, borderRadius: 2, mb: 0.5 }}
+                                    onClick={onClose}
+                                >
+                                    <ListItemIcon>
+                                        <CloudUploadIcon />
+                                    </ListItemIcon>
+                                    <ListItemText primary="Data Refresh" />
+                                </ListItemButton>
+                                <ListItemButton
+                                    component={Link}
+                                    to={`${projectBase}/insights`}
+                                    sx={{ ml: 4, borderRadius: 2, mb: 0.5 }}
+                                    onClick={onClose}
+                                >
+                                    <ListItemIcon>
+                                        <InsightsIcon />
+                                    </ListItemIcon>
+                                    <ListItemText primary="Insights" />
+                                </ListItemButton>
+                                <ListItemButton
+                                    component={Link}
+                                    to={`${projectBase}/memo`}
+                                    sx={{ ml: 4, borderRadius: 2, mb: 0.5 }}
+                                    onClick={onClose}
+                                >
+                                    <ListItemIcon>
+                                        <DescriptionIcon />
+                                    </ListItemIcon>
+                                    <ListItemText primary="Memo" />
+                                </ListItemButton>
+                                <ListItemButton
+                                    component={Link}
+                                    to={`${projectBase}/slides`}
+                                    sx={{ ml: 4, borderRadius: 2, mb: 0.5 }}
+                                    onClick={onClose}
+                                >
+                                    <ListItemIcon>
+                                        <SlideshowIcon />
+                                    </ListItemIcon>
+                                    <ListItemText primary="Slides" />
+                                </ListItemButton>
+                            </List>
+                        </Collapse>
+                    </>
+                )}
             </List>
 
             <Box sx={{ flexGrow: 1 }} />
