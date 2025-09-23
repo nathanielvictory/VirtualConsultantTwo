@@ -11,24 +11,22 @@ import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import ProjectStepper from "./ProjectStepper";
 import { useParams } from "react-router-dom";
 
-import { useAppSelector } from "../../store/hooks";
+import {useAppDispatch, useAppSelector} from "../../store/hooks";
 import CreateInsight from "./insightComponents/CreateInsight";
 import InsightsList from "./insightComponents/InsightsList";
 import GenerateInsightsDialog from "./insightComponents/GenerateInsightsDialog";
 import InsightTaskList from "./insightComponents/InsightTaskList.tsx";
-// (coming next)
-// import InsightTaskList from "./insightComponents/InsightTaskList";
+import { insightsApi } from "../../api/insightsApi";
 
 export default function InsightsPage() {
     const selectedProjectId = useAppSelector((s) => s.selected.projectId);
     const { id: routeId } = useParams<{ id: string }>();
     const projectId =
         (selectedProjectId as number | undefined) ?? (routeId ? Number(routeId) : undefined);
-
+    const dispatch = useAppDispatch();
     // UI state for dialog + pending tasks
     const [showGenerateDialog, setShowGenerateDialog] = useState(false);
     const [hasPendingTask, setHasPendingTask] = useState(false);
-    const [listRefreshKey, setListRefreshKey] = useState(0);
 
     return (
         <Container maxWidth="lg" sx={{ py: 3 }}>
@@ -74,8 +72,8 @@ export default function InsightsPage() {
                         listPollEveryMs={2000}
                         taskPollEveryMs={1500}
                         onAnyTaskCompleted={() => {
-                            // bump key to remount <InsightsList> and trigger fresh fetch
-                            setListRefreshKey((k) => k + 1);
+                            console.log("Task completed")
+                            dispatch(insightsApi.util.invalidateTags(["Insights"]));
                         }}
                         onComplete={() => {
                             setHasPendingTask(false);
@@ -94,7 +92,7 @@ export default function InsightsPage() {
                 />
 
                 {/* List */}
-                <InsightsList key={listRefreshKey} projectId={projectId} />
+                <InsightsList projectId={projectId} />
             </Box>
 
             {showGenerateDialog && (

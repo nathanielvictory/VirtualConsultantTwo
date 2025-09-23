@@ -35,22 +35,36 @@ export default function TopBar({ onMenu }: { onMenu: () => void }) {
                     <MLink underline="hover" color="inherit" component={Link} to="/">
                         Home
                     </MLink>
-                    {isProject ? (
-                        <>
-                            <MLink underline="hover" color="inherit" component={Link} to={`/projects/${parts[1]}`}>
+
+                    {isProject
+                        ? [
+                            <MLink
+                                key="project"
+                                underline="hover"
+                                color="inherit"
+                                component={Link}
+                                to={`/projects/${parts[1]}`}
+                            >
                                 Project
-                            </MLink>
-                            {step && <Typography>{stepLabelMap[step] ?? step}</Typography>}
-                        </>
-                    ) : (
-                        <Typography>{location.pathname === "/" ? "Home" : parts.join(" / ")}</Typography>
-                    )}
+                            </MLink>,
+                            step ? (
+                                <Typography key="step">
+                                    {stepLabelMap[step] ?? step}
+                                </Typography>
+                            ) : null,
+                        ].filter(Boolean)
+                        : (
+                            <Typography key="path">
+                                {location.pathname === "/" ? "Home" : parts.join(" / ")}
+                            </Typography>
+                        )
+                    }
                 </Breadcrumbs>
 
                 <IconButton onClick={toggleMode} aria-label="Toggle theme">{mode === "dark" ? <LightIcon /> : <DarkIcon />}</IconButton>
                 <Tooltip title="Notifications">
                     <IconButton aria-label="Notifications">
-                        <Badge variant="dot" color="secondary">
+                        <Badge color="secondary">
                             <NotificationsIcon />
                         </Badge>
                     </IconButton>

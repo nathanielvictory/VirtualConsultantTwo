@@ -69,18 +69,61 @@ public class QueueTaskController : ControllerBase
     // POST api/QueueTask/memo
     [HttpPost("memo")]
     public async Task<IActionResult> QueueMemo([FromBody] QueueCreateMemoTaskDto dto)
-        => await CreateAndPublishAsync(
-            dto.ProjectId,
+    {
+        // 1) Load memo
+        var memo = await _db.Memos
+            .AsNoTracking()
+            .Where(m => m.Id == dto.MemoId)
+            .Select(m => new { m.Id, m.ProjectId, m.DocId })
+            .SingleOrDefaultAsync();
+
+        if (memo is null)
+            return NotFound($"Memo {dto.MemoId} not found.");
+
+        if (string.IsNullOrWhiteSpace(memo.DocId))
+            return BadRequest($"Memo {dto.MemoId} has no doc id.");
+
+        // 2) Load project
+        var proj = await _db.Projects
+            .AsNoTracking()
+            .Where(p => p.Id == memo.ProjectId)
+            .Select(p => new ProjectShape
+            {
+                Id = p.Id,
+                KbId = p.Kbid,
+                KeyNumber = 0 // explicitly defaulted
+            })
+            .SingleOrDefaultAsync();
+
+        if (proj is null)
+            return NotFound($"Project {memo.ProjectId} not found.");
+
+        // 3) Load insights
+        var insights = await _db.Insights
+            .AsNoTracking()
+            .Where(i => i.ProjectId == proj.Id)
+            .OrderBy(i => i.OrderIndex)
+            .Select(i => i.Content)
+            .ToListAsync();
+
+        if (insights.Count == 0)
+            return BadRequest($"Project {proj.Id} has no insights.");
+
+        // 4–8) Shared flow: create task, build payload, save, publish, return
+        return await CreateAndPublishAsync(
+            proj.Id,
             TaskJobType.Memo,
-            (task, proj) => new
+            (task, _) => new
             {
                 task_id = task.Id,
                 project_id = proj.Id,
                 kbid = proj.KbId,
-                key_number = proj.KeyNumber,
-                doc_id = "1R3iFZdvb-EHX8A5ZuHvss_0ZPJal15-uxMz4tOfTDS0"
-                // token_limit optional; omit for now
+                key_number = 0,
+                memo_id = memo.Id,
+                doc_id = memo.DocId,
+                insights = insights
             });
+    }
 
     // POST api/QueueTask/slides
     [HttpPost("slides")]

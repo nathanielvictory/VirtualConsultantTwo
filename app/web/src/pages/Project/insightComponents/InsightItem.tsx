@@ -12,6 +12,8 @@ import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from "@mui/icons-material/Save";
 import CloseIcon from "@mui/icons-material/Close";
 import DeleteIcon from "@mui/icons-material/Delete";
+import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
+import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 
 import {
     usePatchApiInsightsByIdMutation,
@@ -23,6 +25,7 @@ type InsightItemProps = {
     insight: {
         id: number;
         content?: string | null;
+        orderIndex: number;
         source?: InsightSource | null;
     };
     /** notify parent so it can refetch or adjust pagination */
@@ -30,17 +33,16 @@ type InsightItemProps = {
     onDeleted?: (id: number) => void;
 };
 
-export default function InsightItem({ insight, onUpdated, onDeleted }: InsightItemProps) {
+export default function InsightItem({
+                                        insight
+                                    }: InsightItemProps) {
     const [isEditing, setIsEditing] = React.useState(false);
     const [text, setText] = React.useState(insight.content ?? "");
 
-    const [patchInsight, { isLoading: isSaving }] = usePatchApiInsightsByIdMutation();
-    const [deleteInsight, { isLoading: isDeleting }] = useDeleteApiInsightsByIdMutation();
-
-    React.useEffect(() => {
-        // keep text in sync if parent data refreshes while not editing
-        if (!isEditing) setText(insight.content ?? "");
-    }, [insight.content, isEditing]);
+    const [patchInsight, { isLoading: isSaving }] =
+        usePatchApiInsightsByIdMutation();
+    const [deleteInsight, { isLoading: isDeleting }] =
+        useDeleteApiInsightsByIdMutation();
 
     const startEdit = () => setIsEditing(true);
     const cancelEdit = () => {
@@ -49,14 +51,29 @@ export default function InsightItem({ insight, onUpdated, onDeleted }: InsightIt
     };
 
     const saveEdit = async () => {
-        await patchInsight({ id: insight.id, updateInsightDto: { content: text } }).unwrap();
+        await patchInsight({
+            id: insight.id,
+            updateInsightDto: { content: text },
+        }).unwrap();
         setIsEditing(false);
-        onUpdated?.(insight.id, text);
     };
 
     const handleDelete = async () => {
         await deleteInsight({ id: insight.id }).unwrap();
-        onDeleted?.(insight.id);
+    };
+
+    const moveUp = async () => {
+        await patchInsight({
+            id: insight.id,
+            updateInsightDto: { orderIndex: insight.orderIndex - 1 },
+        }).unwrap();
+    };
+
+    const moveDown = async () => {
+        await patchInsight({
+            id: insight.id,
+            updateInsightDto: { orderIndex: insight.orderIndex + 1 },
+        }).unwrap();
     };
 
     return (
@@ -74,41 +91,63 @@ export default function InsightItem({ insight, onUpdated, onDeleted }: InsightIt
                     <Typography sx={{ whiteSpace: "pre-wrap" }}>{insight.content}</Typography>
                 )}
 
-                <Stack direction="row" gap={0.5} flexShrink={0}>
-                    <Chip size="small" label={insight.source ?? "—"} variant="outlined" />
+                <Stack direction="column" gap={0.5} alignItems="flex-end" flexShrink={0}>
+                    <Stack direction="row" gap={0.5} alignItems="center">
+                        <Chip size="small" label={insight.source ?? "—"} variant="outlined" />
 
-                    {isEditing ? (
-                        <>
-                            <Tooltip title="Save">
+                        {isEditing ? (
+                            <>
+                                <Tooltip title="Save">
+                  <span>
+                    <IconButton size="small" onClick={saveEdit} disabled={isSaving}>
+                      <SaveIcon fontSize="small" />
+                    </IconButton>
+                  </span>
+                                </Tooltip>
+                                <Tooltip title="Cancel">
+                                    <IconButton size="small" onClick={cancelEdit}>
+                                        <CloseIcon fontSize="small" />
+                                    </IconButton>
+                                </Tooltip>
+                            </>
+                        ) : (
+                            <>
+                                <Tooltip title="Edit">
+                  <span>
+                    <IconButton size="small" onClick={startEdit} disabled={isSaving}>
+                      <EditIcon fontSize="small" />
+                    </IconButton>
+                  </span>
+                                </Tooltip>
+                                <Tooltip title="Delete">
+                  <span>
+                    <IconButton size="small" onClick={handleDelete} disabled={isDeleting}>
+                      <DeleteIcon fontSize="small" />
+                    </IconButton>
+                  </span>
+                                </Tooltip>
+                            </>
+                        )}
+                    </Stack>
+
+                    {/* Only show arrows when editing */}
+                    {isEditing && (
+                        <Stack direction="row" gap={0.5}>
+                            <Tooltip title="Move up">
                 <span>
-                  <IconButton size="small" onClick={saveEdit} disabled={isSaving}>
-                    <SaveIcon fontSize="small" />
+                  <IconButton size="small" onClick={moveUp} disabled={isSaving}>
+                    <ArrowUpwardIcon fontSize="small" />
                   </IconButton>
                 </span>
                             </Tooltip>
-                            <Tooltip title="Cancel">
-                                <IconButton size="small" onClick={cancelEdit}>
-                                    <CloseIcon fontSize="small" />
-                                </IconButton>
-                            </Tooltip>
-                        </>
-                    ) : (
-                        <>
-                            <Tooltip title="Edit">
+                            <Tooltip title="Move down">
                 <span>
-                  <IconButton size="small" onClick={startEdit} disabled={isSaving}>
-                    <EditIcon fontSize="small" />
+                  <IconButton size="small" onClick={moveDown} disabled={isSaving}>
+                    <ArrowDownwardIcon fontSize="small" />
                   </IconButton>
                 </span>
                             </Tooltip>
-                            <Tooltip title="Delete">
-                <span>
-                  <IconButton size="small" onClick={handleDelete} disabled={isDeleting}>
-                    <DeleteIcon fontSize="small" />
-                  </IconButton>
-                </span>
-                            </Tooltip>
-                        </>
+                        </Stack>
                     )}
                 </Stack>
             </Stack>

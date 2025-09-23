@@ -13,7 +13,6 @@ ROUTING_KEY = "task.insights"
 
 def handle(body):
     try:
-        logger.info(body)
         insights_schema = InsightsSchema.model_validate_json(body)
         logger.info("task.insights: %s", insights_schema.model_dump_json())
     except ValidationError as e:

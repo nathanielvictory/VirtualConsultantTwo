@@ -27,27 +27,9 @@ export default function InsightTaskList({
                                             highlightTaskId = null,
                                             onComplete,
                                             onAnyTaskCompleted,
-                                            seedTaskIds = [],
                                         }: InsightTaskListProps) {
     // Our source of truth; we do NOT remove on completion
     const [active, setActive] = React.useState<ActiveTask[]>([]);
-
-    React.useEffect(() => {
-        setActive([]);
-    }, [projectId]);
-
-    // seed newly queued task ids as "now"
-    React.useEffect(() => {
-        if (!seedTaskIds?.length) return;
-        setActive((prev) => {
-            const seen = new Set(prev.map((t) => t.id));
-            const now = Date.now();
-            const seeded = seedTaskIds
-                .filter((id) => !seen.has(id))
-                .map((id) => ({ id, createdAtMs: now }));
-            return prev.concat(seeded);
-        });
-    }, [seedTaskIds]);
 
     // Discover new tasks (Queued + Running)
     const queued = useGetApiTasksQuery(
@@ -107,13 +89,6 @@ export default function InsightTaskList({
         return () => window.clearInterval(id);
     }, [projectId, listPollEveryMs, queued.refetch, running.refetch]);
 
-    // Prune anything older than 4 hours (time-based, not status-based)
-    React.useEffect(() => {
-        const now = Date.now();
-        const cutoff = now - FOUR_HOURS_MS;
-        setActive((prev) => prev.filter((t) => t.createdAtMs >= cutoff));
-    }, [queued.data?.items, running.data?.items]);
-
     // Child callbacks
     const handleTaskCompleted = (tid: number, detail: TaskDetailDto) => {
         // DO NOT remove here — keep card visible until user dismisses
@@ -121,13 +96,15 @@ export default function InsightTaskList({
     };
 
     const handleTaskDismiss = (tid: number) => {
-        setActive((prev) => prev.filter((t) => t.id !== tid));
+        setActive(
+            (prev) => {
+            const newActive = prev.filter((t) => t.id !== tid);
+            if (newActive.length == 0 && onComplete) {
+                onComplete();
+            }
+            return newActive;
+        });
     };
-
-    // Notify page when our active list is empty
-    React.useEffect(() => {
-        if (active.length === 0) onComplete?.();
-    }, [active.length, onComplete]);
 
     if (projectId == null) {
         return <Alert severity="info">No project selected.</Alert>;

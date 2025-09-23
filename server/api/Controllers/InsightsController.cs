@@ -26,6 +26,36 @@ public class InsightsController : ControllerBase
         _mapper = mapper;
     }
 
+    private async Task RenumberProjectInsightsAsync(int projectId, CancellationToken ct = default)
+    {
+        // Get current order, stable on Id to break ties
+        var insights = await _context.Insights
+            .Where(i => i.ProjectId == projectId)
+            .OrderBy(i => i.OrderIndex)
+            .ThenBy(i => i.Id)
+            .ToListAsync(ct);
+
+        var expected = 1;
+        var anyChanged = false;
+
+        foreach (var ins in insights)
+        {
+            if (ins.OrderIndex != expected)
+            {
+                ins.OrderIndex = expected;
+                // Only mark OrderIndex as modified to minimize UPDATEs
+                _context.Entry(ins).Property(x => x.OrderIndex).IsModified = true;
+                anyChanged = true;
+            }
+            expected++;
+        }
+
+        if (anyChanged)
+        {
+            await _context.SaveChangesAsync(ct);
+        }
+    }
+    
     // GET: api/Insights
     // Optional filter by projectId
     // Controllers/InsightsController.cs (replace the GET list action)
@@ -121,6 +151,9 @@ public class InsightsController : ControllerBase
         _context.Insights.Add(entity);
         await _context.SaveChangesAsync();
 
+        // Ensure sequence 1..N with stable sort (OrderIndex, Id)
+        await RenumberProjectInsightsAsync(entity.ProjectId);
+
         var created = await _context.Insights
             .AsNoTracking()
             .Where(i => i.Id == entity.Id)
@@ -132,16 +165,53 @@ public class InsightsController : ControllerBase
 
     // PATCH: api/Insights/5
     [HttpPatch("{id:int}")]
-    public async Task<IActionResult> PatchInsight(int id, UpdateInsightDto dto)
+    public async Task<IActionResult> PatchInsight(int id, UpdateInsightDto dto, CancellationToken ct)
     {
-        var entity = await _context.Insights.FindAsync(id);
+        var entity = await _context.Insights.FindAsync(new object?[] { id }, ct);
         if (entity is null) return NotFound();
 
-        _mapper.Map(dto, entity); // optional fields respected per mapping profile
-        await _context.SaveChangesAsync();
+        var projectId = entity.ProjectId;
+
+        // --- One-step swap to avoid thrashing ---
+        if (dto.OrderIndex != null &&
+            dto.OrderIndex != entity.OrderIndex &&
+            Math.Abs(dto.OrderIndex.Value - entity.OrderIndex) == 1)
+        {
+            var targetIndex = dto.OrderIndex.Value;
+
+            var neighbor = await _context.Insights
+                .FirstOrDefaultAsync(i =>
+                    i.ProjectId == projectId &&
+                    i.OrderIndex == targetIndex &&
+                    i.Id != entity.Id, ct);
+
+            if (neighbor is not null)
+            {
+                // Swap: neighbor takes current slot, entity moves into target slot
+                var current = entity.OrderIndex;
+                entity.OrderIndex = targetIndex;
+                neighbor.OrderIndex = current;
+
+                // Explicitly mark only OrderIndex as modified for both
+                _context.Entry(entity).Property(x => x.OrderIndex).IsModified = true;
+                _context.Entry(neighbor).Property(x => x.OrderIndex).IsModified = true;
+
+                // Other dto fields (Content/Source) will still be applied below.
+                // We'll reassert entity.OrderIndex afterward to prevent overwrite.
+            }
+        }
+
+        // Map remaining fields; optional fields respected per your profile
+        _mapper.Map(dto, entity);
+
+        await _context.SaveChangesAsync(ct);
+
+        // Normalize to 1..N and keep deterministic ordering
+        await RenumberProjectInsightsAsync(projectId, ct);
 
         return NoContent();
     }
+
 
     // DELETE: api/Insights/5
     [HttpDelete("{id:int}")]
@@ -150,8 +220,11 @@ public class InsightsController : ControllerBase
         var entity = await _context.Insights.FindAsync(id);
         if (entity is null) return NotFound();
 
+        var projectId = entity.ProjectId; // capture before remove
         _context.Insights.Remove(entity);
         await _context.SaveChangesAsync();
+
+        await RenumberProjectInsightsAsync(projectId);
         return NoContent();
     }
 }

@@ -13,32 +13,20 @@ import InsightItem from "./InsightItem";
 
 type InsightsListProps = {
     projectId?: number;
-    onRefetched?: () => void;
 };
 
-export default function InsightsList({ projectId, onRefetched }: InsightsListProps) {
+export default function InsightsList({ projectId }: InsightsListProps) {
     const [page, setPage] = useState(1);
     const pageSize = 50;
 
     const { data, isLoading, isError, isFetching, refetch } = useGetApiInsightsQuery(
-        { projectId, page, pageSize, sort: "orderIndex asc, id asc" },
+        { projectId, page, pageSize, sort: "orderIndex asc" },
         { skip: projectId == null }
     );
 
     const items = data?.items ?? [];
     const hasPrev = !!data?.hasPrevious;
     const hasNext = !!data?.hasNext;
-
-    const handleUpdated = () => {
-        refetch().finally(() => onRefetched?.());
-    };
-
-    const handleDeleted = (_id: number) => {
-        if (items.length === 1 && hasPrev) {
-            setPage((p) => Math.max(1, p - 1));
-        }
-        refetch().finally(() => onRefetched?.());
-    };
 
     if (projectId == null) {
         return <Alert severity="info">No project selected.</Alert>;
@@ -77,9 +65,7 @@ export default function InsightsList({ projectId, onRefetched }: InsightsListPro
                     items.map((it) => (
                         <InsightItem
                             key={it.id}
-                            insight={{ id: it.id!, content: it.content, source: it.source }}
-                            onUpdated={handleUpdated}
-                            onDeleted={handleDeleted}
+                            insight={{ id: it.id!, content: it.content, source: it.source, orderIndex: it.orderIndex ?? 0}}
                         />
                     ))
                 )}

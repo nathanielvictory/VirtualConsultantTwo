@@ -13,9 +13,11 @@ public class InsightProfile : Profile
         CreateMap<Insight, InsightDetailDto>();
 
         CreateMap<CreateInsightDto, Insight>();
-
+        
         var upd = CreateMap<UpdateInsightDto, Insight>();
         upd.ForAllMembers(opt =>
             opt.Condition((src, dest, srcMember) => srcMember is not null));
+        upd.ForMember(dest => dest.OrderIndex,
+            opt => opt.MapFrom((src, dest) => src.OrderIndex ?? dest.OrderIndex));
     }
 }
