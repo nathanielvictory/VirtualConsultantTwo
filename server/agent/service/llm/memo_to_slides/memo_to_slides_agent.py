@@ -1,4 +1,4 @@
-from pydantic_ai.usage import RunUsage, UsageLimits
+from pydantic_ai.usage import RunUsage
 from pydantic_ai.exceptions import UnexpectedModelBehavior
 from botocore.exceptions import ClientError
 
