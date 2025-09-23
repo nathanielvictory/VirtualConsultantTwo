@@ -14,14 +14,12 @@ import {
 import { usePostApiQueueTaskInsightsMutation } from "../../../api/insightsApi";
 
 type GenerateInsightsDialogProps = {
-    open: boolean;              // parent decides visibility but mounts conditionally
     projectId?: number;
     onCancel: () => void;
-    onSuccess: (taskId: number) => void;
+    onSuccess: () => void;
 };
 
 export default function GenerateInsightsDialog({
-                                                   open,
                                                    projectId,
                                                    onCancel,
                                                    onSuccess,
@@ -59,14 +57,14 @@ export default function GenerateInsightsDialog({
                 setError("The task was queued, but no task id was returned.");
                 return;
             }
-            onSuccess(newId);
+            onSuccess();
         } catch (e: any) {
             setError(e?.data?.message ?? "Failed to queue insights. Please try again.");
         }
     };
 
     return (
-        <Dialog open={open} onClose={onCancel} fullWidth maxWidth="sm">
+        <Dialog open onClose={onCancel} fullWidth maxWidth="sm">
             <DialogTitle>Generate Insights</DialogTitle>
             <DialogContent>
                 <Stack gap={2} sx={{ mt: 1 }}>

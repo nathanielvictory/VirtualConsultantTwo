@@ -27,8 +27,7 @@ export default function InsightsPage() {
 
     // UI state for dialog + pending tasks
     const [showGenerateDialog, setShowGenerateDialog] = useState(false);
-    const [hasPendingTask, setHasPendingTask] = useState(true);
-    const [lastQueuedTaskId, setLastQueuedTaskId] = useState<number | null>(null);
+    const [hasPendingTask, setHasPendingTask] = useState(false);
     const [listRefreshKey, setListRefreshKey] = useState(0);
 
     return (
@@ -69,10 +68,9 @@ export default function InsightsPage() {
                 </Stack>
 
                 {/* Pending tasks view (next step) */}
-                {true && (
+                {hasPendingTask && (
                     <InsightTaskList
                         projectId={projectId}
-                        highlightTaskId={lastQueuedTaskId}
                         listPollEveryMs={2000}
                         taskPollEveryMs={1500}
                         onAnyTaskCompleted={() => {
@@ -81,7 +79,6 @@ export default function InsightsPage() {
                         }}
                         onComplete={() => {
                             setHasPendingTask(false);
-                            setLastQueuedTaskId(null);
                         }}
                     />
                 )}
@@ -102,13 +99,11 @@ export default function InsightsPage() {
 
             {showGenerateDialog && (
                 <GenerateInsightsDialog
-                    open
                     projectId={projectId}
                     onCancel={() => setShowGenerateDialog(false)}
-                    onSuccess={(taskId) => {
+                    onSuccess={() => {
                         setShowGenerateDialog(false);
                         setHasPendingTask(true);
-                        setLastQueuedTaskId(taskId);
                     }}
                 />
             )}
