@@ -5,9 +5,10 @@ from botocore.exceptions import ClientError
 from service.data.datasource import ReportingSurveyDataSource
 from service.docs.memo_creator import MemoCreator
 
+from .text_block_agent import text_block_agent, TextBlockDependencies, TextOutput
+from .memo_agent import memo_agent, MemoDependencies, MemoOutput
 
-
-class MemoToSlidesAgent:
+class InsightsToMemoAgent:
     def __init__(self, kbid, key_number, memo_doc_id):
         self.datasource = ReportingSurveyDataSource(kbid=kbid, key_number=key_number)
         self.memo_creator = MemoCreator(memo_doc_id)
@@ -15,76 +16,31 @@ class MemoToSlidesAgent:
 
 
     # TODO place requested usage limits here
-    def create_slides_from_memo(self, outline_focus: str = None):
-        outline = self._get_outline(outline_focus)
-        for slide_description in outline.slides:
-            self.add_slide(slide_description)
-
-        return self.usage
-
-
-    def reset_usage(self):
-        old_usage = self.usage
-        self.usage = RunUsage()
-        return old_usage
-
-
-    def _get_outline(self, focus: str = None) -> PowerpointOutline:
-        if not focus:
-            focus = "The client has provided no additional instruction."
-
-        outline_deps = SlideOutlineDependencies(
-            memo=self.memo,
-            all_question_text=self.datasource.all_question_text()
-        )
-        output = self._run_agent(focus, slide_outline_agent, outline_deps)
-        return output
-
-
-    def add_slide(self, slide_description: str):
-        slide_deps = SlideDependencies(
-            all_question_text=self.datasource.all_question_text()
-        )
-        slide_spec = self._run_agent(slide_description, slide_agent, slide_deps)
-        if not slide_spec:
-            return self.usage
-
-        if slide_spec.title:
-            self.slide_creator.add_title(slide_spec.title)
-        if slide_spec.bullet_points:
-            for bullet_point in slide_spec.bullet_points:
-                self.slide_creator.add_bullet(bullet_point)
-
-        if slide_spec.charts:
-            for chart in slide_spec.charts:
-                self._add_chart(chart)
-        self.slide_creator.create_slide()
-        return self.usage
-
-
-    def _add_chart(self, chart_description):
-        chart_deps = ChartDependencies(all_toplines_text=self.datasource.all_question_text())
-        chart_spec: ChartSpecification = self._run_agent(chart_description, chart_agent, chart_deps)
-        if not chart_spec:
-            return
-
-        if chart_spec.crosstab_shortened_name:
-            dataset_spec = CrosstabSpec(
-                varname=chart_spec.shortened_name,
-                by_varname=chart_spec.crosstab_shortened_name,
+    def create_memo_from_insights(self, insights, focus: str = None):
+        text_block_outputs: list[str] = []
+        for insight in insights:
+            text_block_deps = TextBlockDependencies(
+                insight=insight,
+                datasource=self.datasource,
             )
-        else:
-            dataset_spec = ToplineSpec(
-                varname=chart_spec.shortened_name
-            )
-        chart_request = ChartRequest(
-            title=chart_spec.title,
-            kind=chart_spec.kind,
-            dataset=dataset_spec,
+            response: TextOutput | None = self._run_agent("Try to keep the writing simple and actionable.", text_block_agent, text_block_deps)
+            if response is None:
+                continue
+            text_block_outputs.append(response.descriptive_text)
+
+        report_blocks_text = '\n\n'.join(text_block_outputs)
+        report_text = self.merge_report_blocks(report_blocks_text, focus)
+        self.memo_creator.append_text(report_text)
+
+
+    def merge_report_blocks(self, report_blocks_text, focus):
+        memo_deps = MemoDependencies(
+            memo_focus=focus,
         )
-        chart_ref = self.chart_creator.render(chart_request)
-        if chart_ref:
-            self.slide_creator.add_chart(spreadsheet_id=chart_ref.spreadsheet_id, chart_id=chart_ref.chart_id)
+        response: MemoOutput = self._run_agent(report_blocks_text, memo_agent,  memo_deps)
+        if not response:
+            raise Exception(f"AI Agent failed to generate a report")
+        return response.full_report
 
 
     # TODO flag usage limits here

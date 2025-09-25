@@ -18,11 +18,11 @@ class TextBlockDependencies:
 
 
 class TextOutput(BaseModel):
-    descriptive_text: str
+    descriptive_text: str = Field(description="Full text block with inserted statistics")
 
 
 system_prompt = (
-    "You're a consultant for the republican party finalizing a report from your outline. "
+    "You're a consultant finalizing a report from your outline. "
     "Your goal is to help your client with the process of writing a memo. "
     "I want you to take the insight that you wrote and add in the relevant numerical data from the survey "
     "that this report is based on. We have crosstab and topline data available to highlight key differences as needed. "
@@ -30,6 +30,9 @@ system_prompt = (
     "If your paragraph references percentages please add them in exactly. This will be for the final version of this report. "
     "The aim is to provide a specific and meaningful interpretation of the survey data in a way that wouldn't be obvious to the average person. "
     "For each statistic added to the report please reference the question short names the data came from for easy cross referencing. "
+    # "Don't trust the listed numbers, we want you to double check and confirm the numbers by requesting the topline and crosstab data directly. "
+    "We want to keep an emphasis on crosstab data where possible since the simpler topline values don't bring as much value to the client. "
+    "When an insight focuses on the intersection of two questions please make sure to pull that focus through to the text. "
 )
 
 text_block_agent = Agent(
@@ -43,8 +46,7 @@ text_block_agent = Agent(
 @text_block_agent.system_prompt
 async def append_data_to_prompt(ctx: RunContext[TextBlockDependencies]) -> str:
     append_string = f"\nThe topline results for the survey are as follows:\n"
-    append_string += ctx.deps.datasource.all_toplines_text()
-
+    append_string += ctx.deps.datasource.all_question_text()
 
     return append_string.strip()
 

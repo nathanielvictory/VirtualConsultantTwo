@@ -3,6 +3,8 @@ import logging
 from pydantic import ValidationError
 
 from callbacks import TaskManager
+from callbacks.task.artifact_schema import Artifact
+from service.llm.insights_to_memo.insights_to_memo_agent import InsightsToMemoAgent
 from ..schema.memo import Memo as MemoSchema
 
 logger = logging.getLogger(__name__)
@@ -18,6 +20,14 @@ def handle(body):
         return
 
     with TaskManager(memo_schema.task_id) as task_manager:
-        pass
+        insights_to_memo_agent = InsightsToMemoAgent(memo_schema.kbid, memo_schema.key_number, memo_schema.doc_id)
+        insights_to_memo_agent.create_memo_from_insights(memo_schema.insights)
 
+        total_tokens = insights_to_memo_agent.usage.input_tokens + insights_to_memo_agent.usage.output_tokens * 3
+        task_manager.add_artifact(Artifact(
+            resource_type='Memo',
+            action='Edit',
+            total_tokens=total_tokens
+        ))
+        logger.info(f"Generated memo for {memo_schema.kbid}")
     return
