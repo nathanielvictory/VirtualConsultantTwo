@@ -2,46 +2,30 @@
 import { createTheme, type ThemeOptions } from "@mui/material/styles";
 import { commonTokens } from "./tokens.common";
 
-/**
- * Reusable tokens just for dark mode (patterns/gradients).
- * These are strings to keep overrides tidy and consistent.
- */
+const surfaceBase = "#111113"; // same as palette.background.paper
+
 const darkTokens = {
-    // Subtle black base with deep-red vignette & dotted grid
-    // Layer 1: dark radial red vignette
-    // Layer 2: faint diagonal red gradient
-    // Layer 3: ultra-subtle dotted grid (using radial-gradient as dots)
     appBackground: [
         "radial-gradient(1200px 800px at 100% -10%, rgba(139,0,0,0.18), transparent 60%)",
         "linear-gradient(135deg, rgba(139,0,0,0.08) 0%, rgba(0,0,0,0) 60%)",
         "radial-gradient(1px 1px at 20px 20px, rgba(255,255,255,0.04), rgba(0,0,0,0) 1px)"
     ].join(", "),
-    // Rich red for primary surfaces (buttons, selected states)
     primaryGradient: "linear-gradient(90deg, #b71c1c 0%, #d32f2f 50%, #ef5350 100%)",
     primaryGradientHover: "linear-gradient(90deg, #8b0000 0%, #b71c1c 50%, #d32f2f 100%)",
-    // Card overlay to separate from the busy background
     cardOverlay: "linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02))",
 };
 
 const darkOptions: ThemeOptions = {
     palette: {
         mode: "dark",
-        // Keep the base very dark; use slightly warmer blacks to avoid harshness
-        background: {
-            default: "#0b0b0c",
-            paper: "#111113",
-        },
-        // Use a *lighter* red as primary so it pops on dark backgrounds
+        background: { default: "#0b0b0c", paper: surfaceBase },
         primary: {
-            main: "#ef5350",     // visible on black
+            main: "#ef5350",
             light: "#ff7961",
-            dark: "#b71c1c",     // deep red for accents/patterns
+            dark: "#b71c1c",
             contrastText: "#ffffff",
         },
-        secondary: {
-            main: "#9ca3af",     // cool gray for subtle accents
-            contrastText: "#0b0b0c",
-        },
+        secondary: { main: "#9ca3af", contrastText: "#0b0b0c" },
         text: {
             primary: "rgba(255,255,255,0.92)",
             secondary: "rgba(255,255,255,0.67)",
@@ -57,26 +41,23 @@ const darkOptions: ThemeOptions = {
     shape: { borderRadius: 12 },
 
     components: {
-        // Global background & typography smoothing
         MuiCssBaseline: {
             styleOverrides: {
                 body: {
                     backgroundColor: "#0b0b0c",
                     backgroundImage: darkTokens.appBackground,
                     backgroundAttachment: "fixed",
-                    backgroundSize: "auto, auto, 40px 40px", // dot grid size on layer 3
+                    backgroundSize: "auto, auto, 40px 40px",
                     color: "rgba(255,255,255,0.92)",
                     WebkitFontSmoothing: "antialiased",
                     MozOsxFontSmoothing: "grayscale",
                 },
-                // Respect reduced motion — make gradients static-ish on hover
                 "@media (prefers-reduced-motion: reduce)": {
                     "*": { transition: "none !important", animation: "none !important" },
                 },
             },
         },
 
-        // Top bar: glossy black with a deep-red edge highlight
         MuiAppBar: {
             styleOverrides: {
                 root: {
@@ -89,7 +70,6 @@ const darkOptions: ThemeOptions = {
             },
         },
 
-        // Primary buttons: rich red gradient with crisp focus ring
         MuiButton: {
             defaultProps: { disableElevation: true },
             styleOverrides: {
@@ -134,12 +114,12 @@ const darkOptions: ThemeOptions = {
             },
         },
 
-        // Cards/Paper: subtle red-tinted overlay, thin border for structure
+        // ✅ Solid base + overlay without nuking background-color
         MuiPaper: {
             styleOverrides: {
                 root: {
-                    background:
-                        `${darkTokens.cardOverlay}, linear-gradient(0deg, rgba(255,255,255,0.02), rgba(255,255,255,0.02))`,
+                    backgroundColor: surfaceBase,            // solid foundation
+                    backgroundImage: `${darkTokens.cardOverlay}, linear-gradient(0deg, rgba(255,255,255,0.02), rgba(255,255,255,0.02))`,
                     backgroundBlendMode: "overlay, normal",
                     border: "1px solid rgba(255,255,255,0.06)",
                     boxShadow: "0 8px 24px rgba(0,0,0,0.5)",
@@ -152,7 +132,6 @@ const darkOptions: ThemeOptions = {
                 root: {
                     overflow: "hidden",
                     position: "relative",
-                    // faint red corner glow
                     "::after": {
                         content: '""',
                         position: "absolute",
@@ -164,7 +143,6 @@ const darkOptions: ThemeOptions = {
             },
         },
 
-        // Inputs with clear focus & larger click targets
         MuiOutlinedInput: {
             styleOverrides: {
                 root: {
@@ -203,15 +181,11 @@ const darkOptions: ThemeOptions = {
                         },
                     },
                 },
-                track: {
-                    backgroundColor: "rgba(255,255,255,0.2)",
-                },
+                track: { backgroundColor: "rgba(255,255,255,0.2)" },
             },
         },
 
-        MuiDivider: {
-            styleOverrides: { root: { borderColor: "rgba(255,255,255,0.08)" } },
-        },
+        MuiDivider: { styleOverrides: { root: { borderColor: "rgba(255,255,255,0.08)" } } },
 
         MuiTooltip: {
             styleOverrides: {
@@ -232,12 +206,55 @@ const darkOptions: ThemeOptions = {
                 root: {
                     borderRadius: 8,
                     "&.Mui-selected": {
-                        background:
-                            "linear-gradient(90deg, rgba(239,83,80,0.18), rgba(239,83,80,0.06))",
+                        background: "linear-gradient(90deg, rgba(239,83,80,0.18), rgba(239,83,80,0.06))",
                     },
                     "&.Mui-selected:hover": {
-                        background:
-                            "linear-gradient(90deg, rgba(239,83,80,0.26), rgba(239,83,80,0.1))",
+                        background: "linear-gradient(90deg, rgba(239,83,80,0.26), rgba(239,83,80,0.1))",
+                    },
+                },
+            },
+        },
+
+        // ---- Extra safety for overlay components (all use Paper inside) ----
+        MuiDrawer: {
+            styleOverrides: {
+                paper: {
+                    backgroundColor: surfaceBase,
+                    backgroundImage: `${darkTokens.cardOverlay}, linear-gradient(0deg, rgba(255,255,255,0.02), rgba(255,255,255,0.02))`,
+                    backdropFilter: "saturate(120%) blur(6px)",
+                },
+            },
+        },
+        MuiPopover: {
+            styleOverrides: {
+                paper: {
+                    backgroundColor: surfaceBase,
+                    backgroundImage: `${darkTokens.cardOverlay}, linear-gradient(0deg, rgba(255,255,255,0.02), rgba(255,255,255,0.02))`,
+                },
+            },
+        },
+        MuiMenu: {
+            styleOverrides: {
+                paper: {
+                    backgroundColor: surfaceBase,
+                    backgroundImage: `${darkTokens.cardOverlay}, linear-gradient(0deg, rgba(255,255,255,0.02), rgba(255,255,255,0.02))`,
+                },
+            },
+        },
+        MuiDialog: {
+            styleOverrides: {
+                paper: {
+                    backgroundColor: surfaceBase,
+                    backgroundImage: `${darkTokens.cardOverlay}, linear-gradient(0deg, rgba(255,255,255,0.02), rgba(255,255,255,0.02))`,
+                },
+            },
+        },
+        MuiSnackbar: {
+            styleOverrides: {
+                root: {
+                    "& .MuiPaper-root": {
+                        backgroundColor: surfaceBase,
+                        backgroundImage: "none",
                     },
                 },
             },
