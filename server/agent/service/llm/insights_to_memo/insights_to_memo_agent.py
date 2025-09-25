@@ -7,16 +7,22 @@ from service.docs.memo_creator import MemoCreator
 
 from .text_block_agent import text_block_agent, TextBlockDependencies, TextOutput
 from .memo_agent import memo_agent, MemoDependencies, MemoOutput
+from ..interfaces import ProgressCallback
+
 
 class InsightsToMemoAgent:
-    def __init__(self, kbid, key_number, memo_doc_id):
+    def __init__(self, kbid, key_number, memo_doc_id, progress_callback: ProgressCallback = None):
         self.datasource = ReportingSurveyDataSource(kbid=kbid, key_number=key_number)
         self.memo_creator = MemoCreator(memo_doc_id)
         self.usage = RunUsage()
+        self.progress_callback = progress_callback
 
 
     # TODO place requested usage limits here
     def create_memo_from_insights(self, insights, focus: str = None):
+        if self.progress_callback:
+            self.progress_callback.reset_progress_total(len(insights) + 1)
+        self.progress_callback.increment_progress()
         text_block_outputs: list[str] = []
         for insight in insights:
             text_block_deps = TextBlockDependencies(
@@ -24,16 +30,20 @@ class InsightsToMemoAgent:
                 datasource=self.datasource,
             )
             response: TextOutput | None = self._run_agent("Try to keep the writing simple and actionable.", text_block_agent, text_block_deps)
+            if self.progress_callback:
+                self.progress_callback.increment_progress()
             if response is None:
                 continue
             text_block_outputs.append(response.descriptive_text)
 
         report_blocks_text = '\n\n'.join(text_block_outputs)
-        report_text = self.merge_report_blocks(report_blocks_text, focus)
+        report_text = self._merge_report_blocks(report_blocks_text, focus)
+        if self.progress_callback:
+            self.progress_callback.increment_progress()
         self.memo_creator.append_text(report_text)
 
 
-    def merge_report_blocks(self, report_blocks_text, focus):
+    def _merge_report_blocks(self, report_blocks_text, focus):
         memo_deps = MemoDependencies(
             memo_focus=focus,
         )

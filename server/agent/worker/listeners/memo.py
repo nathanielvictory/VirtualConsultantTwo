@@ -20,7 +20,7 @@ def handle(body):
         return
 
     with TaskManager(memo_schema.task_id) as task_manager:
-        insights_to_memo_agent = InsightsToMemoAgent(memo_schema.kbid, memo_schema.key_number, memo_schema.doc_id)
+        insights_to_memo_agent = InsightsToMemoAgent(memo_schema.kbid, memo_schema.key_number, memo_schema.doc_id, progress_callback=task_manager)
         insights_to_memo_agent.create_memo_from_insights(memo_schema.insights)
 
         total_tokens = insights_to_memo_agent.usage.input_tokens + insights_to_memo_agent.usage.output_tokens * 3

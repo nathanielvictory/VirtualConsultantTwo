@@ -1,37 +1,15 @@
 from contextlib import contextmanager
 import requests
 from logging import getLogger
-from datetime import datetime, timezone
 
 from config import settings
-from .artifact_schema import Artifact
-from .auth import ConsultantAuth
+from .manager_state import _State
 
 
 @contextmanager
 def TaskManager(task_id):
-    class _State:
-        def __init__(self):
-            self.artifacts: list[Artifact] = []
-            self.data = {}
-            self._auth = ConsultantAuth()
-        def add_artifact(self, a: Artifact): self.artifacts.append(a)
-        def get_token(self): return self._auth.get_token()
-
-        @staticmethod
-        def get_base_url(): return settings.CONSULTANT_URL
-
-        def get_headers(self):
-            return {
-                'Authorization': f'Bearer {self.get_token()}'
-            }
-
-        @staticmethod
-        def get_current_timestamp(): return datetime.now(timezone.utc).isoformat()
-
-
     logger = getLogger(__name__)
-    state = _State()
+    state = _State(task_id)
     try:
         headers = state.get_headers()
         data = {'status': 'Running', "startedAt": state.get_current_timestamp()}
