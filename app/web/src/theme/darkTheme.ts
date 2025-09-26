@@ -55,6 +55,11 @@ const darkOptions: ThemeOptions = {
                 "@media (prefers-reduced-motion: reduce)": {
                     "*": { transition: "none !important", animation: "none !important" },
                 },
+                a: {
+                    color: "#ff9797",
+                    textDecoration: "none",
+                    "&:hover": { color: "#ffd1d1" },
+                },
             },
         },
 

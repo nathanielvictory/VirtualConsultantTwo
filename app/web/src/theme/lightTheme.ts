@@ -26,6 +26,18 @@ const lightOptions: ThemeOptions = {
     },
 
     components: {
+        MuiCssBaseline: {
+            styleOverrides: {
+                a: {
+                    color: "#d32f2f",
+                    textDecoration: "none",
+                    "&:hover": {
+                        color: "#870606",
+                        textDecoration: "underline",
+                    },
+                },
+            },
+        },
         MuiAppBar: {
             styleOverrides: {
                 root: {
