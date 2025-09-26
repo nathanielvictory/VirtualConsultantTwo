@@ -162,7 +162,7 @@ export default function SideNav({
                                     <ListItemIcon>
                                         <DescriptionIcon />
                                     </ListItemIcon>
-                                    <ListItemText primary="Memo" />
+                                    <ListItemText primary="Memos" />
                                 </ListItemButton>
                                 <ListItemButton
                                     component={Link}
@@ -173,7 +173,7 @@ export default function SideNav({
                                     <ListItemIcon>
                                         <SlideshowIcon />
                                     </ListItemIcon>
-                                    <ListItemText primary="Slides" />
+                                    <ListItemText primary="Slidedecks" />
                                 </ListItemButton>
                             </List>
                         </Collapse>
