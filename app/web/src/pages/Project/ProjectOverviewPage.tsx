@@ -250,7 +250,7 @@ export default function ProjectOverviewPage() {
                         {/* Active tasks section */}
                         <Box sx={{ mt: 2.5 }}>
                             <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
-                                <SectionTitle title="Active Insight Tasks" />
+                                <SectionTitle title="Active Tasks" />
 
                                 {anyTasksLoading ? (
                                     <Stack spacing={1.5} sx={{ mt: 1 }}>
@@ -267,7 +267,7 @@ export default function ProjectOverviewPage() {
                                             <TaskStatusPoller
                                                 key={t.id}
                                                 taskId={t.id!}
-                                                title={t.status === "Running" ? "Running Insight Task" : "Queued Insight Task"}
+                                                title={t.status === "Running" ? `Running ${t.jobType} Task` : `Queued ${t.jobType} Task`}
                                                 pollIntervalMs={2000}
                                                 hideWhenSucceeded={false}
                                             />

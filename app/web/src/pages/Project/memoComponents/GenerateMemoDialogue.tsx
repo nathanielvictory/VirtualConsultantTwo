@@ -9,6 +9,7 @@ import {
     DialogTitle,
     Stack,
     TextField,
+    Typography,
 } from "@mui/material";
 import { usePostApiQueueTaskMemoMutation } from "../../../api/tasksApi";
 
@@ -54,8 +55,12 @@ export default function GenerateMemoDialog({
 
     return (
         <Dialog open onClose={onCancel} fullWidth maxWidth="sm">
-            <DialogTitle>Generate New Memo Content</DialogTitle>
+            <DialogTitle>Generate New Memo</DialogTitle>
             <DialogContent>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    New memo content will be based on all current project insights and will be appended
+                    to content in the currently selected memo's Google Doc.
+                </Typography>
                 <Stack gap={2} sx={{ mt: 1 }}>
                     {error && <Alert severity="error">{error}</Alert>}
                     <TextField
