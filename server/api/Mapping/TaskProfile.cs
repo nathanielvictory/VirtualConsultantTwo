@@ -38,8 +38,16 @@ namespace api.Mapping
                 .ForMember(d => d.CompletedAt, opt => opt.Ignore());
 
             CreateMap<UpdateTaskDto, TaskJob>()
-                .ForMember(d => d.JobType,   opt => opt.MapFrom(s => s.Type))
-                .ForMember(d => d.JobStatus, opt => opt.MapFrom(s => s.Status))
+                .ForMember(d => d.JobType, opt =>
+                {
+                    opt.PreCondition(s => s.Type.HasValue);
+                    opt.MapFrom(s => s.Type!.Value);
+                })
+                .ForMember(d => d.JobStatus, opt =>
+                {
+                    opt.PreCondition(s => s.Status.HasValue);
+                    opt.MapFrom(s => s.Status!.Value);
+                })
                 .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember is not null));
         }
     }
