@@ -175,9 +175,8 @@ export default function MemoPage() {
 
                     {mode === "Creating" && (
                         <MemoCreator
-                            onSuccess={() => {
-                                // When wired to API, dispatch the newly created memo id here before closing:
-                                // dispatch(setMemoId(newId));
+                            onSuccess={(newId: number | null) => {
+                                if (newId != null) dispatch(setMemoId(newId));
                                 closeDialog();
                             }}
                         />

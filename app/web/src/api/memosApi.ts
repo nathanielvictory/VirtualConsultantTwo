@@ -92,7 +92,6 @@ export type MemoListItemDto = {
   projectId?: number;
   name?: string | null;
   docId?: string | null;
-  promptFocus?: string | null;
   createdById?: number;
   createdAt?: string;
   updatedAt?: string;
@@ -111,7 +110,6 @@ export type MemoDetailDto = {
   projectId?: number;
   name?: string | null;
   docId?: string | null;
-  promptFocus?: string | null;
   createdById?: number;
   createdAt?: string;
   updatedAt?: string;
@@ -120,13 +118,10 @@ export type CreateMemoDto = {
   projectId?: number;
   name?: string | null;
   docId?: string | null;
-  promptFocus?: string | null;
-  createdById?: number;
 };
 export type UpdateMemoDto = {
   name?: string | null;
   docId?: string | null;
-  promptFocus?: string | null;
 };
 export const {
   useGetApiMemosQuery,

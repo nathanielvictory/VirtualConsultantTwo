@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;            // ⬅ add
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using api.Data;
@@ -25,6 +26,17 @@ public class MemosController : ControllerBase
         _mapper = mapper;
     }
 
+    // Helper: get current user's ID (int) from claims
+    private int GetUserId()
+    {
+        // Prefer NameIdentifier, fall back to "sub"
+        var idValue = User.FindFirstValue(ClaimTypes.NameIdentifier) 
+                      ?? User.FindFirstValue("sub");
+        if (string.IsNullOrWhiteSpace(idValue) || !int.TryParse(idValue, out var id))
+            throw new UnauthorizedAccessException("Authenticated user id claim missing or invalid.");
+        return id;
+    }
+
     [HttpGet]
     public async Task<ActionResult<PagedResultDto<MemoListItemDto>>> GetMemos(
         [FromQuery] int? projectId = null,
@@ -43,9 +55,7 @@ public class MemosController : ControllerBase
         if (!string.IsNullOrWhiteSpace(search))
         {
             var like = $"%{search}%";
-            q = q.Where(m =>
-                EF.Functions.ILike(m.Name, like) ||
-                (m.PromptFocus != null && EF.Functions.ILike(m.PromptFocus, like)));
+            q = q.Where(m => EF.Functions.ILike(m.Name, like));
         }
 
         q = sort switch
@@ -83,6 +93,10 @@ public class MemosController : ControllerBase
     public async Task<ActionResult<MemoDetailDto>> PostMemo(CreateMemoDto dto)
     {
         var entity = _mapper.Map<Memo>(dto);
+
+        // Set CreatedById from the authenticated user
+        entity.CreatedById = GetUserId();
+
         _context.Memos.Add(entity);
         await _context.SaveChangesAsync();
 

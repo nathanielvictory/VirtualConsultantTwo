@@ -55,30 +55,47 @@ export default function TaskStatusPoller({
             status === "Failed" || status === "Canceled" ? "error" : "default";
 
     return (
-        <Box sx={{ p: 2, mb: 2, borderRadius: 2, border: (t) => `1px dashed ${t.palette.divider}` }}>
+        <Box
+            sx={{
+                p: 2,
+                mb: 2,
+                borderRadius: 2,
+                border: (t) => `1px dashed ${t.palette.divider}`,
+            }}
+        >
             <Stack spacing={1}>
                 <Stack direction="row" alignItems="center" gap={1} flexWrap="wrap">
                     <Typography variant="subtitle2">{title}</Typography>
-                    <Chip size="small" label={status} color={color as any}
-                          variant={status === "Succeeded" ? "filled" : "outlined"} />
-                    <Typography variant="body2" color="text.secondary">Task #{taskId}</Typography>
+                    <Chip
+                        size="small"
+                        label={status}
+                        color={color as any}
+                        variant={status === "Succeeded" ? "filled" : "outlined"}
+                    />
+                    <Typography variant="body2" color="text.secondary">
+                        Task #{taskId}
+                    </Typography>
                 </Stack>
 
-                {/* Progress UI (Queued: old indeterminate; Running: smooth bar or fallback) */}
+                {/* Progress UI */}
                 {(status === "Queued" || status === "Running") && (
                     <Box>
-                        {status === "Queued" && (
-                            <LinearProgress />
-                        )}
+                        {status === "Queued" && <LinearProgress />}
 
-                        {status === "Running" && (
-                            task?.progress != null ? (
+                        {status === "Running" &&
+                            (task?.progress != null ? (
                                 <TaskProgressBar progress={task?.progress} />
                             ) : (
                                 <LinearProgress />
-                            )
-                        )}
+                            ))}
                     </Box>
+                )}
+
+                {/* Error message when failed */}
+                {status === "Failed" && task?.errorMessage && (
+                    <Typography variant="body2" color="error">
+                        {task.errorMessage}
+                    </Typography>
                 )}
 
                 <Typography variant="caption" color="text.secondary">

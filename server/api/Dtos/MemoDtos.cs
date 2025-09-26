@@ -7,7 +7,6 @@ public record MemoListItemDto(
     int ProjectId,
     string Name,
     string? DocId,
-    string? PromptFocus,
     int CreatedById,
     DateTimeOffset CreatedAt,
     DateTimeOffset UpdatedAt);
@@ -17,7 +16,6 @@ public record MemoDetailDto(
     int ProjectId,
     string Name,
     string? DocId,
-    string? PromptFocus,
     int CreatedById,
     DateTimeOffset CreatedAt,
     DateTimeOffset UpdatedAt);
@@ -25,11 +23,8 @@ public record MemoDetailDto(
 public record CreateMemoDto(
     [Required] int ProjectId,
     [Required] string Name,
-    string? DocId,
-    string? PromptFocus,
-    [Required] int CreatedById);
+    string? DocId);
 
 public record UpdateMemoDto(
     string? Name,
-    string? DocId,
-    string? PromptFocus);
+    string? DocId);

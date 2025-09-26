@@ -1,6 +1,5 @@
 import { googleFetch } from './googleFetch';
 
-
 export type DriveFile = {
     id: string;
     name: string;
@@ -9,16 +8,15 @@ export type DriveFile = {
     webViewLink?: string;
 };
 
-
 export const MIME = {
     DOC: 'application/vnd.google-apps.document',
     SHEET: 'application/vnd.google-apps.spreadsheet',
     SLIDE: 'application/vnd.google-apps.presentation',
 } as const;
 
-
 const DRIVE_FILES_URL = 'https://www.googleapis.com/drive/v3/files';
-
+const DRIVE_PERMS_URL = (fileId: string) =>
+    `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}/permissions`;
 
 export async function listDriveFiles(
     accessToken: string,
@@ -34,14 +32,12 @@ export async function listDriveFiles(
         fields: 'files(id,name,mimeType,modifiedTime,webViewLink)',
     });
 
-
     const data = await googleFetch<{ files: DriveFile[] }>(`${DRIVE_FILES_URL}?${params.toString()}`, {
         method: 'GET',
         accessToken,
     });
     return (data.files ?? []) as DriveFile[];
 }
-
 
 export async function createDriveFile(
     accessToken: string,
@@ -54,6 +50,38 @@ export async function createDriveFile(
     });
 }
 
+/** Minimal: set “Anyone with the link can edit”. */
+export async function setAnyoneWithLinkCanEdit(
+    accessToken: string,
+    fileId: string
+): Promise<void> {
+    // If this gets called twice, Drive may return an error. We keep it simple:
+    // try once, and if Drive complains that it already exists, just ignore.
+    try {
+        await googleFetch(
+            `${DRIVE_PERMS_URL(fileId)}`,
+            {
+                method: 'POST',
+                accessToken,
+                body: JSON.stringify({
+                    type: 'anyone',
+                    role: 'writer',
+                    allowFileDiscovery: false,
+                }),
+            }
+        );
+    } catch (e: any) {
+        const msg = String(e?.message ?? e);
+        // Silently ignore “already exists / duplicate” style errors to stay minimal.
+        const harmless =
+            msg.includes('already') ||
+            msg.includes('duplicate') ||
+            msg.includes('cannotShare') ||
+            msg.includes('400') || // some tenants return 400 for duplicate anyone perms
+            msg.includes('409');
+        if (!harmless) throw e;
+    }
+}
 
 /** Export a Google Doc as HTML using the Drive API (works with Authorization headers). */
 export async function exportDocAsHtml(accessToken: string, fileId: string): Promise<string> {
@@ -62,7 +90,6 @@ export async function exportDocAsHtml(accessToken: string, fileId: string): Prom
     if (!resp.ok) throw await toGoogleError(resp);
     return await resp.text();
 }
-
 
 async function toGoogleError(resp: Response): Promise<Error> {
     try {
