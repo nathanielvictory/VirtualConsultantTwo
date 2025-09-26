@@ -27,7 +27,7 @@ class SurveyToInsightsAgent:
             all_question_text=self.datasource.all_question_text(),
         )
         focus_prompt = f"Please generate up to {max_focus_count} focuses for me."
-        output: FocusOutput | None = self._run_agent(focus_prompt, focus_agent, focus_deps)
+        output: FocusOutput | None = self._run_agent(focus_prompt, focus_agent, focus_deps, retries=10)
         if self.progress_callback:
             self.progress_callback.increment_progress()
         if not output:
