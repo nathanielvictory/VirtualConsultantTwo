@@ -94,7 +94,7 @@ export type QueueCreateFullReportTaskDto = {
   projectId?: number;
 };
 export type QueueCreateMemoTaskDto = {
-  projectId?: number;
+  memoId?: number;
 };
 export type QueueCreateSlidesTaskDto = {
   projectId?: number;

@@ -1,49 +1,219 @@
-import { Container, Paper, Stack, Typography, Button, Divider, List, ListItem, ListItemText, Alert, Box } from "@mui/material";
+// src/pages/MemoPage.tsx
+import { useMemo, useState } from "react";
+import {
+    Box,
+    Button,
+    Container,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    Stack,
+    Tooltip,
+    Typography,
+} from "@mui/material";
+import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
+import { useDispatch, useSelector } from "react-redux";
+import type { RootState } from "../../store";
+import { setMemoId } from "../../store/selectedSlice";
 import ProjectStepper from "./ProjectStepper";
-import { useParams } from "react-router-dom";
+import MemoSelector from "./memoComponents/MemoSelector";
+import MemoCreator from "./memoComponents/MemoCreator";
+import { useGetApiMemosByIdQuery } from "../../api/memosApi";
+import { getDocsEditUrl } from '../../integrations/google/docsApi/documents';
+
+// ⬇️ adjust this import to your actual file/name (“Dialogue” vs “Dialog”)
+import GenerateMemoDialogue from "./memoComponents/GenerateMemoDialogue";
+
+// ⬇️ NEW: poller for background task status
+import TaskStatusPoller from "../../components/TaskStatusPoller";
+import GoogleDocExpander from "./memoComponents/GoogleDocExpander.tsx";
+
+export type MemoViewMode = "Selecting" | "Creating";
 
 export default function MemoPage() {
-    const { id = "vc-001" } = useParams();
+    const dispatch = useDispatch();
+    const projectId =
+        useSelector((s: RootState) => s.selected.projectId) ?? null;
+    const memoId = useSelector(
+        (s: RootState) => s.selected.memoId as number | null
+    );
+
+    const [mode, setMode] = useState<MemoViewMode>("Selecting");
+    const [isDialogOpen, setDialogOpen] = useState(false);
+    const [showGenerateDialog, setShowGenerateDialog] = useState(false);
+
+    const [currentTaskId, setCurrentTaskId] = useState<number | null>(null);
+
+    const { data: currentMemo, isFetching } = useGetApiMemosByIdQuery(
+        { id: memoId as number },
+        { skip: memoId == null }
+    );
+
+    const currentName = useMemo(() => {
+        if (memoId == null) return "—";
+        if (isFetching) return "Loading...";
+        return currentMemo?.name ?? String(memoId);
+    }, [memoId, isFetching, currentMemo?.name]);
+
+    const dialogTitle =
+        mode === "Selecting" ? "Select a memo" : "Create a new memo";
+
+    const openSelecting = () => {
+        setMode("Selecting");
+        setDialogOpen(true);
+    };
+
+    const openCreating = () => {
+        setMode("Creating");
+        setDialogOpen(true);
+    };
+
+    const closeDialog = () => setDialogOpen(false);
+
     return (
-        <Container maxWidth="xl" sx={{ py: 3 }}>
-            <ProjectStepper active="memo" />
+        <Container maxWidth="lg" sx={{ py: 3 }}>
+            {/* Keep stepper alignment with Insights page */}
+            <ProjectStepper active="select" />
 
-            <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
-                <Paper sx={{ flex: 1, p: 2 }}>
-                    <Typography variant="subtitle1">Outline</Typography>
-                    <List dense>
-                        {["Executive Summary", "Key Drivers", "Recommendations"].map((t) => (
-                            <ListItem key={t}><ListItemText primary={t} /></ListItem>
-                        ))}
-                    </List>
-                    <Button fullWidth variant="outlined">Add section</Button>
-                </Paper>
+            <Box
+                sx={{
+                    p: { xs: 2, md: 3 },
+                    mt: 2,
+                    borderRadius: 3,
+                    border: (t) => `1px solid ${t.palette.divider}`,
+                    bgcolor: "background.paper",
+                }}
+            >
+                {/* Header / actions */}
+                <Stack
+                    direction={{ xs: "column", sm: "row" }}
+                    justifyContent="space-between"
+                    alignItems={{ xs: "flex-start", sm: "center" }}
+                    gap={1.5}
+                    sx={{ mb: 2 }}
+                >
+                    <Typography variant="h6">Memos</Typography>
 
-                <Box flex={2}>
-                    <Paper sx={{ p: 2, minHeight: 360 }}>
-                        <Typography variant="subtitle1">Section: Executive Summary</Typography>
-                        <Divider sx={{ my: 1 }} />
-                        <Typography variant="body2" color="text.secondary">Draft content placeholder…</Typography>
-                    </Paper>
-                    <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
-                        <Button variant="contained">Draft section</Button>
-                        <Button>Push to Google Doc</Button>
+                    <Tooltip title="Generate a memo from your project context">
+                        {/* Tooltip needs a focusable child even when disabled */}
+                        <span>
+              <Button
+                  variant="outlined"
+                  startIcon={<AutoAwesomeIcon />}
+                  onClick={() => setShowGenerateDialog(true)}
+                  disabled={!projectId}
+              >
+                Generate Memo
+              </Button>
+            </span>
+                    </Tooltip>
+                </Stack>
+
+                {/* Current memo summary + actions */}
+                <Stack
+                    direction={{ xs: "column", md: "row" }}
+                    justifyContent="space-between"
+                    alignItems={{ xs: "flex-start", md: "center" }}
+                    gap={1.5}
+                    sx={{ mb: 1 }}
+                >
+                    <Box>
+                        <Typography variant="subtitle1">Viewing memo</Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                            Currently selected memo:{" "}
+                            {currentMemo?.docId ? (
+                                <a
+                                    href={getDocsEditUrl(currentMemo.docId)}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    {currentName}
+                                </a>
+                            ) : (
+                                currentName
+                            )}
+                        </Typography>
+                    </Box>
+
+                    <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+                        <Button variant="outlined" onClick={openSelecting}>
+                            Select different memo
+                        </Button>
+                        <Button variant="contained" onClick={openCreating}>
+                            Create new memo
+                        </Button>
                     </Stack>
-                    <Alert sx={{ mt: 1 }} severity="info">Google permissions requested at this step (placeholder).</Alert>
-                </Box>
+                </Stack>
+            </Box>
 
-                <Paper sx={{ flex: 1, p: 2 }}>
-                    <Typography variant="subtitle1">Insight Library</Typography>
-                    <List dense>
-                        {["Response time drives NPS", "Gen Z prefers chat"].map((t) => (
-                            <ListItem key={t} secondaryAction={<Button size="small">Insert</Button>}>
-                                <ListItemText primary={t} />
-                            </ListItem>
-                        ))}
-                    </List>
-                    <Button href={`/projects/${id}/slides`} variant="contained" fullWidth>Proceed to Slides</Button>
-                </Paper>
-            </Stack>
+            {/* Select/Create dialog (unchanged behavior, polished container above) */}
+            <Dialog
+                open={isDialogOpen}
+                onClose={closeDialog}
+                fullWidth
+                maxWidth="md"
+                aria-labelledby="memo-dialog-title"
+                keepMounted
+            >
+                <DialogTitle id="memo-dialog-title">{dialogTitle}</DialogTitle>
+
+                <DialogContent dividers>
+                    {mode === "Selecting" && (
+                        <MemoSelector
+                            projectId={projectId}
+                            memoId={memoId}
+                            onSelect={(id) => {
+                                dispatch(setMemoId(id));
+                                closeDialog();
+                            }}
+                            showTitle={false}
+                            showCurrent
+                            variant="default"
+                        />
+                    )}
+
+                    {mode === "Creating" && (
+                        <MemoCreator
+                            onSuccess={() => {
+                                // When wired to API, dispatch the newly created memo id here before closing:
+                                // dispatch(setMemoId(newId));
+                                closeDialog();
+                            }}
+                        />
+                    )}
+                </DialogContent>
+
+                <DialogActions>
+                    <Button onClick={closeDialog}>Close</Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Generate memo dialog */}
+            {showGenerateDialog && (
+                <GenerateMemoDialogue
+                    memoId={memoId ?? undefined}
+                    onCancel={() => setShowGenerateDialog(false)}
+                    onSuccess={(taskId: number) => {
+                        setCurrentTaskId(taskId);
+                        setShowGenerateDialog(false);
+                    }}
+                />
+            )}
+
+            {/* ⬇️ NEW: show the task status poller if a task is running */}
+            {
+                currentTaskId &&
+                <Box sx={{ mt: 2 }}>
+                    <TaskStatusPoller taskId={currentTaskId} key={currentTaskId}/>
+                </Box>
+            }
+            {
+                memoId &&
+                <Box sx={{ mt: 3 }}>
+                    <GoogleDocExpander />
+                </Box>
+            }
         </Container>
     );
 }

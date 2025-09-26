@@ -18,9 +18,11 @@ const selectedSlice = createSlice({
     initialState,
     reducers: {
         setProjectId(state, action: PayloadAction<number | null>) {
-            state.projectId = action.payload;
-            state.memoId = null;
-            state.slidedeckId = null;
+            if(state.projectId !== action.payload) {
+                state.projectId = action.payload;
+                state.memoId = null;
+                state.slidedeckId = null;
+            }
         },
         setMemoId(state, action: PayloadAction<number | null>) {
             state.memoId = action.payload;
