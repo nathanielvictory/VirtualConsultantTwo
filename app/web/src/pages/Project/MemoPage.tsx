@@ -74,7 +74,7 @@ export default function MemoPage() {
     return (
         <Container maxWidth="lg" sx={{ py: 3 }}>
             {/* Keep stepper alignment with Insights page */}
-            <ProjectStepper active="select" />
+            <ProjectStepper active="memo" />
 
             <Box
                 sx={{

@@ -22,7 +22,8 @@ public record ProjectDetailDto(
     bool IsActive,
     DateTimeOffset CreatedAt,
     DateTimeOffset UpdatedAt,
-    DateTimeOffset? LastRefreshed);
+    DateTimeOffset? LastRefreshed, 
+    int TotalTokens);
 
 public record CreateProjectDto(
     [Required] string Kbid,

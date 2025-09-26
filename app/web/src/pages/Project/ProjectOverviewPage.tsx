@@ -23,7 +23,8 @@ import {
     useGetApiTasksQuery,
     type TaskListItemDto,
 } from "../../api/tasksApi";
-import TaskStatusPoller from "../../components/TaskStatusPoller"; // ← path assumes sibling to this page
+import TaskStatusPoller from "../../components/TaskStatusPoller";
+import {tokensToDollars} from "../../constants"; // ← path assumes sibling to this page
 
 export default function ProjectOverviewPage() {
     const projectId = useAppSelector((s) => s.selected.projectId);
@@ -89,6 +90,16 @@ export default function ProjectOverviewPage() {
         return Number.isNaN(d.getTime()) ? iso : d.toLocaleString();
     };
 
+    const dollarsSpent = React.useMemo(
+        () => tokensToDollars(project?.totalTokens ?? 0),
+        [project?.totalTokens]
+    );
+
+    const formatDollars = (amount: number) =>
+        amount < 1
+            ? `${(amount * 100).toFixed(1)}¢`
+            : new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(amount);
+
     return (
         <Container maxWidth="lg" sx={{ py: 3 }}>
             <ProjectStepper active="overview" />
@@ -150,6 +161,19 @@ export default function ProjectOverviewPage() {
                             >
                                 <ContentCopyIcon fontSize="inherit" />
                             </IconButton>
+
+                            <Divider orientation="vertical" flexItem sx={{ mx: 1 }} />
+
+                            <Tooltip title={`${project?.totalTokens ?? 0} tokens`}>
+                                <Typography variant="body2" color="text.secondary">
+                                    Dollars Spent:&nbsp;
+                                    {isLoading ? (
+                                        <Skeleton width={80} sx={{ display: "inline-block" }} />
+                                    ) : (
+                                        formatDollars(dollarsSpent)
+                                    )}
+                                </Typography>
+                            </Tooltip>
                         </Stack>
                     </Stack>
 

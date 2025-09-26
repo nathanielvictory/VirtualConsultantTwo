@@ -124,6 +124,7 @@ export type ProjectDetailDto = {
   createdAt?: string;
   updatedAt?: string;
   lastRefreshed?: string | null;
+  totalTokens?: number;
 };
 export type CreateProjectDto = {
   kbid?: string | null;

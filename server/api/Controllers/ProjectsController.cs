@@ -77,12 +77,26 @@ public class ProjectsController : ControllerBase
     }
 
     [HttpGet("{id:int}")]
-
     public async Task<ActionResult<ProjectDetailDto>> GetProject(int id)
     {
         var dto = await _context.Projects.AsNoTracking()
             .Where(p => p.Id == id)
-            .ProjectTo<ProjectDetailDto>(_mapper.ConfigurationProvider)
+            .Select(p => new ProjectDetailDto(
+                p.Id,
+                p.Kbid,
+                p.Name,
+                p.OrganizationId,
+                p.ProjectContext,
+                p.IsActive,
+                p.CreatedAt,
+                p.UpdatedAt,
+                p.LastRefreshed,
+                // Sum over all artifacts' TotalTokens (ignore nulls, default to 0)
+                p.Tasks
+                    .SelectMany(t => t.Artifacts)
+                    .Where(a => a.TotalTokens.HasValue)
+                    .Sum(a => (int?)a.TotalTokens) ?? 0
+            ))
             .FirstOrDefaultAsync();
 
         return dto is null ? NotFound() : Ok(dto);
@@ -95,10 +109,19 @@ public class ProjectsController : ControllerBase
         _context.Projects.Add(entity);
         await _context.SaveChangesAsync();
 
-        var created = await _context.Projects.AsNoTracking()
-            .Where(p => p.Id == entity.Id)
-            .ProjectTo<ProjectDetailDto>(_mapper.ConfigurationProvider)
-            .FirstAsync();
+        // Build the detail DTO directly from the saved entity; TotalTokens = 0 on create
+        var created = new ProjectDetailDto(
+            entity.Id,
+            entity.Kbid,
+            entity.Name,
+            entity.OrganizationId,
+            entity.ProjectContext,
+            entity.IsActive,
+            entity.CreatedAt,
+            entity.UpdatedAt,
+            entity.LastRefreshed,
+            0 // no tasks/artifacts yet
+        );
 
         return CreatedAtAction(nameof(GetProject), new { id = created.Id }, created);
     }

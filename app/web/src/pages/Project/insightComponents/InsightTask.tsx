@@ -15,6 +15,7 @@ import {
 } from "../../../api/tasksApi";
 import { useGetApiInsightsByIdQuery } from "../../../api/insightsApi";
 import TaskProgressBar from "../../../components/TaskProgressBar.tsx";
+import {tokensToDollars} from "../../../constants";
 
 const TERMINAL: Array<TaskDetailDto["status"]> = ["Succeeded", "Failed", "Canceled"];
 
@@ -103,7 +104,7 @@ export default function InsightTask({
         (sum, a) => sum + (typeof a.totalTokens === "number" ? a.totalTokens : 0),
         0
     );
-    const dollars = (totalTokens / 1000) * 0.00015;
+    const dollars = tokensToDollars(totalTokens);
     const centsDisplay = `${(dollars * 100).toFixed(1)}¢`;
 
     return (
