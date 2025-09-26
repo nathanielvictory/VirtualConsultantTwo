@@ -119,7 +119,6 @@ export default function MemoPage() {
                     sx={{ mb: 1 }}
                 >
                     <Box>
-                        <Typography variant="subtitle1">Viewing memo</Typography>
                         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
                             Currently selected memo:{" "}
                             {currentMemo?.docId ? (
@@ -138,10 +137,10 @@ export default function MemoPage() {
 
                     <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
                         <Button variant="outlined" onClick={openSelecting}>
-                            Select different memo
+                            Select Memo
                         </Button>
                         <Button variant="contained" onClick={openCreating}>
-                            Create new memo
+                            Create New Memo
                         </Button>
                     </Stack>
                 </Stack>
