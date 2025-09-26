@@ -4,17 +4,17 @@ import {
     Box,
     Button,
     Chip,
-    LinearProgress,
     Paper,
     Stack,
     Typography,
-    Skeleton,
+    Skeleton, LinearProgress,
 } from "@mui/material";
 import {
     useGetApiTasksByIdQuery,
     type TaskDetailDto,
 } from "../../../api/tasksApi";
 import { useGetApiInsightsByIdQuery } from "../../../api/insightsApi";
+import TaskProgressBar from "../../../components/TaskProgressBar.tsx";
 
 const TERMINAL: Array<TaskDetailDto["status"]> = ["Succeeded", "Failed", "Canceled"];
 
@@ -130,11 +130,6 @@ export default function InsightTask({
                             }
                             variant="outlined"
                         />
-                        {typeof data?.progress === "number" && !terminal && (
-                            <Typography variant="caption" color="text.secondary">
-                                {Math.round((data.progress ?? 0) * 100)}%
-                            </Typography>
-                        )}
                     </Stack>
 
                     {/* Summary line for succeeded tasks */}
@@ -156,8 +151,21 @@ export default function InsightTask({
                                     ? `Requested ${payload.numberOfInsights} insight(s).`
                                     : "Letting the AI agent choose focus & count."}
                             </Typography>
+
                             <Box sx={{ mt: 1 }}>
-                                <LinearProgress />
+                                {data?.status === "Queued" && (
+                                    // keep the old bar (indeterminate) while queued
+                                    <LinearProgress />
+                                )}
+
+                                {data?.status === "Running" && (
+                                    // show smooth progress when running; if no numeric progress, fall back to indeterminate
+                                    data?.progress != null ? (
+                                        <TaskProgressBar progress={data?.progress} />
+                                    ) : (
+                                        <LinearProgress />
+                                    )
+                                )}
                             </Box>
                         </>
                     )}

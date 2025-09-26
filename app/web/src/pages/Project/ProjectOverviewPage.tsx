@@ -19,6 +19,11 @@ import { Link as RouterLink } from "react-router-dom";
 
 import { useAppSelector } from "../../store/hooks";
 import { useGetApiProjectsByIdQuery } from "../../api/projectsApi";
+import {
+    useGetApiTasksQuery,
+    type TaskListItemDto,
+} from "../../api/tasksApi";
+import TaskStatusPoller from "../../components/TaskStatusPoller"; // ← path assumes sibling to this page
 
 export default function ProjectOverviewPage() {
     const projectId = useAppSelector((s) => s.selected.projectId);
@@ -34,6 +39,44 @@ export default function ProjectOverviewPage() {
         { id: projectId as number },
         { skip: projectId == null }
     );
+
+    // --- Active Insight tasks: Queued + Running
+    const queued = useGetApiTasksQuery(
+        {
+            projectId: projectId!,
+            status: "Queued",
+            page: 1,
+            pageSize: 100,
+            sort: "createdAt desc",
+        },
+        { skip: projectId == null }
+    );
+
+    const running = useGetApiTasksQuery(
+        {
+            projectId: projectId!,
+            status: "Running",
+            page: 1,
+            pageSize: 100,
+            sort: "createdAt desc",
+        },
+        { skip: projectId == null }
+    );
+
+    // rows per your specified response shape
+    const rows: TaskListItemDto[] = [
+        ...(running.data?.items ?? []),
+        ...(queued.data?.items ?? []),
+    ];
+
+    const anyTasksLoading = queued.isLoading || running.isLoading;
+    const anyTasksFetching = queued.isFetching || running.isFetching;
+
+    const refreshAll = () => {
+        refetch();
+        queued.refetch();
+        running.refetch();
+    };
 
     const copy = (value?: string | number | null) => {
         if (value == null) return;
@@ -119,9 +162,12 @@ export default function ProjectOverviewPage() {
                                 size="small"
                             />
                         )}
-                        <Tooltip title="Refresh project details">
+                        <Tooltip title="Refresh project & tasks">
               <span>
-                <IconButton onClick={() => refetch()} disabled={isFetching || projectId == null}>
+                <IconButton
+                    onClick={refreshAll}
+                    disabled={isFetching || anyTasksFetching || projectId == null}
+                >
                   <RefreshIcon />
                 </IconButton>
               </span>
@@ -135,48 +181,84 @@ export default function ProjectOverviewPage() {
                 {projectId == null ? (
                     <EmptyState />
                 ) : isError ? (
-                    <ErrorState error={error} onRetry={refetch} />
+                    <ErrorState error={error} onRetry={refreshAll} />
                 ) : (
-                    // two-column layout without MUI Grid
-                    <Stack direction={{ xs: "column", md: "row" }} gap={2.5}>
-                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <>
+                        {/* two-column layout without MUI Grid */}
+                        <Stack direction={{ xs: "column", md: "row" }} gap={2.5}>
+                            <Box sx={{ flex: 1, minWidth: 0 }}>
+                                <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
+                                    <SectionTitle title="Details" />
+                                    <DetailRow label="Organization ID" value={project?.organizationId} loading={isLoading} />
+                                    <DetailRow label="Context" value={project?.projectContext} loading={isLoading} multiline />
+                                    <DetailRow label="Created" value={formatDate(project?.createdAt)} loading={isLoading} />
+                                    <DetailRow label="Updated" value={formatDate(project?.updatedAt)} loading={isLoading} />
+                                    <DetailRow label="Last Refreshed" value={formatDate(project?.lastRefreshed)} loading={isLoading} />
+                                </Paper>
+                            </Box>
+
+                            <Box sx={{ flex: 1, minWidth: 0 }}>
+                                <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
+                                    <SectionTitle title="Quick Actions" />
+                                    <Stack direction="row" flexWrap="wrap" gap={1}>
+                                        <Button
+                                            component={RouterLink}
+                                            to={`/projects/${projectId}/import`}
+                                            variant="contained"
+                                            disableElevation
+                                        >
+                                            Import & Setup
+                                        </Button>
+                                        <Button component={RouterLink} to={`/projects/${projectId}/insights`} variant="outlined">
+                                            Insights
+                                        </Button>
+                                        <Button component={RouterLink} to={`/projects/${projectId}/memo`} variant="outlined">
+                                            Memo
+                                        </Button>
+                                        <Button component={RouterLink} to={`/projects/${projectId}/slides`} variant="outlined">
+                                            Slides
+                                        </Button>
+                                    </Stack>
+                                </Paper>
+                            </Box>
+                        </Stack>
+
+                        {/* Active tasks section */}
+                        <Box sx={{ mt: 2.5 }}>
                             <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
-                                <SectionTitle title="Details" />
-                                <DetailRow label="Organization ID" value={project?.organizationId} loading={isLoading} />
-                                <DetailRow label="Context" value={project?.projectContext} loading={isLoading} multiline />
-                                <DetailRow label="Created" value={formatDate(project?.createdAt)} loading={isLoading} />
-                                <DetailRow label="Updated" value={formatDate(project?.updatedAt)} loading={isLoading} />
-                                <DetailRow label="Last Refreshed" value={formatDate(project?.lastRefreshed)} loading={isLoading} />
+                                <SectionTitle title="Active Insight Tasks" />
+
+                                {anyTasksLoading ? (
+                                    <Stack spacing={1.5} sx={{ mt: 1 }}>
+                                        <Skeleton variant="rectangular" height={56} />
+                                        <Skeleton variant="rectangular" height={56} />
+                                    </Stack>
+                                ) : rows.length === 0 ? (
+                                    <Typography variant="body2" color="text.secondary">
+                                        No active Insight tasks right now.
+                                    </Typography>
+                                ) : (
+                                    <Stack spacing={1.5} sx={{ mt: 1 }}>
+                                        {rows.map((t) => (
+                                            <TaskStatusPoller
+                                                key={t.id}
+                                                taskId={t.id!}
+                                                title={t.status === "Running" ? "Running Insight Task" : "Queued Insight Task"}
+                                                pollIntervalMs={2000}
+                                                hideWhenSucceeded={false}
+                                            />
+                                        ))}
+                                    </Stack>
+                                )}
+
+                                {(queued.data?.items?.length ?? 0) + (running.data?.items?.length ?? 0) > 0 && (
+                                    <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: "block" }}>
+                                        {(running.data?.items?.length ?? 0)} running • {(queued.data?.items?.length ?? 0)} queued
+                                    </Typography>
+                                )}
                             </Paper>
                         </Box>
-
-                        <Box sx={{ flex: 1, minWidth: 0 }}>
-                            <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
-                                <SectionTitle title="Quick Actions" />
-                                <Stack direction="row" flexWrap="wrap" gap={1}>
-                                    <Button
-                                        component={RouterLink}
-                                        to={`/projects/${projectId}/import`}
-                                        variant="contained"
-                                        disableElevation
-                                    >
-                                        Import & Setup
-                                    </Button>
-                                    <Button component={RouterLink} to={`/projects/${projectId}/insights`} variant="outlined">
-                                        Insights
-                                    </Button>
-                                    <Button component={RouterLink} to={`/projects/${projectId}/memo`} variant="outlined">
-                                        Memo
-                                    </Button>
-                                    <Button component={RouterLink} to={`/projects/${projectId}/slides`} variant="outlined">
-                                        Slides
-                                    </Button>
-                                </Stack>
-
-
-                            </Paper>
-                        </Box>
-                    </Stack>
+                    </>
                 )}
             </Paper>
         </Container>
