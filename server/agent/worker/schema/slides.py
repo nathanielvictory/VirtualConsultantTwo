@@ -5,6 +5,7 @@ class Slides(BaseModel):
     project_id: int
     kbid: str
     key_number: int
+    slidedeck_id: int
     doc_id: str
     sheets_id: str
     slides_id: str

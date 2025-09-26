@@ -8,26 +8,29 @@ from service.slides.slidekit import SlideCreator
 from service.docs.memo_creator import MemoCreator
 
 from .slide_outline_agent import slide_outline_agent, PowerpointOutline, SlideOutlineDependencies
-from .slide_agent import slide_agent, SlideSpecification, SlideDependencies
+from .slide_agent import slide_agent, SlideDependencies
 from .chart_agent import chart_agent, ChartSpecification, ChartDependencies
-
+from ..interfaces import ProgressCallback
 
 
 class MemoToSlidesAgent:
-    def __init__(self, kbid, key_number, memo_doc_id, slides_id, sheets_id):
+    def __init__(self, kbid, key_number, memo_doc_id, slides_id, sheets_id, progress_callback: ProgressCallback = None):
         self.datasource = ReportingSurveyDataSource(kbid=kbid, key_number=key_number)
         self.memo_creator = MemoCreator(memo_doc_id)
         self.memo = self.memo_creator.read_all_text()
         self.chart_creator = ChartCreator(spreadsheet_id=sheets_id, data=self.datasource)
         self.slide_creator = SlideCreator(presentation_id=slides_id)
+        self.progress_callback = progress_callback
         self.usage = RunUsage()
 
     # TODO place requested usage limits here
     def create_slides_from_memo(self, outline_focus: str = None):
         outline = self._get_outline(outline_focus)
-        for slide_description in outline.slides:
-            self.add_slide(slide_description)
 
+        self.progress_callback.reset_progress_total(len(outline.slides))
+        for slide_description in outline.slides:
+            self._add_slide(slide_description)
+            self.progress_callback.increment_progress()
         return self.usage
 
 
@@ -49,7 +52,7 @@ class MemoToSlidesAgent:
         return output
 
 
-    def add_slide(self, slide_description: str):
+    def _add_slide(self, slide_description: str):
         slide_deps = SlideDependencies(
             all_question_text=self.datasource.all_question_text()
         )
