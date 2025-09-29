@@ -214,7 +214,8 @@ export type QueueCreateMemoTaskDto = {
   memoId?: number;
 };
 export type QueueCreateSlidesTaskDto = {
-  projectId?: number;
+  slidedeckId: number;
+  memoId: number;
 };
 export type QueueCreateSurveyDataTaskDto = {
   projectId?: number;

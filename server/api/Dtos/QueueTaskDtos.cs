@@ -26,7 +26,9 @@ namespace api.Dtos
 
     public class QueueCreateSlidesTaskDto
     {
+        [Required]
         public int SlidedeckId { get; set; }
+        [Required]
         public int MemoId { get; set; }
     }
 

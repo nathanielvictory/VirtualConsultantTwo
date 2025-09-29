@@ -1,4 +1,4 @@
-// src/pages/MemoPage.tsx
+// src/pages/SlidedeckPage.tsx
 import { useMemo, useState } from "react";
 import {
     Box,
@@ -15,49 +15,51 @@ import {
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "../../store";
-import { setMemoId } from "../../store/selectedSlice";
+import { setSlidedeckId } from "../../store/selectedSlice";
 import ProjectStepper from "./ProjectStepper";
-import MemoSelector from "./memoComponents/MemoSelector";
-import MemoCreator from "./memoComponents/MemoCreator";
-import { useGetApiMemosByIdQuery } from "../../api/memosApi";
-import { getDocsEditUrl } from '../../integrations/google/docsApi/documents';
+import SlidedeckSelector from "./slidedeckComponents/SlidedeckSelector";
+import SlidedeckCreator from "./slidedeckComponents/SlidedeckCreator";
+import { useGetApiSlidedecksByIdQuery } from "../../api/slidedecksApi";
+import { getSlidesEditUrl } from '../../integrations/google/slidesApi/presentations.ts';
 
 // ⬇️ adjust this import to your actual file/name (“Dialogue” vs “Dialog”)
-import GenerateMemoDialogue from "./memoComponents/GenerateMemoDialog.tsx";
+import GenerateSlidedeckDialogue from "./slidedeckComponents/GenerateSlidedeckDialog.tsx";
 
 // ⬇️ NEW: poller for background task status
 import TaskStatusPoller from "../../components/TaskStatusPoller";
-import GoogleDocExpander from "./memoComponents/GoogleDocExpander.tsx";
+import GoogleSlidesExpander from "./slidedeckComponents/GoogleSlidesExpander.tsx";
+import GoogleSheetsExpander from "./slidedeckComponents/GoogleSheetsExpander.tsx"
+import {getSheetsEditUrl} from "../../integrations/google/sheetsApi/spreadsheets.ts";
 
-export type MemoViewMode = "Selecting" | "Creating";
+export type SlidedeckViewMode = "Selecting" | "Creating";
 
-export default function MemoPage() {
+export default function SlidedeckPage() {
     const dispatch = useDispatch();
     const projectId =
         useSelector((s: RootState) => s.selected.projectId) ?? null;
-    const memoId = useSelector(
-        (s: RootState) => s.selected.memoId as number | null
+    const slidedeckId = useSelector(
+        (s: RootState) => s.selected.slidedeckId as number | null
     );
 
-    const [mode, setMode] = useState<MemoViewMode>("Selecting");
+    const [mode, setMode] = useState<SlidedeckViewMode>("Selecting");
     const [isDialogOpen, setDialogOpen] = useState(false);
     const [showGenerateDialog, setShowGenerateDialog] = useState(false);
 
     const [currentTaskId, setCurrentTaskId] = useState<number | null>(null);
 
-    const { data: currentMemo, isFetching } = useGetApiMemosByIdQuery(
-        { id: memoId as number },
-        { skip: memoId == null }
+    const { data: currentSlidedeck, isFetching } = useGetApiSlidedecksByIdQuery(
+        { id: slidedeckId as number },
+        { skip: slidedeckId == null }
     );
 
     const currentName = useMemo(() => {
-        if (memoId == null) return "—";
+        if (slidedeckId == null) return "—";
         if (isFetching) return "Loading...";
-        return currentMemo?.name ?? String(memoId);
-    }, [memoId, isFetching, currentMemo?.name]);
+        return currentSlidedeck?.name ?? String(slidedeckId);
+    }, [slidedeckId, isFetching, currentSlidedeck?.name]);
 
     const dialogTitle =
-        mode === "Selecting" ? "Select a memo" : "Create a new memo";
+        mode === "Selecting" ? "Select a slidedeck" : "Create a new slidedeck";
 
     const openSelecting = () => {
         setMode("Selecting");
@@ -74,7 +76,7 @@ export default function MemoPage() {
     return (
         <Container maxWidth="lg" sx={{ py: 3 }}>
             {/* Keep stepper alignment with Insights page */}
-            <ProjectStepper active="memo" />
+            <ProjectStepper active="slides" />
 
             <Box
                 sx={{
@@ -93,9 +95,9 @@ export default function MemoPage() {
                     gap={1.5}
                     sx={{ mb: 2 }}
                 >
-                    <Typography variant="h6">Memos</Typography>
+                    <Typography variant="h6">Slidedecks</Typography>
 
-                    <Tooltip title="Generate a memo from your project context">
+                    <Tooltip title="Generate a slidedeck from your project context">
                         {/* Tooltip needs a focusable child even when disabled */}
                         <span>
               <Button
@@ -104,13 +106,13 @@ export default function MemoPage() {
                   onClick={() => setShowGenerateDialog(true)}
                   disabled={!projectId}
               >
-                Generate Memo
+                Generate Slidedeck
               </Button>
             </span>
                     </Tooltip>
                 </Stack>
 
-                {/* Current memo summary + actions */}
+                {/* Current slidedeck summary + actions */}
                 <Stack
                     direction={{ xs: "column", md: "row" }}
                     justifyContent="space-between"
@@ -120,10 +122,10 @@ export default function MemoPage() {
                 >
                     <Box>
                         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                            Currently selected memo:{" "}
-                            {currentMemo?.docId ? (
+                            Currently selected slidedeck:{" "}
+                            {currentSlidedeck?.presentationId ? (
                                 <a
-                                    href={getDocsEditUrl(currentMemo.docId)}
+                                    href={getSlidesEditUrl(currentSlidedeck.presentationId)}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                 >
@@ -133,14 +135,28 @@ export default function MemoPage() {
                                 currentName
                             )}
                         </Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                            Associated Google Sheet:{" "}
+                            {currentSlidedeck?.sheetsId ? (
+                                <a
+                                    href={getSheetsEditUrl(currentSlidedeck.sheetsId)}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    {currentName} Sheet
+                                </a>
+                            ) : (
+                                currentName
+                            )}
+                        </Typography>
                     </Box>
 
                     <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
                         <Button variant="outlined" onClick={openSelecting}>
-                            Select Memo
+                            Select Slidedeck
                         </Button>
                         <Button variant="contained" onClick={openCreating}>
-                            Create New Memo
+                            Create New Slidedeck
                         </Button>
                     </Stack>
                 </Stack>
@@ -152,18 +168,18 @@ export default function MemoPage() {
                 onClose={closeDialog}
                 fullWidth
                 maxWidth="md"
-                aria-labelledby="memo-dialog-title"
+                aria-labelledby="slidedeck-dialog-title"
                 keepMounted
             >
-                <DialogTitle id="memo-dialog-title">{dialogTitle}</DialogTitle>
+                <DialogTitle id="slidedeck-dialog-title">{dialogTitle}</DialogTitle>
 
                 <DialogContent dividers>
                     {mode === "Selecting" && (
-                        <MemoSelector
+                        <SlidedeckSelector
                             projectId={projectId}
-                            memoId={memoId}
+                            slidedeckId={slidedeckId}
                             onSelect={(id) => {
-                                dispatch(setMemoId(id));
+                                dispatch(setSlidedeckId(id));
                                 closeDialog();
                             }}
                             showTitle={false}
@@ -173,9 +189,9 @@ export default function MemoPage() {
                     )}
 
                     {mode === "Creating" && (
-                        <MemoCreator
+                        <SlidedeckCreator
                             onSuccess={(newId: number | null) => {
-                                if (newId != null) dispatch(setMemoId(newId));
+                                if (newId != null) dispatch(setSlidedeckId(newId));
                                 closeDialog();
                             }}
                         />
@@ -187,10 +203,10 @@ export default function MemoPage() {
                 </DialogActions>
             </Dialog>
 
-            {/* Generate memo dialog */}
+            {/* Generate slidedeck dialog */}
             {showGenerateDialog && (
-                <GenerateMemoDialogue
-                    memoId={memoId ?? undefined}
+                <GenerateSlidedeckDialogue
+                    memoId={slidedeckId ?? undefined}
                     onCancel={() => setShowGenerateDialog(false)}
                     onSuccess={(taskId: number) => {
                         setCurrentTaskId(taskId);
@@ -207,10 +223,16 @@ export default function MemoPage() {
                 </Box>
             }
             {
-                memoId &&
+                slidedeckId &&
+                <>
                 <Box sx={{ mt: 3 }}>
-                    <GoogleDocExpander />
+                    <GoogleSlidesExpander />
                 </Box>
+                <Box sx={{ mt: 3 }}>
+                    <GoogleSheetsExpander />
+                </Box>
+                </>
+
             }
         </Container>
     );
