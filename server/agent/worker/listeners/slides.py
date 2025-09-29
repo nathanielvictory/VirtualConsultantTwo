@@ -23,7 +23,7 @@ def handle(body):
             slides_schema.kbid,
             slides_schema.key_number,
             slides_schema.doc_id,
-            slides_schema.slides_id,
+            slides_schema.presentation_id,
             slides_schema.sheets_id,
             task_manager
         )

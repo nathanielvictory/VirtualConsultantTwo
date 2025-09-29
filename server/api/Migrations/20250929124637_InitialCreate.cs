@@ -73,7 +73,7 @@ namespace api.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     prompt_type = table.Column<int>(type: "integer", nullable: false),
                     prompt = table.Column<string>(type: "text", nullable: false),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now() at time zone 'utc'")
+                    created_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -219,9 +219,9 @@ namespace api.Migrations
                     id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     kbid = table.Column<string>(type: "text", nullable: false),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now() at time zone 'utc'"),
-                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now() at time zone 'utc'"),
-                    last_refreshed = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    created_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    updated_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    last_refreshed = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     name = table.Column<string>(type: "text", nullable: false),
                     organization_id = table.Column<string>(type: "text", nullable: false),
                     is_active = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
@@ -268,11 +268,10 @@ namespace api.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     name = table.Column<string>(type: "text", nullable: false),
                     doc_id = table.Column<string>(type: "text", nullable: true),
-                    prompt_focus = table.Column<string>(type: "text", nullable: true),
                     project_id = table.Column<int>(type: "integer", nullable: false),
                     created_by_id = table.Column<int>(type: "integer", nullable: false),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now() at time zone 'utc'"),
-                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now() at time zone 'utc'")
+                    created_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    updated_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -303,8 +302,8 @@ namespace api.Migrations
                     prompt_focus = table.Column<string>(type: "text", nullable: true),
                     project_id = table.Column<int>(type: "integer", nullable: false),
                     created_by_id = table.Column<int>(type: "integer", nullable: false),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now() at time zone 'utc'"),
-                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now() at time zone 'utc'")
+                    created_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    updated_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {

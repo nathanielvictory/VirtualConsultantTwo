@@ -127,21 +127,73 @@ public class QueueTaskController : ControllerBase
 
     // POST api/QueueTask/slides
     [HttpPost("slides")]
-    public async Task<IActionResult> QueueSlides([FromBody] QueueCreateSlidesTaskDto dto)
-        => await CreateAndPublishAsync(
-            dto.ProjectId,
-            TaskJobType.Slides,
-            (task, proj) => new
-            {
-                task_id = task.Id,
-                project_id = proj.Id,
-                kbid = proj.KbId,
-                key_number = proj.KeyNumber,
-                doc_id = "1R3iFZdvb-EHX8A5ZuHvss_0ZPJal15-uxMz4tOfTDS0",
-                sheets_id = "1US9PKrFlIZI-44lA7zZtfaWQoCSjVPOrfSCXQlwycXg",
-                slides_id = "1xXayw9SkskXMQ8hO828sxz1BNdttoTcT7eXsOs78ADI"
-                // token_limit optional; omit for now
-            });
+public async Task<IActionResult> QueueSlides([FromBody] QueueCreateSlidesTaskDto dto)
+{
+    // 1) Load slide deck (must exist; gives us project, sheets_id, slides_id)
+    var deck = await _db.Slidedecks
+        .AsNoTracking()
+        .Where(s => s.Id == dto.SlidedeckId)
+        .Select(s => new
+        {
+            s.Id,
+            s.ProjectId,
+            s.SheetsId,
+            s.PresentationId
+        })
+        .SingleOrDefaultAsync();
+
+    if (deck is null)
+        return NotFound($"Slide deck {dto.SlidedeckId} not found.");
+
+    // 2) Load project attached to the slide deck (provides kbid; key_number = 0)
+    var proj = await _db.Projects
+        .AsNoTracking()
+        .Where(p => p.Id == deck.ProjectId)
+        .Select(p => new ProjectShape
+        {
+            Id = p.Id,
+            KbId = p.Kbid,
+            KeyNumber = 0
+        })
+        .SingleOrDefaultAsync();
+
+    if (proj is null)
+        return NotFound($"Project {deck.ProjectId} not found.");
+
+    // 3) Load memo to obtain doc_id
+    var memo = await _db.Memos
+        .AsNoTracking()
+        .Where(m => m.Id == dto.MemoId)
+        .Select(m => new { m.Id, m.ProjectId, m.DocId })
+        .SingleOrDefaultAsync();
+
+    if (memo is null)
+        return NotFound($"Memo {dto.MemoId} not found.");
+
+    if (string.IsNullOrWhiteSpace(memo.DocId))
+        return BadRequest($"Memo {dto.MemoId} has no doc id.");
+
+    // Optional guard: ensure memo belongs to the same project as the deck
+    if (memo.ProjectId != proj.Id)
+        return BadRequest($"Memo {memo.Id} does not belong to project {proj.Id}.");
+
+    // 4) Shared flow: create task, build payload, save, publish, return
+    return await CreateAndPublishAsync(
+        proj.Id,
+        TaskJobType.Slides,
+        (task, _) => new
+        {
+            task_id = task.Id,
+            project_id = proj.Id,
+            kbid = proj.KbId,
+            key_number = 0,                 // per spec
+            slidedeck_id = deck.Id,         // from request
+            doc_id = memo.DocId,            // from memo
+            sheets_id = deck.SheetsId,      // from slide deck
+            presentation_id = deck.PresentationId       // from slide deck
+            // token_limit intentionally omitted
+        });
+}
 
     // POST api/QueueTask/survey-data
     [HttpPost("survey-data")]

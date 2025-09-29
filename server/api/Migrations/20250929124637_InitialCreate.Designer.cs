@@ -12,8 +12,8 @@ using api.Data;
 namespace api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250922172625_LastRefreshedWithoutTimezone")]
-    partial class LastRefreshedWithoutTimezone
+    [Migration("20250929124637_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -235,11 +235,9 @@ namespace api.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("now() at time zone 'utc'");
+                        .HasColumnName("created_at");
 
                     b.Property<int>("CreatedById")
                         .HasColumnType("integer")
@@ -258,15 +256,9 @@ namespace api.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("project_id");
 
-                    b.Property<string>("PromptFocus")
-                        .HasColumnType("text")
-                        .HasColumnName("prompt_focus");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .ValueGeneratedOnAdd()
+                    b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at")
-                        .HasDefaultValueSql("now() at time zone 'utc'");
+                        .HasColumnName("updated_at");
 
                     b.HasKey("Id")
                         .HasName("pk_memos");
@@ -309,11 +301,9 @@ namespace api.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("now() at time zone 'utc'");
+                        .HasColumnName("created_at");
 
                     b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
@@ -326,8 +316,8 @@ namespace api.Migrations
                         .HasColumnType("text")
                         .HasColumnName("kbid");
 
-                    b.Property<DateTime?>("LastRefreshed")
-                        .HasColumnType("timestamp without time zone")
+                    b.Property<DateTimeOffset?>("LastRefreshed")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_refreshed");
 
                     b.Property<string>("Name")
@@ -344,11 +334,9 @@ namespace api.Migrations
                         .HasColumnType("text")
                         .HasColumnName("project_context");
 
-                    b.Property<DateTime>("UpdatedAt")
-                        .ValueGeneratedOnAdd()
+                    b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at")
-                        .HasDefaultValueSql("now() at time zone 'utc'");
+                        .HasColumnName("updated_at");
 
                     b.HasKey("Id")
                         .HasName("pk_projects");
@@ -427,11 +415,9 @@ namespace api.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("now() at time zone 'utc'");
+                        .HasColumnName("created_at");
 
                     b.Property<int>("CreatedById")
                         .HasColumnType("integer")
@@ -458,11 +444,9 @@ namespace api.Migrations
                         .HasColumnType("text")
                         .HasColumnName("sheets_id");
 
-                    b.Property<DateTime>("UpdatedAt")
-                        .ValueGeneratedOnAdd()
+                    b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at")
-                        .HasDefaultValueSql("now() at time zone 'utc'");
+                        .HasColumnName("updated_at");
 
                     b.HasKey("Id")
                         .HasName("pk_slidedecks");
@@ -485,11 +469,9 @@ namespace api.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("now() at time zone 'utc'");
+                        .HasColumnName("created_at");
 
                     b.Property<string>("Prompt")
                         .IsRequired()
