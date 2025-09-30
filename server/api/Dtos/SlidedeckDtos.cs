@@ -28,9 +28,7 @@ public record CreateSlidedeckDto(
     [Required] int ProjectId,
     [Required] string Name,
     string? PresentationId,
-    string? SheetsId,
-    string? PromptFocus,
-    [Required] int CreatedById);
+    string? SheetsId);
 
 public record UpdateSlidedeckDto(
     string? Name,

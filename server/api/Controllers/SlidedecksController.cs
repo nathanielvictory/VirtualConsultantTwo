@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims; 
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using api.Data;
@@ -25,6 +26,16 @@ public class SlidedecksController : ControllerBase
         _mapper = mapper;
     }
 
+    private int GetUserId()
+    {
+        // Prefer NameIdentifier, fall back to "sub"
+        var idValue = User.FindFirstValue(ClaimTypes.NameIdentifier) 
+                      ?? User.FindFirstValue("sub");
+        if (string.IsNullOrWhiteSpace(idValue) || !int.TryParse(idValue, out var id))
+            throw new UnauthorizedAccessException("Authenticated user id claim missing or invalid.");
+        return id;
+    }
+    
     [HttpGet]
     public async Task<ActionResult<PagedResultDto<SlidedeckListItemDto>>> GetSlidedecks(
         [FromQuery] int? projectId = null,
@@ -83,6 +94,8 @@ public class SlidedecksController : ControllerBase
     public async Task<ActionResult<SlidedeckDetailDto>> PostSlidedeck(CreateSlidedeckDto dto)
     {
         var entity = _mapper.Map<Slidedeck>(dto);
+        
+        entity.CreatedById = GetUserId();
         _context.Slidedecks.Add(entity);
         await _context.SaveChangesAsync();
 

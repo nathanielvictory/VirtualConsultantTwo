@@ -37,6 +37,8 @@ export default function SlidedeckPage() {
     const dispatch = useDispatch();
     const projectId =
         useSelector((s: RootState) => s.selected.projectId) ?? null;
+    const memoId =
+        useSelector((s: RootState) => s.selected.memoId) ?? null;
     const slidedeckId = useSelector(
         (s: RootState) => s.selected.slidedeckId as number | null
     );
@@ -206,12 +208,14 @@ export default function SlidedeckPage() {
             {/* Generate slidedeck dialog */}
             {showGenerateDialog && (
                 <GenerateSlidedeckDialogue
-                    memoId={slidedeckId ?? undefined}
+                    slidedeckId={slidedeckId ?? undefined}
                     onCancel={() => setShowGenerateDialog(false)}
                     onSuccess={(taskId: number) => {
                         setCurrentTaskId(taskId);
                         setShowGenerateDialog(false);
                     }}
+                    projectId={projectId}
+                    memoId={memoId ?? undefined}
                 />
             )}
 

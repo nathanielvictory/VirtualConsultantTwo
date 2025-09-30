@@ -1,4 +1,4 @@
-import { createDriveFile, listDriveFiles, type DriveFile, MIME } from '../drive';
+import {createDriveFile, listDriveFiles, type DriveFile, MIME, setAnyoneWithLinkCanEdit} from '../drive';
 
 
 export function getSheetsEditUrl(fileId: string) {
@@ -7,7 +7,10 @@ export function getSheetsEditUrl(fileId: string) {
 
 
 export async function createGoogleSpreadsheet(accessToken: string, title: string): Promise<DriveFile> {
-    return createDriveFile(accessToken, { name: title, mimeType: MIME.SHEET });
+    const file = await createDriveFile(accessToken, { name: title, mimeType: MIME.SHEET });
+    await setAnyoneWithLinkCanEdit(accessToken, file.id);
+
+    return file
 }
 
 

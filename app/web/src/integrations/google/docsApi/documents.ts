@@ -16,8 +16,5 @@ export async function createGoogleDocument(
     const file = await createDriveFile(accessToken, { name: title, mimeType: MIME.DOC });
     await setAnyoneWithLinkCanEdit(accessToken, file.id);
 
-    // Optional later (commented out by default):
-    // await ensureUserEditor(accessToken, file.id, 'virtualconsultant@virtual-consultant-470512.iam.gserviceaccount.com');
-
     return file;
 }

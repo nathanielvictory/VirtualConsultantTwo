@@ -1,4 +1,4 @@
-// src/pages/memoComponents/MemoCreator.tsx
+// src/pages/slidedeckComponents/SlidedeckCreator.tsx
 import { useState, useMemo } from 'react';
 import {
     Box,
@@ -11,13 +11,13 @@ import {
 } from '@mui/material';
 import { useAppSelector } from '../../../store/hooks';
 import { useNavigate } from 'react-router-dom';
-import { useCreateMemoWithGoogleDoc } from '../../../hooks/useCreateMemoWithGoogleDoc';
+import { useCreateSlidedeckWithGoogleAssets } from '../../../hooks/useCreateSlidedeckWithGoogleAssets';
 
-export type MemoCreatorProps = {
-    onSuccess: (memoId: number | null) => void; // <-- updated
+export type SlidedeckCreatorProps = {
+    onSuccess: (slidedeckId: number | null) => void; // <-- updated
 };
 
-export default function MemoCreator({ onSuccess }: MemoCreatorProps) {
+export default function SlidedeckCreator({ onSuccess }: SlidedeckCreatorProps) {
     const [name, setName] = useState<string>('');
     const [submitting, setSubmitting] = useState(false);
 
@@ -25,7 +25,7 @@ export default function MemoCreator({ onSuccess }: MemoCreatorProps) {
     const projectId = useAppSelector((state) => state.selected.projectId);
 
     const navigate = useNavigate();
-    const { create, isLoading, isError, error } = useCreateMemoWithGoogleDoc();
+    const { create, isLoading, isError, error } = useCreateSlidedeckWithGoogleAssets();
 
     const busy = useMemo(() => isLoading || submitting, [isLoading, submitting]);
 
@@ -33,7 +33,7 @@ export default function MemoCreator({ onSuccess }: MemoCreatorProps) {
         return (
             <Box>
                 <Typography variant="h6" gutterBottom>
-                    You must be authenticated with Google to create a memo
+                    You must be authenticated with Google to create a slidedeck
                 </Typography>
                 <Button
                     variant="contained"
@@ -53,7 +53,7 @@ export default function MemoCreator({ onSuccess }: MemoCreatorProps) {
                     No project selected
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                    Please select a project before creating a memo.
+                    Please select a project before creating a slidedeck.
                 </Typography>
             </Box>
         );
@@ -63,15 +63,15 @@ export default function MemoCreator({ onSuccess }: MemoCreatorProps) {
         if (busy) return;
         setSubmitting(true);
         try {
-            const { memo } = await create({
+            const { slidedeck } = await create({
                 projectId,
                 name: (name && name.trim()) || 'Untitled',
             });
-            // assuming create returns the new memo object with an `id` field
-            if (memo?.id) {
-                onSuccess(memo.id);
+            // assuming create returns the new slidedeck object with an `id` field
+            if (slidedeck?.id) {
+                onSuccess(slidedeck.id);
             } else {
-                console.warn('No id returned from create', memo);
+                console.warn('No id returned from create', slidedeck);
                 onSuccess(null);
             }
         } catch (e) {
@@ -83,9 +83,9 @@ export default function MemoCreator({ onSuccess }: MemoCreatorProps) {
 
     return (
         <>
-            <Typography variant="h6">Create a memo</Typography>
+            <Typography variant="h6">Create a slidedeck</Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                Enter a name and click Create. We’ll create a Google Doc and link it to your memo.
+                Enter a name and click Create. We’ll create a Google Doc and link it to your slidedeck.
             </Typography>
 
             <Box sx={{ mt: 2 }} aria-busy={busy}>
@@ -105,7 +105,7 @@ export default function MemoCreator({ onSuccess }: MemoCreatorProps) {
                         ? (error as any).data
                         : (error as any)?.data?.message ||
                         (error as any)?.error ||
-                        'Failed to create memo.'}
+                        'Failed to create slidedeck.'}
                 </Alert>
             )}
 
