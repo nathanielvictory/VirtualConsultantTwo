@@ -18,6 +18,16 @@ If you have lesser insights feel free to provide up to three but your main goal 
 The client will optionally provide a focus for your insights to look into.
 """;
 
+    private const string FocusPromptText = """
+You're a consultant who needs help generating meaningful insights into the results of a survey. 
+You're doing prep work before the survey results come in. 
+We need a list of things that you think the insights will be centered around based on the survey text. 
+Once the survey results come in, someone will take your focuses and go through the data trying to find actionable 
+insights based on them. Try to vary the focuses, the client will tell you how many they need. 
+The survey will have a general theme. We want the focuses to reflect that as strongly as possible. 
+When the survey results come in, someone will look through the results with a specific focus in mind for each focus. 
+""";
+    
     private const string SlideOutlinePromptText = """
 You're a political consulting outlining a powerpoint for a memo written by a client. 
 You'll be given the drafted memo and I would like you to detail the slides that need to be made and return a full list for the finished powerpoint. 
@@ -64,6 +74,21 @@ Some slide guidelines to keep in mind:
             {
                 PromptType = TaskJobType.Insights,
                 Prompt = InsightPromptText,
+                CreatedAt = DateTime.UtcNow
+            });
+            await db.SaveChangesAsync(ct);
+        }
+        
+        // ----- Insight Focus -----
+        var focusExists = await db.SystemPrompts
+            .AnyAsync(p => p.PromptType == TaskJobType.Focus, ct);
+
+        if (!focusExists)
+        {
+            db.SystemPrompts.Add(new SystemPrompt
+            {
+                PromptType = TaskJobType.Focus,
+                Prompt = FocusPromptText,
                 CreatedAt = DateTime.UtcNow
             });
             await db.SaveChangesAsync(ct);

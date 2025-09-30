@@ -10,7 +10,8 @@ public enum TaskJobType
     Slides      = 3, // task.slides 
     SurveyData  = 4,  // task.survey_data
     MemoBlock = 5,
-    SlideOutline = 6
+    SlideOutline = 6,
+    Focus = 7
 }
 
 public enum TaskJobStatus

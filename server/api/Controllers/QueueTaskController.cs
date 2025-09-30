@@ -34,8 +34,25 @@ public class QueueTaskController : ControllerBase
 
     // POST api/QueueTask/insights
     [HttpPost("insights")]
-    public async Task<IActionResult> QueueInsights([FromBody] QueueCreateInsightsTaskDto dto)
-        => await CreateAndPublishAsync(
+    public async Task<IActionResult> QueueInsights(
+        [FromBody] QueueCreateInsightsTaskDto dto,
+        CancellationToken ct)
+    {
+        // Latest Focus prompt (or null if none)
+        var focusPrompt = await _db.SystemPrompts
+            .Where(sp => sp.PromptType == TaskJobType.Focus)
+            .OrderByDescending(sp => sp.CreatedAt)
+            .Select(sp => sp.Prompt)
+            .FirstOrDefaultAsync(ct);
+
+        // Latest Insights prompt (or null if none)
+        var insightsPrompt = await _db.SystemPrompts
+            .Where(sp => sp.PromptType == TaskJobType.Insights)
+            .OrderByDescending(sp => sp.CreatedAt)
+            .Select(sp => sp.Prompt)
+            .FirstOrDefaultAsync(ct);
+
+        return await CreateAndPublishAsync(
             dto.ProjectId,
             TaskJobType.Insights,
             (task, proj) => new
@@ -45,8 +62,11 @@ public class QueueTaskController : ControllerBase
                 kbid = proj.KbId,
                 key_number = proj.KeyNumber,
                 number_of_insights = dto.NumberOfInsights,
-                focus = string.IsNullOrWhiteSpace(dto.Focus) ? null : dto.Focus
+                focus = string.IsNullOrWhiteSpace(dto.Focus) ? null : dto.Focus,
+                focus_agent_prompt = focusPrompt,
+                insight_agent_prompt = insightsPrompt
             });
+    }
 
     // POST api/QueueTask/full-report
     [HttpPost("full-report")]
