@@ -17,17 +17,6 @@ const injectedRtkApi = api
         }),
         invalidatesTags: ["QueueTask"],
       }),
-      postApiQueueTaskFullReport: build.mutation<
-        PostApiQueueTaskFullReportApiResponse,
-        PostApiQueueTaskFullReportApiArg
-      >({
-        query: (queryArg) => ({
-          url: `/api/QueueTask/full-report`,
-          method: "POST",
-          body: queryArg.queueCreateFullReportTaskDto,
-        }),
-        invalidatesTags: ["QueueTask"],
-      }),
       postApiQueueTaskMemo: build.mutation<
         PostApiQueueTaskMemoApiResponse,
         PostApiQueueTaskMemoApiArg
@@ -145,10 +134,6 @@ export type PostApiQueueTaskInsightsApiResponse = unknown;
 export type PostApiQueueTaskInsightsApiArg = {
   queueCreateInsightsTaskDto: QueueCreateInsightsTaskDto;
 };
-export type PostApiQueueTaskFullReportApiResponse = unknown;
-export type PostApiQueueTaskFullReportApiArg = {
-  queueCreateFullReportTaskDto: QueueCreateFullReportTaskDto;
-};
 export type PostApiQueueTaskMemoApiResponse = unknown;
 export type PostApiQueueTaskMemoApiArg = {
   queueCreateMemoTaskDto: QueueCreateMemoTaskDto;
@@ -207,11 +192,9 @@ export type QueueCreateInsightsTaskDto = {
   numberOfInsights?: number | null;
   focus?: string | null;
 };
-export type QueueCreateFullReportTaskDto = {
-  projectId?: number;
-};
 export type QueueCreateMemoTaskDto = {
   memoId?: number;
+  focus?: string | null;
 };
 export type QueueCreateSlidesTaskDto = {
   slidedeckId: number;
@@ -227,7 +210,8 @@ export type TaskJobType =
   | "Slides"
   | "SurveyData"
   | "MemoBlock"
-  | "SlideOutline";
+  | "SlideOutline"
+  | "Focus";
 export type TaskJobStatus =
   | "Queued"
   | "Running"
@@ -255,7 +239,11 @@ export type TaskListItemDtoPagedResultDto = {
   hasPrevious?: boolean;
   hasNext?: boolean;
 };
-export type TaskArtifactResourceType = "Insight" | "Memo" | "Slidedeck";
+export type TaskArtifactResourceType =
+  | "Insight"
+  | "Memo"
+  | "Slidedeck"
+  | "SurveyData";
 export type TaskArtifactActionType = "Create" | "Edit";
 export type TaskArtifactDto = {
   id?: number;
@@ -265,6 +253,7 @@ export type TaskArtifactDto = {
   action?: TaskArtifactActionType;
   totalTokens?: number | null;
   createdAt?: string;
+  payload?: any | null;
 };
 export type TaskDetailDto = {
   id?: number;
@@ -309,10 +298,10 @@ export type CreateTaskArtifactDto = {
   action?: TaskArtifactActionType;
   createdResourceId?: number | null;
   totalTokens?: number | null;
+  payload?: any | null;
 };
 export const {
   usePostApiQueueTaskInsightsMutation,
-  usePostApiQueueTaskFullReportMutation,
   usePostApiQueueTaskMemoMutation,
   usePostApiQueueTaskSlidesMutation,
   usePostApiQueueTaskSurveyDataMutation,

@@ -68,34 +68,16 @@ public class QueueTaskController : ControllerBase
             });
     }
 
-    // POST api/QueueTask/full-report
-    [HttpPost("full-report")]
-    public async Task<IActionResult> QueueFullReport([FromBody] QueueCreateFullReportTaskDto dto)
-        => await CreateAndPublishAsync(
-            dto.ProjectId,
-            TaskJobType.FullReport,
-            (task, proj) => new
-            {
-                task_id = task.Id,
-                project_id = proj.Id,
-                kbid = proj.KbId,
-                key_number = proj.KeyNumber,
-                doc_id = "1R3iFZdvb-EHX8A5ZuHvss_0ZPJal15-uxMz4tOfTDS0",
-                sheets_id = "1US9PKrFlIZI-44lA7zZtfaWQoCSjVPOrfSCXQlwycXg",
-                slides_id = "1xXayw9SkskXMQ8hO828sxz1BNdttoTcT7eXsOs78ADI"
-                // token_limit optional; omit for now
-            });
-
     // POST api/QueueTask/memo
     [HttpPost("memo")]
-    public async Task<IActionResult> QueueMemo([FromBody] QueueCreateMemoTaskDto dto)
+    public async Task<IActionResult> QueueMemo([FromBody] QueueCreateMemoTaskDto dto, CancellationToken ct)
     {
         // 1) Load memo
         var memo = await _db.Memos
             .AsNoTracking()
             .Where(m => m.Id == dto.MemoId)
             .Select(m => new { m.Id, m.ProjectId, m.DocId })
-            .SingleOrDefaultAsync();
+            .SingleOrDefaultAsync(ct);
 
         if (memo is null)
             return NotFound($"Memo {dto.MemoId} not found.");
@@ -113,7 +95,7 @@ public class QueueTaskController : ControllerBase
                 KbId = p.Kbid,
                 KeyNumber = 0 // explicitly defaulted
             })
-            .SingleOrDefaultAsync();
+            .SingleOrDefaultAsync(ct);
 
         if (proj is null)
             return NotFound($"Project {memo.ProjectId} not found.");
@@ -124,10 +106,23 @@ public class QueueTaskController : ControllerBase
             .Where(i => i.ProjectId == proj.Id)
             .OrderBy(i => i.OrderIndex)
             .Select(i => i.Content)
-            .ToListAsync();
+            .ToListAsync(ct);
 
         if (insights.Count == 0)
             return BadRequest($"Project {proj.Id} has no insights.");
+
+        // 3.5) Load latest system prompts (null if none found)
+        var textBlockAgentPrompt = await _db.SystemPrompts
+            .Where(sp => sp.PromptType == TaskJobType.MemoBlock)
+            .OrderByDescending(sp => sp.CreatedAt)
+            .Select(sp => sp.Prompt)
+            .FirstOrDefaultAsync(ct);
+
+        var memoAgentPrompt = await _db.SystemPrompts
+            .Where(sp => sp.PromptType == TaskJobType.Memo)
+            .OrderByDescending(sp => sp.CreatedAt)
+            .Select(sp => sp.Prompt)
+            .FirstOrDefaultAsync(ct);
 
         // 4–8) Shared flow: create task, build payload, save, publish, return
         return await CreateAndPublishAsync(
@@ -141,7 +136,10 @@ public class QueueTaskController : ControllerBase
                 key_number = 0,
                 memo_id = memo.Id,
                 doc_id = memo.DocId,
-                insights = insights
+                insights = insights,
+                focus = dto.Focus,
+                text_block_agent_prompt = textBlockAgentPrompt,
+                memo_agent_prompt = memoAgentPrompt
             });
     }
 

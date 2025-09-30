@@ -22,6 +22,7 @@ namespace api.Dtos
     public class QueueCreateMemoTaskDto
     {
         public int MemoId { get; set; }
+        public string? Focus { get; set; }
     }
 
     public class QueueCreateSlidesTaskDto

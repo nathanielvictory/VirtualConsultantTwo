@@ -68,7 +68,8 @@ export type TaskJobType =
   | "Slides"
   | "SurveyData"
   | "MemoBlock"
-  | "SlideOutline";
+  | "SlideOutline"
+  | "Focus";
 export type SystemPromptListItemDto = {
   id?: number;
   promptType?: TaskJobType;

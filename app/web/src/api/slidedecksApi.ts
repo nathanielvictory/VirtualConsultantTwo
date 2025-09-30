@@ -129,8 +129,6 @@ export type CreateSlidedeckDto = {
   name?: string | null;
   presentationId?: string | null;
   sheetsId?: string | null;
-  promptFocus?: string | null;
-  createdById?: number;
 };
 export type UpdateSlidedeckDto = {
   name?: string | null;

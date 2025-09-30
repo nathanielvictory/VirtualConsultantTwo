@@ -17,17 +17,6 @@ const injectedRtkApi = api
         }),
         invalidatesTags: ["QueueTask"],
       }),
-      postApiQueueTaskFullReport: build.mutation<
-        PostApiQueueTaskFullReportApiResponse,
-        PostApiQueueTaskFullReportApiArg
-      >({
-        query: (queryArg) => ({
-          url: `/api/QueueTask/full-report`,
-          method: "POST",
-          body: queryArg.queueCreateFullReportTaskDto,
-        }),
-        invalidatesTags: ["QueueTask"],
-      }),
       postApiQueueTaskMemo: build.mutation<
         PostApiQueueTaskMemoApiResponse,
         PostApiQueueTaskMemoApiArg
@@ -69,10 +58,6 @@ export type PostApiQueueTaskInsightsApiResponse = unknown;
 export type PostApiQueueTaskInsightsApiArg = {
   queueCreateInsightsTaskDto: QueueCreateInsightsTaskDto;
 };
-export type PostApiQueueTaskFullReportApiResponse = unknown;
-export type PostApiQueueTaskFullReportApiArg = {
-  queueCreateFullReportTaskDto: QueueCreateFullReportTaskDto;
-};
 export type PostApiQueueTaskMemoApiResponse = unknown;
 export type PostApiQueueTaskMemoApiArg = {
   queueCreateMemoTaskDto: QueueCreateMemoTaskDto;
@@ -90,11 +75,9 @@ export type QueueCreateInsightsTaskDto = {
   numberOfInsights?: number | null;
   focus?: string | null;
 };
-export type QueueCreateFullReportTaskDto = {
-  projectId?: number;
-};
 export type QueueCreateMemoTaskDto = {
   memoId?: number;
+  focus?: string | null;
 };
 export type QueueCreateSlidesTaskDto = {
   slidedeckId: number;
@@ -105,7 +88,6 @@ export type QueueCreateSurveyDataTaskDto = {
 };
 export const {
   usePostApiQueueTaskInsightsMutation,
-  usePostApiQueueTaskFullReportMutation,
   usePostApiQueueTaskMemoMutation,
   usePostApiQueueTaskSlidesMutation,
   usePostApiQueueTaskSurveyDataMutation,

@@ -38,6 +38,7 @@ export default function GenerateMemoDialog({
             const res = await queueMemo({
                 queueCreateMemoTaskDto: {
                     memoId,
+                    focus
                 },
             }).unwrap();
 
