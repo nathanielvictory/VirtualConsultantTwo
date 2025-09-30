@@ -19,6 +19,14 @@ server/agent/.venv/
 .DS_Store
 *.pid
 
+# Terraform
+.terraform/
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+crash.log
+.terraform.lock.hcl
+
 
 # Created by https://www.toptal.com/developers/gitignore/api/node,react,python,visualstudio,macos,linux,windows
 # Edit at https://www.toptal.com/developers/gitignore?templates=node,react,python,visualstudio,macos,linux,windows
