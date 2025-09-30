@@ -2,7 +2,7 @@ import logging
 from pydantic import ValidationError
 import requests
 
-
+from callbacks.task.artifact_schema import Artifact
 from ..schema.survey_data import SurveyData as SurveyDataSchema
 from service.data.reporting_api.get_project_data import get_project_data
 from service.data.ingest.update_project import update_project
@@ -25,11 +25,19 @@ def handle(body):
         if not project:
             raise ValueError(f"Project with KBID {survey_data_schema.kbid} not found")
 
-        success = update_project(survey_data_schema.kbid, survey_data_schema.key_number)
+        survey_data = update_project(survey_data_schema.kbid, survey_data_schema.key_number)
 
-        if not success:
+        if survey_data is None:
             logger.info(f"Failed to update project data for {survey_data_schema.kbid}")
-            return
+            raise Exception("Failed to update project data")
+
+        new_artifact = Artifact(
+            resource_type='SurveyData',
+            action='Create',
+            total_tokens=0,
+            payload=survey_data.model_dump()
+        )
+        task_manager.add_artifact(new_artifact)
 
         logger.info(f"Updated project data for {survey_data_schema.kbid}")
         headers = task_manager.get_headers()

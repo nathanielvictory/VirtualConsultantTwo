@@ -5,6 +5,7 @@ class SurveyAnswer(BaseModel):
     answer_number: int
     answer_text: str
     percentage: float
+    is_subtotal: bool
 
 
 class SurveyQuestion(BaseModel):
@@ -16,7 +17,9 @@ class SurveyQuestion(BaseModel):
 
 class CrosstabAnswer(BaseModel):
     vertical_answer: str
+    is_subtotal_vertical: bool
     horizontal_answer: str
+    is_subtotal_horizontal: bool
     percentage: float
 
 
