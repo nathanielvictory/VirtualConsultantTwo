@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.ComponentModel.DataAnnotations;
 using api.Models;
 
@@ -10,24 +11,19 @@ namespace api.Dtos
         int? CreatedResourceId,
         TaskArtifactActionType Action,
         int? TotalTokens,
-        DateTimeOffset CreatedAt
+        DateTimeOffset CreatedAt,
+        JsonDocument? Payload
     );
 
     public record CreateTaskArtifactDto(
         [Required] TaskArtifactResourceType ResourceType,
         TaskArtifactActionType Action = TaskArtifactActionType.Create,
         int? CreatedResourceId = null,
-        int? TotalTokens = null
+        int? TotalTokens = null,
+        JsonDocument? Payload = null
     );
-
-    public record UpdateTaskArtifactDto(
-        TaskArtifactResourceType? ResourceType,
-        TaskArtifactActionType? Action,
-        int? CreatedResourceId,
-        int? TotalTokens
-    );
-
-    // unchanged pieces shown here for completeness — only artifacts changed
+    
+    
     public record TaskListItemDto(
         int Id,
         int ProjectId,

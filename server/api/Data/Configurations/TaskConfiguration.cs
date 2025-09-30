@@ -53,7 +53,10 @@ public class TaskArtifactConfiguration : IEntityTypeConfiguration<TaskArtifact>
         // Optional properties
         e.Property(a => a.CreatedResourceId).IsRequired(false);
         e.Property(a => a.TotalTokens).IsRequired(false);
-
+        e.Property(a => a.Payload)
+            .HasColumnType("jsonb")
+            .IsRequired(false);
+        
         // Indexes
         e.HasIndex(a => new { a.TaskId, a.CreatedAt });
     }

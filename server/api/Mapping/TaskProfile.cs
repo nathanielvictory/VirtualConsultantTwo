@@ -25,10 +25,6 @@ namespace api.Mapping
                 .ForMember(d => d.Task,           opt => opt.Ignore())
                 .ForMember(d => d.CreatedAt,      opt => opt.Ignore());
 
-            CreateMap<UpdateTaskArtifactDto, TaskArtifact>()
-                .ForAllMembers(opt =>
-                    opt.Condition((src, dest, srcMember) => srcMember is not null));
-
             // Tasks create/update
             CreateMap<CreateTaskDto, TaskJob>()
                 .ForMember(d => d.JobStatus,   opt => opt.MapFrom(_ => TaskJobStatus.Queued))

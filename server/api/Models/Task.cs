@@ -1,3 +1,5 @@
+using System.Text.Json;
+
 namespace api.Models;
 
 public enum TaskJobType
@@ -52,7 +54,8 @@ public enum TaskArtifactResourceType
 {
     Insight   = 0,
     Memo      = 1,
-    Slidedeck = 2
+    Slidedeck = 2,
+    SurveyData = 3
 }
 
 public enum TaskArtifactActionType
@@ -74,7 +77,9 @@ public class TaskArtifact
     public TaskArtifactActionType Action { get; set; } = TaskArtifactActionType.Create;
     
     public int? TotalTokens { get; set; }
-
+    
+    public JsonDocument? Payload { get; set; }
+    
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
 }
 
