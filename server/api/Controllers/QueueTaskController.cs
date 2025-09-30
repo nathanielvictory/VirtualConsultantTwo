@@ -144,7 +144,8 @@ public class QueueTaskController : ControllerBase
     }
 
     // POST api/QueueTask/slides
-    [HttpPost("slides")]
+    // POST api/QueueTask/slides
+[HttpPost("slides")]
 public async Task<IActionResult> QueueSlides([FromBody] QueueCreateSlidesTaskDto dto)
 {
     // 1) Load slide deck (must exist; gives us project, sheets_id, slides_id)
@@ -195,6 +196,21 @@ public async Task<IActionResult> QueueSlides([FromBody] QueueCreateSlidesTaskDto
     if (memo.ProjectId != proj.Id)
         return BadRequest($"Memo {memo.Id} does not belong to project {proj.Id}.");
 
+    // 3.5) Load latest system prompts (null if none found)
+    var slideAgentPrompt = await _db.SystemPrompts
+        .AsNoTracking()
+        .Where(sp => sp.PromptType == TaskJobType.Slides)
+        .OrderByDescending(sp => sp.CreatedAt)
+        .Select(sp => sp.Prompt)
+        .FirstOrDefaultAsync();
+
+    var slideOutlineAgentPrompt = await _db.SystemPrompts
+        .AsNoTracking()
+        .Where(sp => sp.PromptType == TaskJobType.SlideOutline)
+        .OrderByDescending(sp => sp.CreatedAt)
+        .Select(sp => sp.Prompt)
+        .FirstOrDefaultAsync();
+
     // 4) Shared flow: create task, build payload, save, publish, return
     return await CreateAndPublishAsync(
         proj.Id,
@@ -208,8 +224,12 @@ public async Task<IActionResult> QueueSlides([FromBody] QueueCreateSlidesTaskDto
             slidedeck_id = deck.Id,         // from request
             doc_id = memo.DocId,            // from memo
             sheets_id = deck.SheetsId,      // from slide deck
-            presentation_id = deck.PresentationId       // from slide deck
-            // token_limit intentionally omitted
+            presentation_id = deck.PresentationId, // from slide deck
+            focus = dto.Focus,
+
+            // NEW fields
+            slide_agent_prompt = slideAgentPrompt,                   // from Slides system prompt
+            slide_outline_agent_prompt = slideOutlineAgentPrompt     // from SlideOutline system prompt
         });
 }
 

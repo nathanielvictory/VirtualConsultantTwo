@@ -57,7 +57,7 @@ export default function GenerateSlidedeckDialog({
                 queueCreateSlidesTaskDto: {
                     slidedeckId: slidedeckId!,
                     memoId: selectedMemoId!,
-                    // focus, // ⬅️ If backend accepts it, include here
+                    focus
                 },
             }).unwrap();
 

@@ -199,6 +199,7 @@ export type QueueCreateMemoTaskDto = {
 export type QueueCreateSlidesTaskDto = {
   slidedeckId: number;
   memoId: number;
+  focus?: string | null;
 };
 export type QueueCreateSurveyDataTaskDto = {
   projectId?: number;

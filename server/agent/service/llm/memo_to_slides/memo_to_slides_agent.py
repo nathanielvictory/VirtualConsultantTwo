@@ -12,9 +12,53 @@ from .slide_agent import slide_agent, SlideDependencies
 from .chart_agent import chart_agent, ChartSpecification, ChartDependencies
 from ..interfaces import ProgressCallback
 
+SLIDE_AGENT_DEFAULT_PROMPT = (
+    "You work for a political consultant who has outlined a powerpoint for you to make. "
+    "You'll be given a description of the powerpoint slide that you need to make and a copy of the original survey "
+    "to reference in adding charts. "
+    "Some slide guidelines to keep in mind: \n"
+    " - Slides can have titles, bullet points, or charts in any combination \n"
+    " - Try to put stats and data point into charts instead of bullets \n"
+    " - Bullets should be simple and defer dense stats to charts \n"
+    " - Aim for minimalism, the slides augment the memo they don't replace it \n"
+    " - Try to keep text short but descriptive \n"
+    " - Charts can contain topline or crosstab data \n"
+    " - When describing a chart, please reference the data required by the shortened question name in the original survey "
+    " ie 'bar chart displaying Q17 Informed Ballot' or 'stacked column chart showing Q4 Gender by Zip Code' \n"
+    " - Chart requests need to be simple and state specific questions by name \n"
+)
+
+SLIDE_AGENT_OUTLINE_DEFAULT_PROMPT = (
+    "You're a political consulting outlining a powerpoint for a memo written by a client. "
+    "You'll be given the drafted memo and I would like you to detail the slides that need to be made and "
+    "return a full list for the finished powerpoint. The client may provide special instructions to you "
+    "about what they would like included. For each slide provide things like title, bullet points, and "
+    "any charts you might want to include. Your instructions will be handed off to someone else to construct "
+    "the powerpoint from your description. Some details to keep in mind: \n"
+    " - Slides can have titles, bullet points, and charts or any combination"
+    " - Each slide should aim to be minimal and self explanatory \n"
+    " - Bullets highlight points, they don't explain them \n"
+    " - Try to put stats and data point into charts instead of bullets \n"
+    " - Number dense sections can get split up across many slides if needed \n"
+    " - Try to keep text short but descriptive \n"
+    " - Charts can contain topline or crosstab data, the exact chart type will be decided later \n"
+    " - You would rather have two simple slides than one overly complex slide \n"
+    " - Slides should wind up with 6-8 words per bullet and no more than 3 bullets a slide, keep them brief \n"
+    " - Slides only containing graphs are fine as long as the graphs are self explanatory \n"
+)
 
 class MemoToSlidesAgent:
-    def __init__(self, kbid, key_number, memo_doc_id, slides_id, sheets_id, progress_callback: ProgressCallback = None):
+    def __init__(
+            self,
+            kbid,
+            key_number,
+            memo_doc_id,
+            slides_id,
+            sheets_id,
+            progress_callback: ProgressCallback = None,
+            slide_agent_prompt: str = None,
+            slide_outline_agent_prompt: str = None
+    ):
         self.datasource = ReportingSurveyDataSource(kbid=kbid, key_number=key_number)
         self.memo_creator = MemoCreator(memo_doc_id)
         self.memo = self.memo_creator.read_all_text()
@@ -22,6 +66,9 @@ class MemoToSlidesAgent:
         self.slide_creator = SlideCreator(presentation_id=slides_id)
         self.progress_callback = progress_callback
         self.usage = RunUsage()
+        self.slide_agent_prompt = slide_agent_prompt if slide_agent_prompt else SLIDE_AGENT_DEFAULT_PROMPT
+        self.slide_outline_agent_prompt = slide_outline_agent_prompt if slide_outline_agent_prompt else SLIDE_AGENT_OUTLINE_DEFAULT_PROMPT
+
 
     # TODO place requested usage limits here
     def create_slides_from_memo(self, outline_focus: str = None):
@@ -46,7 +93,8 @@ class MemoToSlidesAgent:
 
         outline_deps = SlideOutlineDependencies(
             memo=self.memo,
-            all_question_text=self.datasource.all_question_text()
+            all_question_text=self.datasource.all_question_text(),
+            default_prompt=self.slide_outline_agent_prompt,
         )
         output = self._run_agent(focus, slide_outline_agent, outline_deps)
         return output
@@ -54,7 +102,8 @@ class MemoToSlidesAgent:
 
     def _add_slide(self, slide_description: str):
         slide_deps = SlideDependencies(
-            all_question_text=self.datasource.all_question_text()
+            all_question_text=self.datasource.all_question_text(),
+            default_prompt=self.slide_agent_prompt,
         )
         slide_spec = self._run_agent(slide_description, slide_agent, slide_deps)
         if not slide_spec:

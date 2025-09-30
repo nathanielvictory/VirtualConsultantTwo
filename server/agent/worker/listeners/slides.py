@@ -13,7 +13,7 @@ ROUTING_KEY = "task.slides"
 def handle(body):
     try:
         slides_schema = SlidesSchema.model_validate_json(body)
-        logger.info("task.slides: %s", slides_schema.model_dump_json())
+        logger.info("task.slides: %s", slides_schema.model_dump_json(exclude={"slide_agent_prompt", "slide_outline_agent_prompt"}))
     except ValidationError as e:
         logger.error("task.slides body didn't validate: %r", body)
         return
@@ -25,9 +25,11 @@ def handle(body):
             slides_schema.doc_id,
             slides_schema.presentation_id,
             slides_schema.sheets_id,
-            task_manager
+            task_manager,
+            slide_agent_prompt=slides_schema.slide_agent_prompt,
+            slide_outline_agent_prompt=slides_schema.slide_outline_agent_prompt
         )
-        memo_to_slides_agent.create_slides_from_memo()
+        memo_to_slides_agent.create_slides_from_memo(outline_focus=slides_schema.focus)
 
         total_tokens = memo_to_slides_agent.usage.input_tokens + memo_to_slides_agent.usage.output_tokens * 3
         task_manager.add_artifact(Artifact(
