@@ -1,4 +1,3 @@
-// src/pages/memoComponents/GenerateMemoDialog.tsx
 import * as React from "react";
 import {
     Alert,
@@ -11,33 +10,54 @@ import {
     TextField,
     Typography,
 } from "@mui/material";
-import { usePostApiQueueTaskMemoMutation } from "../../../api/tasksApi";
+import { usePostApiQueueTaskSlidesMutation } from "../../../api/tasksApi";
+import MemoSelector from "../memoComponents/MemoSelector";
 
-type GenerateMemoDialogProps = {
+/**
+ * Dialog that queues generation of a slide deck from the *currently selected memo*.
+ * - Exactly mirrors GenerateMemoDialog UX, but targets a Slidedeck task.
+ * - If no memo is selected, the primary action is disabled.
+ * - The parent page can render ../memoComponents/MemoSelector to control the selected memo.
+ */
+
+export type GenerateSlidedeckDialogProps = {
+    /** Existing slidedeck to append to */
+    slidedeckId?: number;
+    /** Project context for memo search */
+    projectId: number | null;
+    /** (Optional) initial memo to use as the source for the slide deck */
     memoId?: number;
     onCancel: () => void;
-    onSuccess: (taskId: number) => void; // pass back the returned ID
+    /** Called with the queued task id when successful */
+    onSuccess: (taskId: number) => void;
 };
 
-export default function GenerateMemoDialog({
-                                               memoId,
-                                               onCancel,
-                                               onSuccess,
-                                           }: GenerateMemoDialogProps) {
+export default function GenerateSlidedeckDialog({
+                                                    slidedeckId,
+                                                    projectId,
+                                                    memoId,
+                                                    onCancel,
+                                                    onSuccess,
+                                                }: GenerateSlidedeckDialogProps) {
     // fresh defaults on each mount
     const [focus, setFocus] = React.useState<string>("");
     const [error, setError] = React.useState<string | null>(null);
+    const [selectedMemoId, setSelectedMemoId] = React.useState<number | null>(memoId ?? null);
 
-    const [queueMemo, { isLoading }] = usePostApiQueueTaskMemoMutation();
+    // NOTE: parity with memo dialog — we assume a parallel queue endpoint exists.
+    // If your API name differs (e.g., usePostApiQueueTaskSlidesMutation), swap the import & call below.
+    const [queueSlides, { isLoading }] = usePostApiQueueTaskSlidesMutation();
 
     const handleSubmit = async () => {
-        if (!memoId) return;
+        if (!memoId || !slidedeckId) return;
         setError(null);
 
         try {
-            const res = await queueMemo({
-                queueCreateMemoTaskDto: {
-                    memoId,
+            const res = await queueSlides({
+                queueCreateSlidesTaskDto: {
+                    slidedeckId: slidedeckId!,
+                    memoId: selectedMemoId!,
+                    // focus, // ⬅️ If backend accepts it, include here
                 },
             }).unwrap();
 
@@ -47,21 +67,32 @@ export default function GenerateMemoDialog({
                 return;
             }
 
-            onSuccess(newId); // return the id
+            onSuccess(newId);
         } catch (e: any) {
-            setError(e?.data?.message ?? "Failed to queue memo generation. Please try again.");
+            setError(
+                e?.data?.message ??
+                "Failed to queue slide deck generation. Please try again."
+            );
         }
     };
 
     return (
         <Dialog open onClose={onCancel} fullWidth maxWidth="sm">
-            <DialogTitle>Generate New Memo</DialogTitle>
+            <DialogTitle>Generate New Slide Deck</DialogTitle>
             <DialogContent>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    New memo content will be based on all current project insights and will be appended
-                    to content in the currently selected memo's Google Doc.
+                    A new slide deck will be generated from the content of the memo you select below and appended to the current slide deck. If either a memo or slide deck is not selected, please select them below.
                 </Typography>
                 <Stack gap={2} sx={{ mt: 1 }}>
+                    {/* In-dialog memo picker so users don't have to navigate away */}
+                    <MemoSelector
+                        projectId={projectId}
+                        memoId={selectedMemoId ?? undefined}
+                        onSelect={setSelectedMemoId}
+                        showTitle
+                        showCurrent
+                        variant="compact"
+                    />
                     {error && <Alert severity="error">{error}</Alert>}
                     <TextField
                         label="Focus (optional)"
@@ -81,7 +112,7 @@ export default function GenerateMemoDialog({
                 <Button
                     variant="contained"
                     onClick={handleSubmit}
-                    disabled={!memoId}
+                    disabled={!selectedMemoId || !slidedeckId}
                 >
                     {isLoading ? "Queuing…" : "Queue Task"}
                 </Button>

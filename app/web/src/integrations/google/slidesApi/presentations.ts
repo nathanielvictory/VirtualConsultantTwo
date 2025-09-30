@@ -1,4 +1,4 @@
-import { createDriveFile, listDriveFiles, type DriveFile, MIME } from '../drive';
+import {createDriveFile, listDriveFiles, type DriveFile, MIME, setAnyoneWithLinkCanEdit} from '../drive';
 
 
 export function getSlidesEditUrl(fileId: string) {
@@ -7,7 +7,10 @@ export function getSlidesEditUrl(fileId: string) {
 
 
 export async function createGooglePresentation(accessToken: string, title: string): Promise<DriveFile> {
-    return createDriveFile(accessToken, { name: title, mimeType: MIME.SLIDE });
+    const file = await createDriveFile(accessToken, { name: title, mimeType: MIME.SLIDE });
+    await setAnyoneWithLinkCanEdit(accessToken, file.id);
+
+    return file;
 }
 
 
