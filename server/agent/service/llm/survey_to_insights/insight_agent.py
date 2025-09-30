@@ -14,6 +14,7 @@ logger = getLogger(__name__)
 class InsightDependencies:
     datasource: ReportingSurveyDataSource
     existing_insights: Optional[list[str]]
+    default_prompt: str
 
 
 class InsightOutput(BaseModel):
@@ -22,35 +23,17 @@ class InsightOutput(BaseModel):
     optional_insight_two: Optional[str] = Field(default=None, description="Second optional supporting insight")
 
 
-system_prompt = (
-    "You're working for a consultant who needs help generating meaningful insights into the results of a survey. "
-    "Your goal is to help your client generate actionable insights into the results of a survey. "
-    "You should keep them short and to the point but make sure they're actionable. Try not to repeat yourself. "
-    "Key things to look into include major demographics and differences in crosstabs between them. "
-    "Feel free to look through as much data as you need to generate a quality insight, "
-    "you can request topline and crosstab survey data as needed. "
-    "Unfortunately you're on your own and cannot ask for help since you're the only one with the knowledge "
-    "to generate these insights for the client. We want the insights to be actionable so focus on finding "
-    "disparities that things like targeted outreach can shore up. An example would be that independents "
-    "have no opinion or have never heard of a candidate or that young people find an issue disproportionately "
-    "unpopular. Please keep insights contained to a single topic and one line of text only while "
-    "including the short names of the questions these conclusions are drawn from. If you have lesser insights feel free "
-    "to provide up to three but your main goal is to provide one quality insight. The client will optionally provide a focus for "
-    "your insights to look into. "
-)
-
-
 insight_agent = Agent(
     model,
     deps_type=InsightDependencies,
     output_type=InsightOutput,
-    system_prompt=system_prompt,
 )
 
 
 @insight_agent.system_prompt
 async def append_data_to_prompt(ctx: RunContext[InsightDependencies]) -> str:
-    append_string = f"\nThe topline results for the survey are as follows:\n"
+    append_string = ctx.deps.default_prompt
+    append_string += f"\nThe topline results for the survey are as follows:\n"
     append_string += ctx.deps.datasource.all_toplines_text()
 
     if ctx.deps.existing_insights:

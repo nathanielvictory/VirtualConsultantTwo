@@ -20,7 +20,13 @@ def handle(body):
         return
 
     with TaskManager(insights_schema.task_id) as task_manager:
-        agent = SurveyToInsightsAgent(kbid=insights_schema.kbid, key_number=insights_schema.key_number, progress_callback=task_manager)
+        agent = SurveyToInsightsAgent(
+            kbid=insights_schema.kbid,
+            key_number=insights_schema.key_number,
+            progress_callback=task_manager,
+            focus_agent_prompt=insights_schema.focus_agent_prompt,
+            insight_agent_prompt=insights_schema.insight_agent_prompt
+        )
 
         if insights_schema.number_of_insights is None and insights_schema.focus is None:
             new_insights = agent.get_insights()
