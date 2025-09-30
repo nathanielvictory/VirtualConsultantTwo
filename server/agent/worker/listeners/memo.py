@@ -20,8 +20,15 @@ def handle(body):
         return
 
     with TaskManager(memo_schema.task_id) as task_manager:
-        insights_to_memo_agent = InsightsToMemoAgent(memo_schema.kbid, memo_schema.key_number, memo_schema.doc_id, progress_callback=task_manager)
-        insights_to_memo_agent.create_memo_from_insights(memo_schema.insights)
+        insights_to_memo_agent = InsightsToMemoAgent(
+            memo_schema.kbid,
+            memo_schema.key_number,
+            memo_schema.doc_id,
+            progress_callback=task_manager,
+            text_block_agent_prompt=memo_schema.text_block_agent_prompt,
+            memo_agent_prompt=memo_schema.memo_agent_prompt,
+        )
+        insights_to_memo_agent.create_memo_from_insights(memo_schema.insights, memo_schema.focus)
 
         total_tokens = insights_to_memo_agent.usage.input_tokens + insights_to_memo_agent.usage.output_tokens * 3
         task_manager.add_artifact(Artifact(

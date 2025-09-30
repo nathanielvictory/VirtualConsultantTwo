@@ -9,4 +9,7 @@ class Memo(BaseModel):
     doc_id: str
     insights: list[str]
     token_limit: int | None = None
+    focus: str | None = None
+    text_block_agent_prompt: str | None = None
+    memo_agent_prompt: str | None = None
     model_config = ConfigDict(extra="forbid")
