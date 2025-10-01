@@ -17,7 +17,5 @@ else:
         'openai.gpt-oss-120b-1:0',
         provider=BedrockProvider(
             region_name='us-west-2',
-            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
         )
     )

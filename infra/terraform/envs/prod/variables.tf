@@ -78,3 +78,39 @@ variable "db_instance_class" {
   type        = string
   default     = "db.t4g.small"
 }
+
+variable "api_image_tag" {
+  description = "ECR image tag for prod (pin to a stable commit SHA)"
+  type        = string
+  default     = "latest"
+}
+
+variable "api_cpu" {
+  description = "Fargate CPU units"
+  type        = number
+  default     = 512
+}
+
+variable "api_memory" {
+  description = "Fargate memory (MB)"
+  type        = number
+  default     = 1024
+}
+
+variable "container_port" {
+  description = "Container listen port"
+  type        = number
+  default     = 8080
+}
+
+variable "rabbit_user" {
+  description = "RabbitMQ user for PROD (non-durable test creds)"
+  type        = string
+  default     = "consultant"
+}
+
+variable "rabbit_password" {
+  description = "RabbitMQ password for PROD (use Secrets later)"
+  type        = string
+  default     = "consultant_pass"
+}
