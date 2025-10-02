@@ -116,7 +116,10 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.WithOrigins("http://localhost:5173") // whitelist your Vite dev server
+        policy.WithOrigins(
+                "http://localhost:5173", 
+                "https://qa.virtualconsultant.victorymodeling.com",
+                "https://virtualconsultant.victorymodeling.com")
               .AllowAnyMethod()
               .AllowAnyHeader()
               .AllowCredentials(); // needed when using credentials: 'include'

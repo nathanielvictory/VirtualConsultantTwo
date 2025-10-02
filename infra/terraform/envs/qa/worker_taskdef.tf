@@ -15,7 +15,7 @@ resource "aws_ecs_task_definition" "worker" {
   container_definitions = jsonencode([
     {
       name      = "worker",
-      image     = "${data.aws_ecr_repository.worker.repository_url}:${var.worker_image_tag}",
+      image = "${data.aws_ecr_repository.worker.repository_url}@${data.aws_ecr_image.worker_latest.image_digest}",
       essential = true,
 
       # no ports exposed

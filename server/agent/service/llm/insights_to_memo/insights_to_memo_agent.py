@@ -86,7 +86,7 @@ class InsightsToMemoAgent:
     def _merge_report_blocks(self, report_blocks_text, focus):
         memo_deps = MemoDependencies(
             memo_focus=focus,
-            default_prompt=self.text_block_agent_prompt,
+            default_prompt=self.memo_agent_prompt,
         )
         response: MemoOutput = self._run_agent(report_blocks_text, memo_agent,  memo_deps)
         if not response:
