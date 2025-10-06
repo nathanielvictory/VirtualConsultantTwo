@@ -11,7 +11,11 @@ public class ProjectProfile : Profile
         CreateMap<Project, ProjectListItemDto>();
         CreateMap<Project, ProjectDetailDto>();
         CreateMap<CreateProjectDto, Project>();
-        CreateMap<UpdateProjectDto, Project>()
-            .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember is not null));
+        var upd = CreateMap<UpdateProjectDto, Project>();
+        upd.ForAllMembers(opt =>
+            opt.Condition((src, dest, srcMember) => srcMember is not null));
+        
+        upd.ForMember(dest => dest.IsActive,
+            opt => opt.MapFrom((src, dest) => src.IsActive ?? dest.IsActive));
     }
 }

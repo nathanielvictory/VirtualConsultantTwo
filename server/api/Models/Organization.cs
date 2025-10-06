@@ -9,4 +9,5 @@ public class Organization
 
     // Navigation: one org has many projects
     public List<Project> Projects { get; set; } = new();
+    public List<OrganizationMembership> Memberships { get; set; } = new();
 }
