@@ -4,20 +4,6 @@ using System.Text.Json.Serialization;
 
 namespace api.Dtos;
 
-// Sign-up request (OAuth2 doesn't define signup; this is yours)
-public record CreateUserDto(
-    [Required] string Username,
-    [Required] string Password,
-    string? OrganizationId,           // optional now; handy later for RLS
-    string[]? Roles                   // e.g. ["External","ReadOnly"] or ["Internal"]
-);
-
-public record UpdateUserDto(
-    string? Username,
-    string? Password,          // admin reset
-    string? OrganizationId,    // null = no change; "" (empty) = remove claim
-    string[]? Roles            // null = no change; [] = remove all roles
-);
 
 // OAuth2 "password" grant request (form-encoded)
 public class TokenRequest
@@ -38,5 +24,6 @@ public record TokenResponseDto(
     [property: JsonPropertyName("access_token")] string AccessToken,
     [property: JsonPropertyName("token_type")]   string TokenType,
     [property: JsonPropertyName("expires_in")]   int ExpiresIn,
-    [property: JsonPropertyName("scope")]        string Scope = ""
+    [property: JsonPropertyName("scope")]        string Scope = "",
+    [property: JsonPropertyName("role_label")]   string RoleLabel = "User"
 );

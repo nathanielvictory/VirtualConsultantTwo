@@ -16,7 +16,8 @@ public class UsersController : ControllerBase
 {
     private readonly UserManager<User> _users;
     private readonly RoleManager<IdentityRole<int>> _roles;
-
+    private static readonly string[] AllowedRoles = ["Admin"];
+    
     public UsersController(UserManager<User> users, RoleManager<IdentityRole<int>> roles)
     {
         _users = users; _roles = roles;
@@ -174,31 +175,42 @@ public class UsersController : ControllerBase
 
     private async Task EnsureAndAssignRoles(User user, IEnumerable<string> roles)
     {
-        foreach (var r in roles.Distinct())
+        var normalized = roles.Select(r => r.Trim()).Where(r => !string.IsNullOrEmpty(r)).Distinct().ToArray();
+        var invalid = normalized.Except(AllowedRoles, StringComparer.OrdinalIgnoreCase).ToArray();
+
+        if (invalid.Length > 0)
+            throw new ArgumentException($"Unsupported role(s): {string.Join(", ", invalid)}");
+
+        foreach (var r in normalized)
             if (!await _roles.RoleExistsAsync(r))
                 await _roles.CreateAsync(new IdentityRole<int>(r));
-        await _users.AddToRolesAsync(user, roles);
+
+        await _users.AddToRolesAsync(user, normalized);
     }
 
     private async Task ReplaceRoles(User user, IEnumerable<string> desiredRoles)
     {
-        var current = await _users.GetRolesAsync(user);
-        var desired = desiredRoles?.Distinct().ToArray() ?? Array.Empty<string>();
+        var normalized = desiredRoles.Select(r => r.Trim()).Where(r => !string.IsNullOrEmpty(r)).Distinct().ToArray();
+        var invalid = normalized.Except(AllowedRoles, StringComparer.OrdinalIgnoreCase).ToArray();
 
-        var toRemove = current.Except(desired).ToArray();
-        var toAdd = desired.Except(current).ToArray();
+        if (invalid.Length > 0)
+            throw new ArgumentException($"Unsupported role(s): {string.Join(", ", invalid)}");
+
+        var current = await _users.GetRolesAsync(user);
+        var toRemove = current.Except(normalized).ToArray();
+        var toAdd = normalized.Except(current).ToArray();
 
         if (toRemove.Length > 0)
             await _users.RemoveFromRolesAsync(user, toRemove);
 
+        foreach (var r in toAdd)
+            if (!await _roles.RoleExistsAsync(r))
+                await _roles.CreateAsync(new IdentityRole<int>(r));
+
         if (toAdd.Length > 0)
-        {
-            foreach (var r in toAdd)
-                if (!await _roles.RoleExistsAsync(r))
-                    await _roles.CreateAsync(new IdentityRole<int>(r));
             await _users.AddToRolesAsync(user, toAdd);
-        }
     }
+
 
     private async Task SetOrgClaim(User user, string? organizationId)
     {

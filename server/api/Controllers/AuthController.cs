@@ -160,6 +160,8 @@ public class AuthController : ControllerBase
 
         // roles (expand later with org/perm claims if you want)
         var roles = await _users.GetRolesAsync(user);
+        var roleLabel = roles.Contains("Admin", StringComparer.OrdinalIgnoreCase) ? "Admin" : "User";
+        
         var claims = roles.Select(r => new Claim(ClaimTypes.Role, r)).ToList();
         claims.Add(new Claim("st", await _users.GetSecurityStampAsync(user))); // future revocation
 
@@ -180,7 +182,8 @@ public class AuthController : ControllerBase
             AccessToken: token,
             TokenType: "Bearer",
             ExpiresIn: (int)TimeSpan.FromHours(1).TotalSeconds,
-            Scope: req.scope ?? ""
+            Scope: req.scope ?? "",
+            RoleLabel: roleLabel
         ));
     }
     
@@ -200,6 +203,7 @@ public class AuthController : ControllerBase
         await RotateRefreshTokenAsync(token, user);
 
         var roles = await _users.GetRolesAsync(user);
+        var roleLabel = roles.Contains("Admin", StringComparer.OrdinalIgnoreCase) ? "Admin" : "User";
         var claims = roles.Select(r => new Claim(ClaimTypes.Role, r)).ToList();
         claims.Add(new Claim("st", await _users.GetSecurityStampAsync(user)));
 
@@ -213,7 +217,12 @@ public class AuthController : ControllerBase
             lifetime: TimeSpan.FromHours(1),
             extraClaims: claims);
 
-        return Ok(new TokenResponseDto(access, "Bearer", (int)TimeSpan.FromHours(1).TotalSeconds));
+        return Ok(new TokenResponseDto(
+            access, 
+            "Bearer", 
+            (int)TimeSpan.FromHours(1).TotalSeconds,
+            RoleLabel: roleLabel
+        ));
     }
 
     [Authorize]
