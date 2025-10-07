@@ -58,7 +58,7 @@ class InsightsToMemoAgent:
 
 
     # TODO place requested usage limits here
-    def create_memo_from_insights(self, insights, focus: str = None):
+    async def create_memo_from_insights(self, insights, focus: str = None):
         if self.progress_callback:
             self.progress_callback.reset_progress_total(len(insights) + 1)
         self.progress_callback.increment_progress()
@@ -69,7 +69,7 @@ class InsightsToMemoAgent:
                 datasource=self.datasource,
                 default_prompt=self.text_block_agent_prompt,
             )
-            response: TextOutput | None = self._run_agent("Try to keep the writing simple and actionable.", text_block_agent, text_block_deps)
+            response: TextOutput | None = await self._run_agent("Try to keep the writing simple and actionable.", text_block_agent, text_block_deps)
             if self.progress_callback:
                 self.progress_callback.increment_progress()
             if response is None:
@@ -77,30 +77,30 @@ class InsightsToMemoAgent:
             text_block_outputs.append(response.descriptive_text)
 
         report_blocks_text = '\n\n'.join(text_block_outputs)
-        report_text = self._merge_report_blocks(report_blocks_text, focus)
+        report_text = await self._merge_report_blocks(report_blocks_text, focus)
         if self.progress_callback:
             self.progress_callback.increment_progress()
         self.memo_creator.append_text(report_text)
 
 
-    def _merge_report_blocks(self, report_blocks_text, focus):
+    async def _merge_report_blocks(self, report_blocks_text, focus):
         memo_deps = MemoDependencies(
             memo_focus=focus,
             default_prompt=self.memo_agent_prompt,
         )
-        response: MemoOutput = self._run_agent(report_blocks_text, memo_agent,  memo_deps)
+        response: MemoOutput = await self._run_agent(report_blocks_text, memo_agent,  memo_deps)
         if not response:
             raise Exception(f"AI Agent failed to generate a report")
         return response.full_report
 
 
     # TODO flag usage limits here
-    def _run_agent(self, prompt, agent, deps, retries=3):
+    async def _run_agent(self, prompt, agent, deps, retries=3):
         self.usage.requests = 0
         attempts = 0
         while True:
             try:
-                result = agent.run_sync(
+                result = await agent.run(
                     prompt,
                     deps=deps,
                     usage=self.usage

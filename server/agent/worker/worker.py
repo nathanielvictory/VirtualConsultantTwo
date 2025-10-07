@@ -1,10 +1,15 @@
+# worker/async_worker.py
+import asyncio
 import logging
 import signal
+from contextlib import suppress
+from typing import Awaitable, Callable, Dict, Set
 
-import pika
+import aio_pika
+from aio_pika import ExchangeType, IncomingMessage
 
 from config import settings, setup_logging
-from worker.listeners import HANDLERS
+from worker.listeners import HANDLERS  # type: Dict[str, Callable[[bytes], Awaitable[None]]]
 
 logging.basicConfig(level=logging.INFO, format="[%(asctime)s] %(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
@@ -12,81 +17,117 @@ logger = logging.getLogger(__name__)
 
 class Worker:
     def __init__(self) -> None:
-        self.exchange = settings.RABBIT_EXCHANGE
-        self._conn: pika.BlockingConnection | None = None
-        self._ch: pika.adapters.blocking_connection.BlockingChannel | None = None
-        self._queues: list[str] = []
+        self.exchange_name = settings.RABBIT_EXCHANGE
+        self.queue_name = f"{self.exchange_name}.worker"
+        self.max_in_flight = 4  # <= desired concurrency
+        self._sem = asyncio.Semaphore(self.max_in_flight)
+        self._tasks: Set[asyncio.Task] = set()
 
-    def _request_stop(self, *_: object) -> None:
-        try:
-            if self._ch and self._ch.is_open:
-                logger.info("Shutdown signal received — stopping consumer…")
-                self._ch.stop_consuming()
-        except Exception:
-            pass
+        self._conn: aio_pika.RobustConnection | None = None
+        self._ch: aio_pika.abc.AbstractChannel | None = None
+        self._exchange: aio_pika.abc.AbstractExchange | None = None
+        self._queue: aio_pika.abc.AbstractQueue | None = None
+        self._stopping = asyncio.Event()
 
-    def connect(self) -> None:
-        creds = pika.PlainCredentials(settings.RABBIT_USER, settings.RABBIT_PASS)
-        params = pika.ConnectionParameters(
+    async def connect(self) -> None:
+        self._conn = await aio_pika.connect_robust(
             host=settings.RABBIT_HOST,
             port=settings.RABBIT_PORT,
-            virtual_host=settings.RABBIT_VHOST,
-            credentials=creds,
-            heartbeat=0,
-            blocked_connection_timeout=60,
+            virtualhost=settings.RABBIT_VHOST,
+            login=settings.RABBIT_USER,
+            password=settings.RABBIT_PASS,
+            heartbeat=300,   # 5 minutes
+            timeout=60,
         )
-        self._conn = pika.BlockingConnection(params)
-        ch = self._conn.channel()
-        ch.basic_qos(prefetch_count=1)
+        self._ch = await self._conn.channel()
+        await self._ch.set_qos(prefetch_count=self.max_in_flight)
 
-        ch.exchange_declare(exchange=self.exchange, exchange_type="topic", durable=True)
-
-        # One queue per routing key, named "<routing_key>.q"
+        self._exchange = await self._ch.declare_exchange(
+            self.exchange_name, ExchangeType.TOPIC, durable=True
+        )
+        self._queue = await self._ch.declare_queue(self.queue_name, durable=True)
         for rk in HANDLERS.keys():
-            q = f"{rk}.q"
-            ch.queue_declare(queue=q, durable=True)
-            ch.queue_bind(queue=q, exchange=self.exchange, routing_key=rk)
-            self._queues.append(q)
+            await self._queue.bind(self._exchange, routing_key=rk)
 
-        self._ch = ch
-        logger.info("Connected. exchange=%s queues=%s", self.exchange, ",".join(self._queues))
+        logger.info(
+            "Connected. exchange=%s queue=%s keys=%s prefetch=%d heartbeat=%ds",
+            self.exchange_name,
+            self._queue.name,
+            ",".join(HANDLERS.keys()),
+            self.max_in_flight,
+            300,
+        )
 
-    def close(self) -> None:
+    async def close(self) -> None:
+        with suppress(Exception):
+            if self._ch and not self._ch.is_closed:
+                await self._ch.close()
+        with suppress(Exception):
+            if self._conn and not self._conn.is_closed:
+                await self._conn.close()
+        logger.info("Connection closed.")
+
+    def _install_signal_handlers(self) -> None:
+        loop = asyncio.get_running_loop()
+
+        def _request_stop() -> None:
+            if not self._stopping.is_set():
+                logger.info("Shutdown signal received — stopping consumer…")
+                self._stopping.set()
+
+        for sig in (signal.SIGINT, signal.SIGTERM):
+            with suppress(NotImplementedError):
+                loop.add_signal_handler(sig, _request_stop)
+
+    async def _on_message(self, message: IncomingMessage) -> None:
+        # Limit concurrent handler executions
+        await self._sem.acquire()
+
+        async def _run_one(msg: IncomingMessage) -> None:
+            try:
+                async with msg.process(requeue=False):
+                    handler = HANDLERS.get(msg.routing_key)
+                    if not handler:
+                        logger.info("no handler for %r: %r", msg.routing_key, msg.body)
+                        return
+                    await handler(msg.body)  # all handlers are async now
+            except Exception as e:
+                # With process(requeue=False), failures are rejected (removed, no requeue).
+                logger.warning("Exception %r on %s: %r", e, msg.routing_key, msg.body)
+            finally:
+                self._sem.release()
+
+        task = asyncio.create_task(_run_one(message))
+        self._tasks.add(task)
+        task.add_done_callback(self._tasks.discard)
+
+    async def run(self) -> None:
+        await self.connect()
+        assert self._queue is not None
+        self._install_signal_handlers()
+
+        consume_tag = await self._queue.consume(self._on_message, no_ack=False)
+
         try:
-            if self._ch and self._ch.is_open:
-                self._ch.close()
+            await self._stopping.wait()
         finally:
-            if self._conn and self._conn.is_open:
-                self._conn.close()
-            logger.info("Connection closed.")
+            # stop delivering new messages
+            with suppress(Exception):
+                await self._queue.cancel(consume_tag)
 
-    def run(self) -> None:
-        self.connect()
-        assert self._ch is not None
+            # wait for in-flight tasks to finish (bounded by a timeout if you prefer)
+            if self._tasks:
+                logger.info("Waiting for %d in-flight task(s) to finish…", len(self._tasks))
+                await asyncio.gather(*self._tasks, return_exceptions=True)
 
-        signal.signal(signal.SIGTERM, self._request_stop)
-        signal.signal(signal.SIGINT, self._request_stop)
+            await self.close()
 
-        def on_message(ch, method, properties, body) -> None:
-            ch.basic_ack(delivery_tag=method.delivery_tag)
-            handler = HANDLERS.get(method.routing_key)
-            if handler:
-                try:
-                    handler(body)
-                except Exception as e:
-                    logger.warning(f"Exception {repr(e)} on {method.routing_key}: {body}")
-            else:
-                logger.info("no handler for %r: %r", method.routing_key, body)
 
-        for q in self._queues:
-            self._ch.basic_consume(queue=q, on_message_callback=on_message, auto_ack=False)
-
-        try:
-            self._ch.start_consuming()
-        finally:
-            self.close()
+async def main() -> None:
+    setup_logging()
+    worker = Worker()
+    await worker.run()
 
 
 if __name__ == "__main__":
-    setup_logging()
-    Worker().run()
+    asyncio.run(main())

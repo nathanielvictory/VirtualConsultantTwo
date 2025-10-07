@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 ROUTING_KEY = "task.slides"
 
-def handle(body):
+async def handle(body):
     try:
         slides_schema = SlidesSchema.model_validate_json(body)
         logger.info("task.slides: %s", slides_schema.model_dump_json(exclude={"slide_agent_prompt", "slide_outline_agent_prompt"}))
@@ -29,7 +29,7 @@ def handle(body):
             slide_agent_prompt=slides_schema.slide_agent_prompt,
             slide_outline_agent_prompt=slides_schema.slide_outline_agent_prompt
         )
-        memo_to_slides_agent.create_slides_from_memo(outline_focus=slides_schema.focus)
+        await memo_to_slides_agent.create_slides_from_memo(outline_focus=slides_schema.focus)
 
         total_tokens = memo_to_slides_agent.usage.input_tokens + memo_to_slides_agent.usage.output_tokens * 3
         task_manager.add_artifact(Artifact(

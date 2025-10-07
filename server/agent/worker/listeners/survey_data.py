@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 ROUTING_KEY = "task.survey_data"
 
-def handle(body):
+async def handle(body):
     try:
         survey_data_schema = SurveyDataSchema.model_validate_json(body)
         logger.info("task.survey_data: %s", survey_data_schema.model_dump_json())
@@ -25,7 +25,7 @@ def handle(body):
         if not project:
             raise ValueError(f"Project with KBID {survey_data_schema.kbid} not found")
 
-        survey_data = update_project(survey_data_schema.kbid, survey_data_schema.key_number)
+        survey_data = await update_project(survey_data_schema.kbid, survey_data_schema.key_number)
 
         if survey_data is None:
             logger.info(f"Failed to update project data for {survey_data_schema.kbid}")

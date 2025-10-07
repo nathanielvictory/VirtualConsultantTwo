@@ -65,5 +65,5 @@ def setup_logging(
     )
 
     # Optional: quiet noisy third-party libs at INFO while we’re at it
-    for noisy in ("botocore", "urllib3", "paramiko.transport", "pandas"):
+    for noisy in ("botocore", "urllib3", "paramiko.transport", "pandas", "httpx"):
         logging.getLogger(noisy).setLevel(logging.ERROR)

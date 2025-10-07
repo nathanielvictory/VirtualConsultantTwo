@@ -71,12 +71,12 @@ class MemoToSlidesAgent:
 
 
     # TODO place requested usage limits here
-    def create_slides_from_memo(self, outline_focus: str = None):
-        outline = self._get_outline(outline_focus)
+    async def create_slides_from_memo(self, outline_focus: str = None):
+        outline = await self._get_outline(outline_focus)
 
         self.progress_callback.reset_progress_total(len(outline.slides))
         for slide_description in outline.slides:
-            self._add_slide(slide_description)
+            await self._add_slide(slide_description)
             self.progress_callback.increment_progress()
         return self.usage
 
@@ -87,7 +87,7 @@ class MemoToSlidesAgent:
         return old_usage
 
 
-    def _get_outline(self, focus: str = None) -> PowerpointOutline:
+    async def _get_outline(self, focus: str = None) -> PowerpointOutline:
         if not focus:
             focus = "The client has provided no additional instruction."
 
@@ -96,16 +96,16 @@ class MemoToSlidesAgent:
             all_question_text=self.datasource.all_question_text(),
             default_prompt=self.slide_outline_agent_prompt,
         )
-        output = self._run_agent(focus, slide_outline_agent, outline_deps)
+        output = await self._run_agent(focus, slide_outline_agent, outline_deps)
         return output
 
 
-    def _add_slide(self, slide_description: str):
+    async def _add_slide(self, slide_description: str):
         slide_deps = SlideDependencies(
             all_question_text=self.datasource.all_question_text(),
             default_prompt=self.slide_agent_prompt,
         )
-        slide_spec = self._run_agent(slide_description, slide_agent, slide_deps)
+        slide_spec = await self._run_agent(slide_description, slide_agent, slide_deps)
         if not slide_spec:
             return self.usage
 
@@ -117,14 +117,14 @@ class MemoToSlidesAgent:
 
         if slide_spec.charts:
             for chart in slide_spec.charts:
-                self._add_chart(chart)
+                await self._add_chart(chart)
         self.slide_creator.create_slide()
         return self.usage
 
 
-    def _add_chart(self, chart_description):
+    async def _add_chart(self, chart_description):
         chart_deps = ChartDependencies(all_toplines_text=self.datasource.all_question_text())
-        chart_spec: ChartSpecification = self._run_agent(chart_description, chart_agent, chart_deps)
+        chart_spec: ChartSpecification = await self._run_agent(chart_description, chart_agent, chart_deps)
         if not chart_spec:
             return
 
@@ -148,12 +148,12 @@ class MemoToSlidesAgent:
 
 
     # TODO flag usage limits here
-    def _run_agent(self, prompt, agent, deps, retries=3):
+    async def _run_agent(self, prompt, agent, deps, retries=3):
         self.usage.requests = 0
         attempts = 0
         while True:
             try:
-                result = agent.run_sync(
+                result = await agent.run(
                     prompt,
                     deps=deps,
                     usage=self.usage

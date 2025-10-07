@@ -9,8 +9,8 @@ from ..models.survey import Survey
 from ..reporting_api.get_survey_data import get_survey_data
 
 
-def update_project(kbid: str, key_number: int = 0) -> Survey | None:
-    survey_data = get_survey_data(kbid, key_number)
+async def update_project(kbid: str, key_number: int = 0) -> Survey | None:
+    survey_data = await get_survey_data(kbid, key_number)
     if not survey_data:
         return None
     survey_dict = survey_data.model_dump()

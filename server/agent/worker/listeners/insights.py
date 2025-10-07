@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 ROUTING_KEY = "task.insights"
 
-def handle(body):
+async def handle(body):
     try:
         insights_schema = InsightsSchema.model_validate_json(body)
         logger.info("task.insights: %s", insights_schema.model_dump_json(exclude={"focus_agent_prompt", "insight_agent_prompt"}))
@@ -29,11 +29,11 @@ def handle(body):
         )
 
         if insights_schema.number_of_insights is None and insights_schema.focus is None:
-            new_insights = agent.get_insights()
+            new_insights = await agent.get_insights()
         else:
             num = insights_schema.number_of_insights if insights_schema.number_of_insights else 1
             focus = insights_schema.focus if insights_schema.focus else "The client has not provided a specific focus."
-            new_insights = agent.get_insights([focus], min(num, 5))
+            new_insights = await agent.get_insights([focus], min(num, 5))
 
         assert new_insights, "SurveyToInsightsAgent returned no insights"
         tokens_per_insight = (agent.usage.input_tokens + agent.usage.output_tokens * 3) // len(new_insights)

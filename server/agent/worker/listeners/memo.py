@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 ROUTING_KEY = "task.memo"
 
-def handle(body):
+async def handle(body):
     try:
         memo_schema = MemoSchema.model_validate_json(body)
         logger.info("task.memo: %s", memo_schema.model_dump_json(exclude={'insights', "text_block_agent_prompt", "memo_agent_prompt"}))
@@ -28,7 +28,7 @@ def handle(body):
             text_block_agent_prompt=memo_schema.text_block_agent_prompt,
             memo_agent_prompt=memo_schema.memo_agent_prompt,
         )
-        insights_to_memo_agent.create_memo_from_insights(memo_schema.insights, memo_schema.focus)
+        await insights_to_memo_agent.create_memo_from_insights(memo_schema.insights, memo_schema.focus)
 
         total_tokens = insights_to_memo_agent.usage.input_tokens + insights_to_memo_agent.usage.output_tokens * 3
         task_manager.add_artifact(Artifact(

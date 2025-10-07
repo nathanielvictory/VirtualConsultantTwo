@@ -56,13 +56,13 @@ class SurveyToInsightsAgent:
         return old_usage
 
 
-    def _get_focuses(self, max_focus_count=3) -> list[str]:
+    async def _get_focuses(self, max_focus_count=3) -> list[str]:
         focus_deps = FocusDependencies(
             all_question_text=self.datasource.all_question_text(),
             default_prompt=self.focus_agent_prompt
         )
         focus_prompt = f"Please generate up to {max_focus_count} focuses for me."
-        output: FocusOutput | None = self._run_agent(focus_prompt, focus_agent, focus_deps, retries=10)
+        output: FocusOutput | None = await self._run_agent(focus_prompt, focus_agent, focus_deps, retries=10)
         if self.progress_callback:
             self.progress_callback.increment_progress()
         if not output:
@@ -70,12 +70,12 @@ class SurveyToInsightsAgent:
         return output.focuses
 
 
-    def get_insights(self, focuses: list[str] = None, insights_per_focus: int = 3) -> list[str]:
+    async def get_insights(self, focuses: list[str] = None, insights_per_focus: int = 3) -> list[str]:
         if self.progress_callback:
             self.progress_callback.reset_progress_total((3 if focuses is None else len(focuses)) * insights_per_focus)
 
         if not focuses:
-            focuses = self._get_focuses()
+            focuses = await self._get_focuses()
         all_insights = []
         for focus in focuses:
             for i in range(insights_per_focus):
@@ -85,7 +85,7 @@ class SurveyToInsightsAgent:
                     default_prompt=self.insight_agent_prompt
                 )
                 prompt = f"Please focus on the following for me:\n{focus}"
-                output: InsightOutput | None = self._run_agent(prompt, insight_agent, insight_deps)
+                output: InsightOutput | None = await self._run_agent(prompt, insight_agent, insight_deps)
                 if self.progress_callback:
                     self.progress_callback.increment_progress()
                 if not output:
@@ -98,12 +98,12 @@ class SurveyToInsightsAgent:
         return all_insights
 
 
-    def _run_agent(self, prompt, agent, deps, retries=2):
+    async def _run_agent(self, prompt, agent, deps, retries=2):
         self.usage.requests = 0
         attempts = 0
         while True:
             try:
-                result = agent.run_sync(
+                result = await agent.run(
                     prompt,
                     deps=deps,
                     usage=self.usage
