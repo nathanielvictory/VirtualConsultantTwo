@@ -146,5 +146,5 @@ variable "worker_cpu" {
 
 variable "worker_memory" {
   type    = number
-  default = 512
+  default = 1024
 }
