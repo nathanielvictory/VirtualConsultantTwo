@@ -12,8 +12,9 @@ async def get_survey_data(kbid: str, key_number: int = 0) -> Survey | None:
         "X-Username": settings.REPORTING_USERNAME,
         "X-Password": settings.REPORTING_PASSWORD,
     }
-    timeout = 60 * 2
+    timeout = 60 * 10
     total_waited = 0
+    sleep_time = 3
 
     try:
         task_response = requests.get(task_queue_url, headers=headers)
@@ -22,8 +23,8 @@ async def get_survey_data(kbid: str, key_number: int = 0) -> Survey | None:
         if not task_id:
             return None
         while total_waited < timeout:
-            await asyncio.sleep(2)
-            total_waited += 2
+            await asyncio.sleep(sleep_time)
+            total_waited += sleep_time
             response = requests.get(f"{task_result_url}/{task_id}", headers=headers)
             response.raise_for_status()
             response_json = response.json()
