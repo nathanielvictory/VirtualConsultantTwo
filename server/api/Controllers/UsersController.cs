@@ -172,33 +172,42 @@ public class UsersController : ControllerBase
     }
 
     // --- helpers ---
+    private static string[] NormalizeRoles(IEnumerable<string> roles) =>
+        roles
+            .Where(r => !string.IsNullOrWhiteSpace(r))   // remove null/empty first
+            .Select(r => r.Trim())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
 
+    private static string[] FilterValidRoles(IEnumerable<string> roles) =>
+        roles
+            .Where(r => AllowedRoles.Contains(r))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+    
     private async Task EnsureAndAssignRoles(User user, IEnumerable<string> roles)
     {
-        var normalized = roles.Select(r => r.Trim()).Where(r => !string.IsNullOrEmpty(r)).Distinct().ToArray();
-        var invalid = normalized.Except(AllowedRoles, StringComparer.OrdinalIgnoreCase).ToArray();
+        var normalized = NormalizeRoles(roles);
+        var validDesired = FilterValidRoles(normalized);
 
-        if (invalid.Length > 0)
-            throw new ArgumentException($"Unsupported role(s): {string.Join(", ", invalid)}");
-
-        foreach (var r in normalized)
+        foreach (var r in validDesired)
             if (!await _roles.RoleExistsAsync(r))
                 await _roles.CreateAsync(new IdentityRole<int>(r));
 
-        await _users.AddToRolesAsync(user, normalized);
+        await _users.AddToRolesAsync(user, validDesired);
     }
 
     private async Task ReplaceRoles(User user, IEnumerable<string> desiredRoles)
     {
-        var normalized = desiredRoles.Select(r => r.Trim()).Where(r => !string.IsNullOrEmpty(r)).Distinct().ToArray();
-        var invalid = normalized.Except(AllowedRoles, StringComparer.OrdinalIgnoreCase).ToArray();
+        var normalized = NormalizeRoles(desiredRoles);
+        var validDesired = FilterValidRoles(normalized);
 
-        if (invalid.Length > 0)
-            throw new ArgumentException($"Unsupported role(s): {string.Join(", ", invalid)}");
+        if (validDesired.Length == 0) return;
 
         var current = await _users.GetRolesAsync(user);
-        var toRemove = current.Except(normalized).ToArray();
-        var toAdd = normalized.Except(current).ToArray();
+
+        var toRemove = current.Except(validDesired, StringComparer.OrdinalIgnoreCase).ToArray();
+        var toAdd = validDesired.Except(current, StringComparer.OrdinalIgnoreCase).ToArray();
 
         if (toRemove.Length > 0)
             await _users.RemoveFromRolesAsync(user, toRemove);
