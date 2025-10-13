@@ -56,6 +56,7 @@ export type TokenResponseDto = {
   token_type?: string | null;
   expires_in?: number;
   scope?: string | null;
+  role_label?: string | null;
 };
 export const {
   usePostApiAuthTokenMutation,

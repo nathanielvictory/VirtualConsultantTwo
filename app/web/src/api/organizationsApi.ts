@@ -1,11 +1,50 @@
 import { emptySplitApi as api } from "./emptyApi.ts";
-export const addTagTypes = ["Organizations"] as const;
+export const addTagTypes = [
+  "OrganizationMemberships",
+  "Organizations",
+] as const;
 const injectedRtkApi = api
   .enhanceEndpoints({
     addTagTypes,
   })
   .injectEndpoints({
     endpoints: (build) => ({
+      getApiOrganizationMemberships: build.query<
+        GetApiOrganizationMembershipsApiResponse,
+        GetApiOrganizationMembershipsApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/api/OrganizationMemberships`,
+          params: {
+            search: queryArg.search,
+            page: queryArg.page,
+            pageSize: queryArg.pageSize,
+            sort: queryArg.sort,
+          },
+        }),
+        providesTags: ["OrganizationMemberships"],
+      }),
+      postApiOrganizationMemberships: build.mutation<
+        PostApiOrganizationMembershipsApiResponse,
+        PostApiOrganizationMembershipsApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/api/OrganizationMemberships`,
+          method: "POST",
+          body: queryArg.createOrganizationMembershipDto,
+        }),
+        invalidatesTags: ["OrganizationMemberships"],
+      }),
+      deleteApiOrganizationMembershipsByUserIdAndOrganizationId: build.mutation<
+        DeleteApiOrganizationMembershipsByUserIdAndOrganizationIdApiResponse,
+        DeleteApiOrganizationMembershipsByUserIdAndOrganizationIdApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/api/OrganizationMemberships/${queryArg.userId}/${queryArg.organizationId}`,
+          method: "DELETE",
+        }),
+        invalidatesTags: ["OrganizationMemberships"],
+      }),
       getApiOrganizations: build.query<
         GetApiOrganizationsApiResponse,
         GetApiOrganizationsApiArg
@@ -64,6 +103,25 @@ const injectedRtkApi = api
     overrideExisting: false,
   });
 export { injectedRtkApi as organizationsApi };
+export type GetApiOrganizationMembershipsApiResponse =
+  /** status 200 OK */ OrganizationMembershipListItemDtoPagedResultDto;
+export type GetApiOrganizationMembershipsApiArg = {
+  search?: string;
+  page?: number;
+  pageSize?: number;
+  sort?: string;
+};
+export type PostApiOrganizationMembershipsApiResponse =
+  /** status 200 OK */ OrganizationMembershipListItemDto;
+export type PostApiOrganizationMembershipsApiArg = {
+  createOrganizationMembershipDto: CreateOrganizationMembershipDto;
+};
+export type DeleteApiOrganizationMembershipsByUserIdAndOrganizationIdApiResponse =
+  unknown;
+export type DeleteApiOrganizationMembershipsByUserIdAndOrganizationIdApiArg = {
+  userId: number;
+  organizationId: string;
+};
 export type GetApiOrganizationsApiResponse =
   /** status 200 OK */ OrganizationListItemDtoPagedResultDto;
 export type GetApiOrganizationsApiArg = {
@@ -91,6 +149,26 @@ export type DeleteApiOrganizationsByIdApiResponse = unknown;
 export type DeleteApiOrganizationsByIdApiArg = {
   id: string;
 };
+export type OrganizationMembershipListItemDto = {
+  userId?: number;
+  userName?: string | null;
+  organizationId?: string | null;
+  organizationName?: string | null;
+  createdAt?: string;
+};
+export type OrganizationMembershipListItemDtoPagedResultDto = {
+  items?: OrganizationMembershipListItemDto[] | null;
+  page?: number;
+  pageSize?: number;
+  totalCount?: number;
+  totalPages?: number;
+  hasPrevious?: boolean;
+  hasNext?: boolean;
+};
+export type CreateOrganizationMembershipDto = {
+  userId?: number;
+  organizationId?: string | null;
+};
 export type OrganizationListItemDto = {
   id?: string | null;
   name?: string | null;
@@ -116,6 +194,9 @@ export type UpdateOrganizationDto = {
   name?: string | null;
 };
 export const {
+  useGetApiOrganizationMembershipsQuery,
+  usePostApiOrganizationMembershipsMutation,
+  useDeleteApiOrganizationMembershipsByUserIdAndOrganizationIdMutation,
   useGetApiOrganizationsQuery,
   usePostApiOrganizationsMutation,
   useGetApiOrganizationsByIdQuery,

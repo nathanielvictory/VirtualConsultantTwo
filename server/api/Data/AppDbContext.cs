@@ -3,13 +3,23 @@ using api.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using api.Auth.CurrentUser;
 
 namespace api.Data;
 
 
 public class AppDbContext : IdentityDbContext<User, IdentityRole<int>, int>
 {
-    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) {}
+    private readonly int? _currentUserId;
+    private readonly bool _isAdmin;
+    
+    public AppDbContext(
+        DbContextOptions<AppDbContext> options,
+        ICurrentUserAccessor currentUserAccessor) : base(options)
+    {
+        _currentUserId = currentUserAccessor.UserId;
+        _isAdmin = currentUserAccessor.IsAdmin;
+    }
     
     public DbSet<Project> Projects => Set<Project>();
     public DbSet<Insight> Insights => Set<Insight>();

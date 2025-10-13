@@ -1,11 +1,21 @@
 import { emptySplitApi as api } from "./emptyApi.ts";
-export const addTagTypes = ["Users"] as const;
+export const addTagTypes = ["OrganizationMemberships", "Users"] as const;
 const injectedRtkApi = api
   .enhanceEndpoints({
     addTagTypes,
   })
   .injectEndpoints({
     endpoints: (build) => ({
+      deleteApiOrganizationMembershipsByUserIdAndOrganizationId: build.mutation<
+        DeleteApiOrganizationMembershipsByUserIdAndOrganizationIdApiResponse,
+        DeleteApiOrganizationMembershipsByUserIdAndOrganizationIdApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/api/OrganizationMemberships/${queryArg.userId}/${queryArg.organizationId}`,
+          method: "DELETE",
+        }),
+        invalidatesTags: ["OrganizationMemberships"],
+      }),
       postApiUsers: build.mutation<PostApiUsersApiResponse, PostApiUsersApiArg>(
         {
           query: (queryArg) => ({
@@ -59,6 +69,12 @@ const injectedRtkApi = api
     overrideExisting: false,
   });
 export { injectedRtkApi as usersApi };
+export type DeleteApiOrganizationMembershipsByUserIdAndOrganizationIdApiResponse =
+  unknown;
+export type DeleteApiOrganizationMembershipsByUserIdAndOrganizationIdApiArg = {
+  userId: number;
+  organizationId: string;
+};
 export type PostApiUsersApiResponse = unknown;
 export type PostApiUsersApiArg = {
   createUserDto: CreateUserDto;
@@ -95,6 +111,7 @@ export type UpdateUserDto = {
   roles?: string[] | null;
 };
 export const {
+  useDeleteApiOrganizationMembershipsByUserIdAndOrganizationIdMutation,
   usePostApiUsersMutation,
   useGetApiUsersQuery,
   useGetApiUsersByIdQuery,

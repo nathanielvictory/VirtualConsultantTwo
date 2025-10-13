@@ -12,6 +12,7 @@ using api.Middleware;
 using api.Messaging.RabbitMq;
 using api.Messaging.Abstractions;
 using Microsoft.AspNetCore.HttpLogging;
+using api.Auth.CurrentUser;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -133,6 +134,9 @@ builder.Services.AddHttpLogging(o =>
         HttpLoggingFields.RequestPath |
         HttpLoggingFields.ResponseStatusCode;
 });
+
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUserAccessor, CurrentUserAccessor>();
 
 var app = builder.Build();
 
