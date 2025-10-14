@@ -12,6 +12,7 @@ public static partial class DataSeed
         const string defaultName = "TN Statewide Nuclear 2025-07-09";
 
         var existing = await db.Projects
+            .IgnoreQueryFilters()
             .FirstOrDefaultAsync(p => p.Kbid == defaultKbid, ct);
 
         if (existing is not null)

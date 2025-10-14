@@ -17,6 +17,7 @@ public static partial class DataSeed
         const int defaultCreatedById = 1; // admin user
 
         var existing = await db.Slidedecks
+            .IgnoreQueryFilters()
             .FirstOrDefaultAsync(s =>
                 s.ProjectId == project.Id &&
                 s.PresentationId == defaultPresentationId, ct);

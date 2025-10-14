@@ -16,6 +16,7 @@ public static partial class DataSeed
         const int defaultCreatedById = 1; // admin user
 
         var existing = await db.Memos
+            .IgnoreQueryFilters()
             .FirstOrDefaultAsync(m =>
                 m.ProjectId == project.Id &&
                 m.DocId == defaultDocId, ct);

@@ -12,7 +12,7 @@ public static class AppDataSeed
     /// </summary>
     public static async Task SeedAsync(AppDbContext db, IServiceProvider sp, CancellationToken ct = default)
     {
-
+        
         // 1) Organization
         var org = await DataSeed.EnsureOrganizationAsync(db, ct);
 

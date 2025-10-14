@@ -372,6 +372,40 @@ namespace api.Migrations
                     b.ToTable("projects", (string)null);
                 });
 
+            modelBuilder.Entity("api.Models.ProjectAccess", b =>
+                {
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer")
+                        .HasColumnName("user_id");
+
+                    b.Property<int>("ProjectId")
+                        .HasColumnType("integer")
+                        .HasColumnName("project_id");
+
+                    b.Property<bool>("AllowAccess")
+                        .HasColumnType("boolean")
+                        .HasColumnName("allow_access");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Reason")
+                        .HasColumnType("text")
+                        .HasColumnName("reason");
+
+                    b.HasKey("UserId", "ProjectId")
+                        .HasName("pk_project_accesses");
+
+                    b.HasIndex("ProjectId")
+                        .HasDatabaseName("ix_project_accesses_project_id");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_project_accesses_user_id");
+
+                    b.ToTable("project_accesses", (string)null);
+                });
+
             modelBuilder.Entity("api.Models.RefreshToken", b =>
                 {
                     b.Property<int>("Id")
@@ -839,6 +873,26 @@ namespace api.Migrations
                     b.Navigation("Organization");
                 });
 
+            modelBuilder.Entity("api.Models.ProjectAccess", b =>
+                {
+                    b.HasOne("api.Models.Project", "Project")
+                        .WithMany("ProjectAccesses")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasConstraintName("fk_project_accesses_projects_project_id");
+
+                    b.HasOne("api.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_project_accesses_users_user_id");
+
+                    b.Navigation("Project");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("api.Models.RefreshToken", b =>
                 {
                     b.HasOne("api.Models.User", "User")
@@ -917,6 +971,8 @@ namespace api.Migrations
                     b.Navigation("Insights");
 
                     b.Navigation("Memos");
+
+                    b.Navigation("ProjectAccesses");
 
                     b.Navigation("Slidedecks");
 

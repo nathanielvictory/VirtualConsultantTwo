@@ -12,6 +12,7 @@ public static partial class DataSeed
         const string defaultOrgName = "Internal";
 
         var existing = await db.Organizations
+            .IgnoreQueryFilters()
             .FirstOrDefaultAsync(o => o.Id == defaultOrgId, ct);
 
         if (existing is not null)

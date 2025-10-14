@@ -4,7 +4,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using api.Auth.CurrentUser;
-
+using api.Auth.Permissions;
+    
 namespace api.Data;
 
 
@@ -31,6 +32,7 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<int>, int>
     public DbSet<TaskArtifact> TaskArtifacts => Set<TaskArtifact>();
     public DbSet<SystemPrompt> SystemPrompts => Set<SystemPrompt>();
     public DbSet<OrganizationMembership> OrganizationMemberships => Set<OrganizationMembership>();
+    public DbSet<ProjectAccess> ProjectAccesses => Set<ProjectAccess>();
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -38,5 +40,7 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<int>, int>
 
         // This scans the assembly and applies ProjectConfiguration (and any future ones).
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+        
+        PermissionPolicies.ApplyAll(modelBuilder, _currentUserId, _isAdmin);
     }
 }
