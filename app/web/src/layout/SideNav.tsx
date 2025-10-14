@@ -62,11 +62,13 @@ export default function SideNav({
         [projectId]
     );
 
+    const role = useAppSelector((s) => s.auth.role);
+
     const nav = [
         { label: "Home", icon: <HomeIcon />, to: "/" },
         { label: "Data Review", icon: <TableChartIcon />, to: "/data-review" },
         { label: "Settings", icon: <SettingsIcon />, to: "/settings" },
-        { label: "Admin", icon: <AdminPanelSettingsIcon />, to: "/admin" },
+        ...(role === "Admin" ? [{ label: "Admin", icon: <AdminPanelSettingsIcon />, to: "/admin" }] : []),
     ];
 
     const content = (

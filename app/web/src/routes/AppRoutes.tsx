@@ -17,6 +17,8 @@ import SlidedeckPage from "../pages/Project/SlidedeckPage.tsx";
 import DataReviewPage from "../pages/DataReview/DataReviewPage";
 import ProjectSelectPage from "../pages/Project/ProjectSelectPage.tsx";
 
+import AdminRoute from "./AdminRoute";
+
 export default function AppRoutes() {
     return (
         <Routes>
@@ -53,7 +55,14 @@ export default function AppRoutes() {
                                 <Route path="/projects/:id/memo" element={<MemoPage />} />
                                 <Route path="/projects/:id/slides" element={<SlidedeckPage />} />
 
-                                <Route path="/admin/*" element={<AdminPanel />} />
+                                <Route
+                                    path="/admin/*"
+                                    element={
+                                        <AdminRoute>
+                                            <AdminPanel />
+                                        </AdminRoute>
+                                    }
+                                />
                                 <Route path="*" element={<Navigate to="/" replace />} />
                             </Routes>
                         </Shell>
