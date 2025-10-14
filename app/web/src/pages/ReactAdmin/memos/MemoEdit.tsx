@@ -63,7 +63,6 @@ export function MemoEdit() {
                     sort={{ field: "name", order: "ASC" }}
                 >
                     <AutocompleteInput
-                        optionText="name"   // or "email"
                         optionValue="id"
                         filterToQuery={(q) => ({ search: q })}
                         validate={[required()]}

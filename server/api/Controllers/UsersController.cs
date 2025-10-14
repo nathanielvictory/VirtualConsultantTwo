@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using api.Data;
 using api.Dtos;
 using api.Models;
 using Swashbuckle.AspNetCore.Annotations;
@@ -16,17 +18,25 @@ public class UsersController : ControllerBase
 {
     private readonly UserManager<User> _users;
     private readonly RoleManager<IdentityRole<int>> _roles;
+    private readonly AppDbContext _db;
     private static readonly string[] AllowedRoles = ["Admin"];
     
-    public UsersController(UserManager<User> users, RoleManager<IdentityRole<int>> roles)
+    public UsersController(
+        UserManager<User> users,
+        RoleManager<IdentityRole<int>> roles,
+        AppDbContext db)
     {
-        _users = users; _roles = roles;
+        _users = users;
+        _roles = roles;
+        _db = db;
     }
 
     // POST: api/Users
     [HttpPost]
     public async Task<ActionResult<object>> Create(CreateUserDto dto)
     {
+        await using var tx = await _db.Database.BeginTransactionAsync();
+
         var user = new User { UserName = dto.Username };
         var result = await _users.CreateAsync(user, dto.Password);
         if (!result.Succeeded)
@@ -36,10 +46,16 @@ public class UsersController : ControllerBase
         }
 
         if (!string.IsNullOrWhiteSpace(dto.OrganizationId))
-            await SetOrgClaim(user, dto.OrganizationId);
+        {
+            // Set claim, then sync membership (idempotent)
+            var oldOrg = await SetOrgClaim(user, dto.OrganizationId);
+            await SyncMembershipAsync(user.Id, oldOrg, dto.OrganizationId);
+        }
 
         if (dto.Roles?.Length > 0)
             await EnsureAndAssignRoles(user, dto.Roles);
+
+        await tx.CommitAsync();
 
         return CreatedAtAction(nameof(Get), new { id = user.Id }, new { user.Id, user.UserName });
     }
@@ -76,12 +92,12 @@ public class UsersController : ControllerBase
         if (!string.IsNullOrWhiteSpace(search))
             query = query.Where(u => u.UserName!.Contains(search));
 
-        var total = query.Count();
-        var items = query
+        var total = await query.CountAsync();
+        var items = await query
             .OrderBy(u => u.UserName)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .ToList();
+            .ToListAsync();
 
         var result = new List<object>(items.Count);
         foreach (var u in items)
@@ -113,6 +129,8 @@ public class UsersController : ControllerBase
     {
         var user = await _users.FindByIdAsync(id.ToString());
         if (user is null) return NotFound();
+
+        await using var tx = await _db.Database.BeginTransactionAsync();
 
         if (!string.IsNullOrWhiteSpace(dto.Username) && dto.Username != user.UserName)
         {
@@ -151,14 +169,23 @@ public class UsersController : ControllerBase
 
         if (dto.OrganizationId is not null) // replace or remove org claim when empty
         {
-            var orgVal = string.IsNullOrWhiteSpace(dto.OrganizationId) ? null : dto.OrganizationId;
-            await SetOrgClaim(user, orgVal);
+            // Capture old org BEFORE changing the claim
+            var existingClaims = await _users.GetClaimsAsync(user);
+            var oldOrg = GetOrgClaimValue(existingClaims);
+
+            var newOrg = string.IsNullOrWhiteSpace(dto.OrganizationId) ? null : dto.OrganizationId;
+            await SetOrgClaim(user, newOrg);
+
+            // Keep membership in sync with the new claim
+            await SyncMembershipAsync(user.Id, oldOrg, newOrg);
         }
 
         if (dto.Roles is not null)
         {
             await ReplaceRoles(user, dto.Roles);
         }
+
+        await tx.CommitAsync();
 
         return NoContent();
     }
@@ -185,6 +212,7 @@ public class UsersController : ControllerBase
     }
 
     // --- helpers ---
+
     private static string[] NormalizeRoles(IEnumerable<string> roles) =>
         roles
             .Where(r => !string.IsNullOrWhiteSpace(r))   // remove null/empty first
@@ -233,15 +261,73 @@ public class UsersController : ControllerBase
             await _users.AddToRolesAsync(user, toAdd);
     }
 
+    private static string? GetOrgClaimValue(IEnumerable<Claim> claims) =>
+        claims.FirstOrDefault(c => c.Type == "org")?.Value;
 
-    private async Task SetOrgClaim(User user, string? organizationId)
+    /// <summary>
+    /// Set/replace the "org" claim and return the previous org value (if any).
+    /// </summary>
+    private async Task<string?> SetOrgClaim(User user, string? organizationId)
     {
         var claims = await _users.GetClaimsAsync(user);
         var existing = claims.Where(c => c.Type == "org").ToArray();
+        var oldOrg = existing.FirstOrDefault()?.Value;
+
         if (existing.Length > 0)
             await _users.RemoveClaimsAsync(user, existing);
 
         if (!string.IsNullOrWhiteSpace(organizationId))
             await _users.AddClaimAsync(user, new Claim("org", organizationId));
+
+        return oldOrg;
+    }
+
+    /// <summary>
+    /// Synchronize OrganizationMembership to match a new org value.
+    /// - If org changed: delete old membership (if it exists), create new (if it doesn't exist).
+    /// - If new org is null/empty: delete old membership (if it exists).
+    /// Idempotent: double-checks existence before remove/add.
+    /// </summary>
+    private async Task SyncMembershipAsync(int userId, string? oldOrgId, string? newOrgId, CancellationToken ct = default)
+    {
+        // Normalize
+        oldOrgId = string.IsNullOrWhiteSpace(oldOrgId) ? null : oldOrgId.Trim();
+        newOrgId = string.IsNullOrWhiteSpace(newOrgId) ? null : newOrgId.Trim();
+
+        // Nothing to do
+        if (oldOrgId == newOrgId) return;
+
+        // Remove old (if any & different)
+        if (!string.IsNullOrWhiteSpace(oldOrgId))
+        {
+            var oldMembership = await _db.OrganizationMemberships
+                .SingleOrDefaultAsync(m => m.UserId == userId && m.OrganizationId == oldOrgId, ct);
+
+            if (oldMembership is not null)
+                _db.OrganizationMemberships.Remove(oldMembership);
+        }
+
+        // Add new (if any & not already present)
+        if (!string.IsNullOrWhiteSpace(newOrgId))
+        {
+            var exists = await _db.OrganizationMemberships
+                .AnyAsync(m => m.UserId == userId && m.OrganizationId == newOrgId, ct);
+
+            if (!exists)
+            {
+                // (Optional) ensure Organization exists first:
+                // var orgExists = await _db.Organizations.AnyAsync(o => o.Id == newOrgId, ct);
+                // if (!orgExists) throw new InvalidOperationException($"Organization '{newOrgId}' does not exist.");
+
+                _db.OrganizationMemberships.Add(new OrganizationMembership
+                {
+                    UserId = userId,
+                    OrganizationId = newOrgId,
+                    CreatedAt = DateTimeOffset.UtcNow
+                });
+            }
+        }
+
+        await _db.SaveChangesAsync(ct);
     }
 }

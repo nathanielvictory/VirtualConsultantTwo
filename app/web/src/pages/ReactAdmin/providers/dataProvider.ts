@@ -21,6 +21,26 @@ const asStringId = (id: any) => String(id);
 
 const idOf = (r: any) => r?.id ?? r?.uuid ?? r?._id;
 
+const packMembershipId = (userId: number | string, organizationId: string) =>
+    `${Number(userId)}|${String(organizationId)}`;
+
+const unpackMembershipId = (id: any) => {
+    const [userIdStr, organizationId] = String(id).split("|");
+    return { userId: Number(userIdStr), organizationId };
+};
+
+const membershipIdOf = (r: any) => packMembershipId(r?.userId, r?.organizationId);
+
+const packProjectAccessId = (userId: number | string, projectId: number | string) =>
+    `${Number(userId)}|${Number(projectId)}`;
+
+const unpackProjectAccessId = (id: any) => {
+    const [userIdStr, projectIdStr] = String(id).split("|");
+    return { userId: Number(userIdStr), projectId: Number(projectIdStr) };
+};
+
+const projectAccessIdOf = (r: any) => packProjectAccessId(r?.userId, r?.projectId);
+
 function toHttpError(err: any, fallbackMessage?: string) {
     // RTKQ errors look like: { status: 409, data: {...} }
     const status = err?.status ?? 500;
@@ -209,7 +229,62 @@ const resources: Record<string, Bundle> = {
         })),
         idOf,
     },
+    organizationMemberships: {
+        // GET /api/OrganizationMemberships?search=&page=&pageSize=&sort=
+        list: (arg) => organizationsApi.endpoints.getApiOrganizationMemberships.initiate(arg),
 
+        // No single-item GET in the API; keep a harmless placeholder
+        getOne: () => Promise.resolve({} as any),
+
+        // POST /api/OrganizationMemberships
+        create: ({ data }) =>
+            organizationsApi.endpoints.postApiOrganizationMemberships.initiate({
+                createOrganizationMembershipDto: data,
+            }),
+
+        // No PATCH in the API
+        update: () => Promise.resolve({} as any),
+
+        // DELETE /api/OrganizationMemberships/{userId}/{organizationId}
+        deleteOne: ({ id }) =>
+            organizationsApi.endpoints.deleteApiOrganizationMembershipsByUserIdAndOrganizationId.initiate(
+                unpackMembershipId(id)
+            ),
+
+        // map RA list params -> API args
+        mapListArgs: makeListMapper(),
+
+        // synthesize a stable RA id from composite keys
+        idOf: membershipIdOf,
+    },
+    projectAccesses: {
+        // GET /api/ProjectAccesses?page=&pageSize=
+        list: (arg) => projectsApi.endpoints.getApiProjectAccesses.initiate(arg),
+
+        // No single-item GET in the API
+        getOne: () => Promise.resolve({} as any),
+
+        // POST /api/ProjectAccesses
+        create: ({ data }) =>
+            projectsApi.endpoints.postApiProjectAccesses.initiate({
+                createProjectAccessDto: data,
+            }),
+
+        // No PATCH in the API
+        update: () => Promise.resolve({} as any),
+
+        // DELETE /api/ProjectAccesses/{userId}/{projectId}
+        deleteOne: ({ id }) =>
+            projectsApi.endpoints.deleteApiProjectAccessesByUserIdAndProjectId.initiate(
+                unpackProjectAccessId(id)
+            ),
+
+        // API only supports page/pageSize for list
+        mapListArgs: makeListMapper(),
+
+        // stable RA id from composite keys
+        idOf: projectAccessIdOf,
+    },
 };
 
 export const dataProvider: DataProvider = {

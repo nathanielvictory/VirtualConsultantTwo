@@ -1,17 +1,35 @@
 import {
     Create,
     SimpleForm,
-    TextInput,
     ReferenceInput,
     AutocompleteInput,
+    BooleanInput,
+    TextInput,
     required,
 } from "react-admin";
 
-export function MemoCreate() {
+export function ProjectAccessCreate() {
     return (
-        <Create title="Create Memo">
-            <SimpleForm>
-                {/* Required in DTO */}
+        <Create title="Add Project Access">
+            <SimpleForm defaultValues={{ allowAccess: true }}>
+                {/* userId as a reference to users */}
+                <ReferenceInput
+                    source="userId"
+                    reference="users"
+                    label="User"
+                    perPage={25}
+                    sort={{ field: "name", order: "ASC" }}
+                >
+                    <AutocompleteInput
+                        optionText="userName"
+                        optionValue="id"
+                        filterToQuery={(q) => ({ search: q })}
+                        validate={[required()]}
+                        fullWidth
+                    />
+                </ReferenceInput>
+
+                {/* projectId as a reference to projects */}
                 <ReferenceInput
                     source="projectId"
                     reference="projects"
@@ -28,32 +46,8 @@ export function MemoCreate() {
                     />
                 </ReferenceInput>
 
-                <TextInput
-                    source="name"
-                    label="Title"
-                    validate={[required()]}
-                    fullWidth
-                />
-
-                {/* Optional */}
-                <TextInput source="docId" label="Doc Id" fullWidth />
-                <TextInput source="promptFocus" label="Prompt Focus" fullWidth />
-
-                {/* Required in DTO */}
-                <ReferenceInput
-                    source="createdById"
-                    reference="users"
-                    label="Created By"
-                    perPage={25}
-                    sort={{ field: "name", order: "ASC" }}
-                >
-                    <AutocompleteInput
-                        optionValue="id"
-                        filterToQuery={(q) => ({ search: q })}
-                        validate={[required()]}
-                        fullWidth
-                    />
-                </ReferenceInput>
+                <BooleanInput source="allowAccess" label="Allowed" />
+                <TextInput source="reason" label="Reason" fullWidth />
             </SimpleForm>
         </Create>
     );

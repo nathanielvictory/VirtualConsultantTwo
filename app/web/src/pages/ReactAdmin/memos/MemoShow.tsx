@@ -40,9 +40,7 @@ export function MemoShow() {
                     source="createdById"
                     reference="users"
                     link="show"
-                >
-                    <TextField source="name" />
-                </ReferenceField>
+                />
                 <DateField source="updatedAt" />
                 <DateField source="createdAt" />
             </SimpleShowLayout>

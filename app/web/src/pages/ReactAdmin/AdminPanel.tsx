@@ -17,7 +17,9 @@ import { SlidedeckList, SlidedeckShow, SlidedeckCreate, SlidedeckEdit } from "./
 import { UserList, UserShow, UserCreate, UserEdit } from "./users";
 import { TaskList, TaskShow, TaskCreate, TaskEdit } from "./tasks";
 import { SystemPromptList, SystemPromptShow, SystemPromptCreate } from "./systemPrompts";
+import { OrganizationMembershipList, OrganizationMembershipCreate } from "./organizationMemberships";
 import { useThemeMode } from "../../theme/useThemeMode";
+import {ProjectAccessCreate, ProjectAccessList} from "./projectAccesses";
 
 // remove the RA topbar, keep sidebar
 const EmptyAppBar = () => null;
@@ -41,6 +43,7 @@ export default function AdminPanel() {
                 show={UserShow}
                 create={UserCreate}
                 edit={UserEdit}
+                recordRepresentation="userName"
                 icon={PeopleIcon}
             />
             <Resource
@@ -97,6 +100,16 @@ export default function AdminPanel() {
                 show={SystemPromptShow}
                 create={SystemPromptCreate}
                 icon={ChatIcon}
+            />
+            <Resource
+                name="organizationMemberships"
+                list={OrganizationMembershipList}
+                create={OrganizationMembershipCreate}
+            />
+            <Resource
+                name="projectAccesses"
+                list={ProjectAccessList}
+                create={ProjectAccessCreate}
             />
         </Admin>
     );

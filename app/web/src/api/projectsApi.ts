@@ -13,6 +13,7 @@ const injectedRtkApi = api
         query: (queryArg) => ({
           url: `/api/ProjectAccesses`,
           params: {
+            search: queryArg.search,
             page: queryArg.page,
             pageSize: queryArg.pageSize,
           },
@@ -103,6 +104,7 @@ export { injectedRtkApi as projectsApi };
 export type GetApiProjectAccessesApiResponse =
   /** status 200 OK */ ProjectAccessListItemDtoPagedResultDto;
 export type GetApiProjectAccessesApiArg = {
+  search?: string;
   page?: number;
   pageSize?: number;
 };

@@ -67,9 +67,7 @@ export function SlidedeckList() {
                     source="createdById"
                     reference="users"
                     link="show"
-                >
-                    <TextField source="name" /> {/* change to "email" if that's your label */}
-                </ReferenceField>
+                />
                 <DateField source="updatedAt" />
                 <DateField source="createdAt" />
             </Datagrid>

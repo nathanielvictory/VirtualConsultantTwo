@@ -1,26 +1,25 @@
 import {
     Create,
     SimpleForm,
-    TextInput,
     ReferenceInput,
     AutocompleteInput,
     required,
 } from "react-admin";
 
-export function MemoCreate() {
+export function OrganizationMembershipCreate() {
     return (
-        <Create title="Create Memo">
+        <Create title="Add Organization Membership">
             <SimpleForm>
-                {/* Required in DTO */}
+                {/* userId as a reference to users */}
                 <ReferenceInput
-                    source="projectId"
-                    reference="projects"
-                    label="Project"
+                    source="userId"
+                    reference="users"
+                    label="User"
                     perPage={25}
                     sort={{ field: "name", order: "ASC" }}
                 >
                     <AutocompleteInput
-                        optionText="name"
+                        optionText="userName"
                         optionValue="id"
                         filterToQuery={(q) => ({ search: q })}
                         validate={[required()]}
@@ -28,26 +27,16 @@ export function MemoCreate() {
                     />
                 </ReferenceInput>
 
-                <TextInput
-                    source="name"
-                    label="Title"
-                    validate={[required()]}
-                    fullWidth
-                />
-
-                {/* Optional */}
-                <TextInput source="docId" label="Doc Id" fullWidth />
-                <TextInput source="promptFocus" label="Prompt Focus" fullWidth />
-
-                {/* Required in DTO */}
+                {/* organizationId as a reference to organizations */}
                 <ReferenceInput
-                    source="createdById"
-                    reference="users"
-                    label="Created By"
+                    source="organizationId"
+                    reference="organizations"
+                    label="Organization"
                     perPage={25}
                     sort={{ field: "name", order: "ASC" }}
                 >
                     <AutocompleteInput
+                        optionText="name"
                         optionValue="id"
                         filterToQuery={(q) => ({ search: q })}
                         validate={[required()]}

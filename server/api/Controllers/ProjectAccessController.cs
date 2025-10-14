@@ -28,13 +28,32 @@ public class ProjectAccessesController : ControllerBase
 
     [HttpGet]
     public async Task<ActionResult<PagedResultDto<ProjectAccessListItemDto>>> GetAccesses(
+        [FromQuery] string? search = null,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 50)
     {
         page = page < 1 ? 1 : page;
         pageSize = pageSize is < 1 or > 200 ? 50 : pageSize;
 
-        var q = _context.ProjectAccesses.AsNoTracking().OrderBy(a => a.ProjectId).ThenBy(a => a.UserId);
+        var q = _context.ProjectAccesses
+            .AsNoTracking()
+            .Include(a => a.User)
+            .Include(a => a.Project)
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var like = $"%{search}%";
+            q = q.Where(a =>
+                EF.Functions.ILike(a.User.UserName!, like) ||
+                (a.Project != null && (
+                    EF.Functions.ILike(a.Project.Name!, like) ||
+                    EF.Functions.ILike(a.Project.Kbid!, like)
+                )));
+        }
+
+        // keep a stable default sort for deterministic paging
+        q = q.OrderBy(a => a.ProjectId).ThenBy(a => a.UserId);
 
         var total = await q.CountAsync();
 

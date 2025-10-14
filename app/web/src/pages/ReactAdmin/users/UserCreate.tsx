@@ -1,9 +1,11 @@
+// UserCreate.tsx
 import {
     Create,
     SimpleForm,
     TextInput,
     ReferenceInput,
     AutocompleteInput,
+    SelectArrayInput,
     required,
 } from "react-admin";
 
@@ -11,13 +13,15 @@ export function UserCreate() {
     return (
         <Create title="Create User">
             <SimpleForm>
+                {/* userName is required for create/update */}
                 <TextInput
-                    source="username"
+                    source="userName"
                     label="Username"
                     validate={[required()]}
                     fullWidth
                 />
 
+                {/* Directly posts organizationId (API accepts this on create) */}
                 <ReferenceInput
                     source="organizationId"
                     reference="organizations"
@@ -27,12 +31,20 @@ export function UserCreate() {
                 >
                     <AutocompleteInput
                         optionText="name"
-                        optionValue="id"                 // string id
+                        optionValue="id" // string id
                         filterToQuery={(q) => ({ search: q })}
-                        validate={[required()]}
                         fullWidth
+                        validate={[required()]}
                     />
                 </ReferenceInput>
+
+                {/* Roles: multiselect, currently only "Admin" */}
+                <SelectArrayInput
+                    source="roles"
+                    label="Roles"
+                    choices={[{ id: "Admin", name: "Admin" }]}
+                    fullWidth
+                />
 
                 <TextInput
                     source="password"

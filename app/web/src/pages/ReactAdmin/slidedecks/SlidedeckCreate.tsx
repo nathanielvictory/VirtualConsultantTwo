@@ -49,7 +49,6 @@ export function SlidedeckCreate() {
                     sort={{ field: "name", order: "ASC" }}
                 >
                     <AutocompleteInput
-                        optionText="name"
                         optionValue="id"
                         filterToQuery={(q) => ({ search: q })}
                         validate={[required()]}
