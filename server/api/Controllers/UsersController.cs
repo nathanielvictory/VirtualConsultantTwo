@@ -243,8 +243,6 @@ public class UsersController : ControllerBase
         var normalized = NormalizeRoles(desiredRoles);
         var validDesired = FilterValidRoles(normalized);
 
-        if (validDesired.Length == 0) return;
-
         var current = await _users.GetRolesAsync(user);
 
         var toRemove = current.Except(validDesired, StringComparer.OrdinalIgnoreCase).ToArray();

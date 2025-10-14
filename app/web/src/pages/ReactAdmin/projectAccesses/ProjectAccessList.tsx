@@ -22,7 +22,7 @@ export function ProjectAccessList() {
             perPage={25}
             filters={filters}
         >
-            <Datagrid rowClick={false} bulkActionButtons={false}>
+            <Datagrid rowClick={false}>
                 <ReferenceField label="User" source="userId" reference="users" link="show">
                     <TextField source="userName" />
                 </ReferenceField>
