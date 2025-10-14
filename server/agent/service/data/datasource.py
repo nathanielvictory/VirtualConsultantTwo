@@ -79,6 +79,7 @@ class ReportingSurveyDataSource(SurveyDataSource):
         self._key_number = key_number
         try:
             self._survey: Survey = preloaded_survey or _download_survey_data(kbid, key_number)
+            self._survey.remove_subtotals()
         except Exception as e:
             raise SurveyDataLoadError(kbid, key_number) from e
 

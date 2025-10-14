@@ -37,3 +37,17 @@ class Survey(BaseModel):
     project_number: int
     survey_topline: list[SurveyQuestion]
     survey_crosstab: list[CrosstabQuestion]
+
+    def remove_subtotals(self):
+        def _remove_topline_subtotal_answers(question: SurveyQuestion):
+            question.survey_answers = [answer for answer in question.survey_answers if not answer.is_subtotal]
+            return question
+        def _remove_crosstab_subtotal_answers(question: CrosstabQuestion):
+            question.crosstab_answers = [answer for answer in question.crosstab_answers if (not answer.is_subtotal_vertical and not answer.is_subtotal_horizontal)]
+            return question
+        self.survey_topline = [
+            _remove_topline_subtotal_answers(question) for question in self.survey_topline
+        ]
+        self.survey_crosstab = [
+            _remove_crosstab_subtotal_answers(question) for question in self.survey_crosstab
+        ]
