@@ -100,16 +100,19 @@ export default function AdminPanel() {
                 show={SystemPromptShow}
                 create={SystemPromptCreate}
                 icon={ChatIcon}
+                options={{ label: "System Prompts"}}
             />
             <Resource
                 name="organizationMemberships"
                 list={OrganizationMembershipList}
                 create={OrganizationMembershipCreate}
+                options={{ label: "Organization Memberships"}}
             />
             <Resource
                 name="projectAccesses"
                 list={ProjectAccessList}
                 create={ProjectAccessCreate}
+                options={{ label: "Project Access"}}
             />
         </Admin>
     );
