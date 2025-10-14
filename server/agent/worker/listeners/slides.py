@@ -27,7 +27,8 @@ async def handle(body):
             slides_schema.sheets_id,
             task_manager,
             slide_agent_prompt=slides_schema.slide_agent_prompt,
-            slide_outline_agent_prompt=slides_schema.slide_outline_agent_prompt
+            slide_outline_agent_prompt=slides_schema.slide_outline_agent_prompt,
+            project_context=slides_schema.project_context
         )
         await memo_to_slides_agent.create_slides_from_memo(outline_focus=slides_schema.focus)
 

@@ -57,7 +57,8 @@ class MemoToSlidesAgent:
             sheets_id,
             progress_callback: ProgressCallback = None,
             slide_agent_prompt: str = None,
-            slide_outline_agent_prompt: str = None
+            slide_outline_agent_prompt: str = None,
+            project_context: str = None
     ):
         self.datasource = ReportingSurveyDataSource(kbid=kbid, key_number=key_number)
         self.memo_creator = MemoCreator(memo_doc_id)
@@ -66,8 +67,13 @@ class MemoToSlidesAgent:
         self.slide_creator = SlideCreator(presentation_id=slides_id)
         self.progress_callback = progress_callback
         self.usage = RunUsage()
-        self.slide_agent_prompt = slide_agent_prompt if slide_agent_prompt else SLIDE_AGENT_DEFAULT_PROMPT
-        self.slide_outline_agent_prompt = slide_outline_agent_prompt if slide_outline_agent_prompt else SLIDE_AGENT_OUTLINE_DEFAULT_PROMPT
+        self.slide_agent_prompt = self._add_context(slide_agent_prompt if slide_agent_prompt else SLIDE_AGENT_DEFAULT_PROMPT, project_context)
+        self.slide_outline_agent_prompt = self._add_context(slide_outline_agent_prompt if slide_outline_agent_prompt else SLIDE_AGENT_OUTLINE_DEFAULT_PROMPT, project_context)
+
+    def _add_context(self, prompt, context):
+        if context:
+            return prompt + f"\n\nHere is some additional context for the project:\n{context}"
+        return prompt
 
 
     # TODO place requested usage limits here

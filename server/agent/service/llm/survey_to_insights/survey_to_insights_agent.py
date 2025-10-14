@@ -42,13 +42,19 @@ class SurveyToInsightsAgent:
             kbid: str,
             key_number: int, progress_callback: ProgressCallback = None,
             focus_agent_prompt: str = None,
-            insight_agent_prompt: str = None
+            insight_agent_prompt: str = None,
+            project_context: str = None
     ):
         self.datasource = ReportingSurveyDataSource(kbid=kbid, key_number=key_number)
         self.usage = RunUsage()
         self.progress_callback = progress_callback
-        self.focus_agent_prompt = focus_agent_prompt if focus_agent_prompt else DEFAULT_FOCUS_AGENT_PROMPT
-        self.insight_agent_prompt = insight_agent_prompt if insight_agent_prompt else DEFAULT_INSIGHT_AGENT_PROMPT
+        self.focus_agent_prompt = self._add_context(focus_agent_prompt if focus_agent_prompt else DEFAULT_FOCUS_AGENT_PROMPT, project_context)
+        self.insight_agent_prompt = self._add_context(insight_agent_prompt if insight_agent_prompt else DEFAULT_INSIGHT_AGENT_PROMPT, project_context)
+
+    def _add_context(self, prompt, context):
+        if context:
+            return prompt + f"\n\nHere is some additional context for the project:\n{context}"
+        return prompt
 
     def reset_usage(self):
         old_usage = self.usage

@@ -3,6 +3,7 @@ from pydantic import BaseModel, ConfigDict
 class Memo(BaseModel):
     task_id: int
     project_id: int
+    project_context: str | None = None
     kbid: str
     key_number: int
     memo_id: int

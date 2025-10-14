@@ -47,14 +47,20 @@ class InsightsToMemoAgent:
             memo_doc_id: str,
             progress_callback: ProgressCallback = None,
             text_block_agent_prompt: str = None,
-            memo_agent_prompt: str = None
+            memo_agent_prompt: str = None,
+            project_context: str = None
     ):
         self.datasource = ReportingSurveyDataSource(kbid=kbid, key_number=key_number)
         self.memo_creator = MemoCreator(memo_doc_id)
         self.usage = RunUsage()
         self.progress_callback = progress_callback
-        self.text_block_agent_prompt = text_block_agent_prompt if text_block_agent_prompt else TEXT_BLOCK_AGENT_DEFAULT_PROMPT
-        self.memo_agent_prompt = memo_agent_prompt if memo_agent_prompt else MEMO_AGENT_DEFAULT_PROMPT
+        self.text_block_agent_prompt = self._add_context(text_block_agent_prompt if text_block_agent_prompt else TEXT_BLOCK_AGENT_DEFAULT_PROMPT, project_context)
+        self.memo_agent_prompt = self._add_context(memo_agent_prompt if memo_agent_prompt else MEMO_AGENT_DEFAULT_PROMPT, project_context)
+
+    def _add_context(self, prompt, context):
+        if context:
+            return prompt + f"\n\nHere is some additional context for the project:\n{context}"
+        return prompt
 
 
     # TODO place requested usage limits here

@@ -27,6 +27,7 @@ async def handle(body):
             progress_callback=task_manager,
             text_block_agent_prompt=memo_schema.text_block_agent_prompt,
             memo_agent_prompt=memo_schema.memo_agent_prompt,
+            project_context=memo_schema.project_context,
         )
         await insights_to_memo_agent.create_memo_from_insights(memo_schema.insights, memo_schema.focus)
 

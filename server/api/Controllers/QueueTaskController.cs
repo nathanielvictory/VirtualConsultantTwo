@@ -59,6 +59,7 @@ public class QueueTaskController : ControllerBase
             {
                 task_id = task.Id,
                 project_id = proj.Id,
+                project_context = proj.ProjectContext,
                 kbid = proj.KbId,
                 key_number = proj.KeyNumber,
                 number_of_insights = dto.NumberOfInsights,
@@ -93,7 +94,8 @@ public class QueueTaskController : ControllerBase
             {
                 Id = p.Id,
                 KbId = p.Kbid,
-                KeyNumber = 0 // explicitly defaulted
+                KeyNumber = 0, // explicitly defaulted
+                ProjectContext = p.ProjectContext
             })
             .SingleOrDefaultAsync(ct);
 
@@ -132,6 +134,7 @@ public class QueueTaskController : ControllerBase
             {
                 task_id = task.Id,
                 project_id = proj.Id,
+                project_context = proj.ProjectContext,
                 kbid = proj.KbId,
                 key_number = 0,
                 memo_id = memo.Id,
@@ -172,7 +175,8 @@ public async Task<IActionResult> QueueSlides([FromBody] QueueCreateSlidesTaskDto
         {
             Id = p.Id,
             KbId = p.Kbid,
-            KeyNumber = 0
+            KeyNumber = 0,
+            ProjectContext = p.ProjectContext
         })
         .SingleOrDefaultAsync();
 
@@ -219,6 +223,7 @@ public async Task<IActionResult> QueueSlides([FromBody] QueueCreateSlidesTaskDto
         {
             task_id = task.Id,
             project_id = proj.Id,
+            project_context = proj.ProjectContext,
             kbid = proj.KbId,
             key_number = 0,                 // per spec
             slidedeck_id = deck.Id,         // from request
@@ -262,7 +267,8 @@ public async Task<IActionResult> QueueSlides([FromBody] QueueCreateSlidesTaskDto
             {
                 Id = p.Id,
                 KbId = p.Kbid,
-                KeyNumber = 0
+                KeyNumber = 0,
+                ProjectContext = p.ProjectContext
             })
             .SingleOrDefaultAsync();
 
@@ -323,5 +329,6 @@ public async Task<IActionResult> QueueSlides([FromBody] QueueCreateSlidesTaskDto
         public int Id { get; set; }
         public string KbId { get; set; } = null!;
         public int KeyNumber { get; set; }
+        public string? ProjectContext { get; set; }
     }
 }

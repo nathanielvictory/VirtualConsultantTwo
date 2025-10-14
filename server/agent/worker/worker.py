@@ -19,7 +19,7 @@ class Worker:
     def __init__(self) -> None:
         self.exchange_name = settings.RABBIT_EXCHANGE
         self.queue_name = f"{self.exchange_name}.worker"
-        self.max_in_flight = 10  # <= desired concurrency
+        self.max_in_flight = 4  # <= desired concurrency
         self._sem = asyncio.Semaphore(self.max_in_flight)
         self._tasks: Set[asyncio.Task] = set()
 
