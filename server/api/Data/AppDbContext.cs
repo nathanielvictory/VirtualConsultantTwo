@@ -14,12 +14,16 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<int>, int>
     private readonly int? _currentUserId;
     private readonly bool _isAdmin;
     
+    public int? CurrentUserId => _currentUserId;
+    public bool IsAdmin => _isAdmin;
+    
     public AppDbContext(
         DbContextOptions<AppDbContext> options,
-        ICurrentUserAccessor currentUserAccessor) : base(options)
+        ICurrentUserAccessor currentUser
+    ) : base(options)
     {
-        _currentUserId = currentUserAccessor.UserId;
-        _isAdmin = currentUserAccessor.IsAdmin;
+        _currentUserId = currentUser.UserId;
+        _isAdmin = currentUser.IsAdmin;
     }
     
     public DbSet<Project> Projects => Set<Project>();
@@ -41,6 +45,7 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<int>, int>
         // This scans the assembly and applies ProjectConfiguration (and any future ones).
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
         
-        PermissionPolicies.ApplyAll(modelBuilder, _currentUserId, _isAdmin);
+        PermissionPolicies.ApplyAll(modelBuilder,
+            () => CurrentUserId, () => IsAdmin);
     }
 }

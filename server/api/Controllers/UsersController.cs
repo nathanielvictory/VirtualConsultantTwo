@@ -125,13 +125,26 @@ public class UsersController : ControllerBase
             }
         }
 
-        if (!string.IsNullOrEmpty(dto.Password))
+        if (!string.IsNullOrWhiteSpace(dto.Password))
         {
-            var token = await _users.GeneratePasswordResetTokenAsync(user);
-            var pwRes = await _users.ResetPasswordAsync(user, token, dto.Password);
-            if (!pwRes.Succeeded)
+            // If the user already has a password, remove it first
+            if (await _users.HasPasswordAsync(user))
             {
-                foreach (var e in pwRes.Errors) ModelState.AddModelError(e.Code, e.Description);
+                var remove = await _users.RemovePasswordAsync(user);
+                if (!remove.Succeeded)
+                {
+                    foreach (var e in remove.Errors)
+                        ModelState.AddModelError(e.Code, e.Description);
+                    return ValidationProblem(ModelState);
+                }
+            }
+
+            // Add the new password
+            var add = await _users.AddPasswordAsync(user, dto.Password);
+            if (!add.Succeeded)
+            {
+                foreach (var e in add.Errors)
+                    ModelState.AddModelError(e.Code, e.Description);
                 return ValidationProblem(ModelState);
             }
         }

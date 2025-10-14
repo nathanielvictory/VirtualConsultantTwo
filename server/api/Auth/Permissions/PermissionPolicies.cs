@@ -1,15 +1,17 @@
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Linq.Expressions;
 
 namespace api.Auth.Permissions;
 
 public static class PermissionPolicies
 {
-    public static void ApplyAll(ModelBuilder modelBuilder, int? currentUserId, bool isAdmin)
+    public static void ApplyAll(
+        ModelBuilder modelBuilder,
+        Expression<Func<int?>> currentUserExpr,
+        Expression<Func<bool>> isAdminExpr)
     {
-        // Project-level visibility
-        ProjectVisibilityPolicy.Apply(modelBuilder, currentUserId, isAdmin);
-
-        // Project-owned entities
-        ProjectOwnedEntitiesPolicy.Apply(modelBuilder, currentUserId, isAdmin);
+        ProjectVisibilityPolicy.Apply(modelBuilder, currentUserExpr, isAdminExpr);
+        ProjectOwnedEntitiesPolicy.Apply(modelBuilder, currentUserExpr, isAdminExpr);
     }
 }

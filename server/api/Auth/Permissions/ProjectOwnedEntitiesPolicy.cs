@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using api.Models;
 
@@ -5,9 +6,12 @@ namespace api.Auth.Permissions;
 
 public static class ProjectOwnedEntitiesPolicy
 {
-    public static void Apply(ModelBuilder modelBuilder, int? currentUserId, bool isAdmin)
+    public static void Apply(
+        ModelBuilder modelBuilder,
+        Expression<Func<int?>> currentUserExpr,
+        Expression<Func<bool>> isAdminExpr)
     {
-        var canSeeProject = PermissionPredicates.CanSeeProject(currentUserId, isAdmin);
+        var canSeeProject = PermissionPredicates.CanSeeProject(currentUserExpr, isAdminExpr);
 
         modelBuilder.Entity<Insight>()
             .HasQueryFilter(PermissionPredicates.Projecting<Insight>(canSeeProject, x => x.Project!));
