@@ -1,11 +1,45 @@
 import { emptySplitApi as api } from "./emptyApi.ts";
-export const addTagTypes = ["Projects"] as const;
+export const addTagTypes = ["ProjectAccesses", "Projects"] as const;
 const injectedRtkApi = api
   .enhanceEndpoints({
     addTagTypes,
   })
   .injectEndpoints({
     endpoints: (build) => ({
+      getApiProjectAccesses: build.query<
+        GetApiProjectAccessesApiResponse,
+        GetApiProjectAccessesApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/api/ProjectAccesses`,
+          params: {
+            page: queryArg.page,
+            pageSize: queryArg.pageSize,
+          },
+        }),
+        providesTags: ["ProjectAccesses"],
+      }),
+      postApiProjectAccesses: build.mutation<
+        PostApiProjectAccessesApiResponse,
+        PostApiProjectAccessesApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/api/ProjectAccesses`,
+          method: "POST",
+          body: queryArg.createProjectAccessDto,
+        }),
+        invalidatesTags: ["ProjectAccesses"],
+      }),
+      deleteApiProjectAccessesByUserIdAndProjectId: build.mutation<
+        DeleteApiProjectAccessesByUserIdAndProjectIdApiResponse,
+        DeleteApiProjectAccessesByUserIdAndProjectIdApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/api/ProjectAccesses/${queryArg.userId}/${queryArg.projectId}`,
+          method: "DELETE",
+        }),
+        invalidatesTags: ["ProjectAccesses"],
+      }),
       getApiProjects: build.query<
         GetApiProjectsApiResponse,
         GetApiProjectsApiArg
@@ -66,6 +100,22 @@ const injectedRtkApi = api
     overrideExisting: false,
   });
 export { injectedRtkApi as projectsApi };
+export type GetApiProjectAccessesApiResponse =
+  /** status 200 OK */ ProjectAccessListItemDtoPagedResultDto;
+export type GetApiProjectAccessesApiArg = {
+  page?: number;
+  pageSize?: number;
+};
+export type PostApiProjectAccessesApiResponse =
+  /** status 200 OK */ ProjectAccessListItemDto;
+export type PostApiProjectAccessesApiArg = {
+  createProjectAccessDto: CreateProjectAccessDto;
+};
+export type DeleteApiProjectAccessesByUserIdAndProjectIdApiResponse = unknown;
+export type DeleteApiProjectAccessesByUserIdAndProjectIdApiArg = {
+  userId: number;
+  projectId: number;
+};
 export type GetApiProjectsApiResponse =
   /** status 200 OK */ ProjectListItemDtoPagedResultDto;
 export type GetApiProjectsApiArg = {
@@ -93,6 +143,28 @@ export type PatchApiProjectsByIdApiArg = {
 export type DeleteApiProjectsByIdApiResponse = unknown;
 export type DeleteApiProjectsByIdApiArg = {
   id: number;
+};
+export type ProjectAccessListItemDto = {
+  userId?: number;
+  projectId?: number;
+  allowAccess?: boolean;
+  createdAt?: string;
+  reason?: string | null;
+};
+export type ProjectAccessListItemDtoPagedResultDto = {
+  items?: ProjectAccessListItemDto[] | null;
+  page?: number;
+  pageSize?: number;
+  totalCount?: number;
+  totalPages?: number;
+  hasPrevious?: boolean;
+  hasNext?: boolean;
+};
+export type CreateProjectAccessDto = {
+  userId?: number;
+  projectId?: number;
+  allowAccess?: boolean;
+  reason?: string | null;
 };
 export type ProjectListItemDto = {
   id?: number;
@@ -142,6 +214,9 @@ export type UpdateProjectDto = {
   lastRefreshed?: string | null;
 };
 export const {
+  useGetApiProjectAccessesQuery,
+  usePostApiProjectAccessesMutation,
+  useDeleteApiProjectAccessesByUserIdAndProjectIdMutation,
   useGetApiProjectsQuery,
   usePostApiProjectsMutation,
   useGetApiProjectsByIdQuery,

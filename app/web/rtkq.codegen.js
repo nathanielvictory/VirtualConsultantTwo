@@ -28,7 +28,7 @@ const config = {
         },
         "./src/api/projectsApi.ts": {
             exportName: "projectsApi",
-            filterEndpoints: [/Projects/i],
+            filterEndpoints: [/Project/i],
         },
         "./src/api/slidedecksApi.ts": {
             exportName: "slidedecksApi",
@@ -40,7 +40,7 @@ const config = {
         },
         "./src/api/organizationsApi.ts": {
             exportName: "organizationsApi",
-            filterEndpoints: [/Organizations?/i],
+            filterEndpoints: [/Organization?/i],
         },
         "./src/api/tasksApi.ts": {
             exportName: "tasksApi",
