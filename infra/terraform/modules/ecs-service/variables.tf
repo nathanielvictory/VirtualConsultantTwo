@@ -55,6 +55,11 @@ variable "task_role_arn" {
   description = "ECS task role ARN"
 }
 
+variable "execution_role_name" {
+  type        = string
+  description = "Name of the ECS task execution role"
+}
+
 # Container settings
 variable "container_image" {
   type        = string
@@ -124,10 +129,11 @@ variable "environment" {
 # }
 variable "secrets" {
   type = map(object({
-    arn  = optional(string)
-    name = optional(string)
+    arn = string
+    key = optional(string)
   }))
   default = {}
+  description = "Map of env var names to secret ARNs, with an optional key for JSON secrets."
 }
 
 # Extra tags

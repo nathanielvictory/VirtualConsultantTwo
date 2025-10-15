@@ -69,6 +69,41 @@ data "aws_service_discovery_dns_namespace" "ns" {
 }
 
 # -------------------------
+# Password Generation & Storage
+# -------------------------
+
+resource "random_password" "rabbit" {
+  length  = 16
+  special = true
+}
+
+resource "aws_secretsmanager_secret" "rabbit_password" {
+  name = "/virtual-consultant/prod/rabbit/password"
+  tags = {
+    Project = "virtual-consultant"
+    Env     = "prod"
+  }
+}
+
+resource "aws_secretsmanager_secret_version" "rabbit_password" {
+  secret_id     = aws_secretsmanager_secret.rabbit_password.id
+  secret_string = random_password.rabbit.result
+}
+
+resource "aws_secretsmanager_secret" "rabbit_username" {
+  name = "/virtual-consultant/prod/rabbit/username"
+  tags = {
+    Project = "virtual-consultant"
+    Env     = "prod"
+  }
+}
+
+resource "aws_secretsmanager_secret_version" "rabbit_username" {
+  secret_id     = aws_secretsmanager_secret.rabbit_username.id
+  secret_string = "consultant"
+}
+
+# -------------------------
 # Module invocation
 # -------------------------
 module "rabbit" {
@@ -91,7 +126,7 @@ module "rabbit" {
   service_name       = "rabbit"
 
   rabbit_user        = "consultant"
-  rabbit_password    = "consultant_pass"
+  rabbit_password    = random_password.rabbit.result
 
   allowed_cidrs      = ["10.0.0.0/24", "10.0.0.0/16"] # tighten as you wish
   desired_count      = 1

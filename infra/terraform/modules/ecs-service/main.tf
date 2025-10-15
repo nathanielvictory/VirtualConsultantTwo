@@ -25,11 +25,10 @@ locals {
   ]
 
   secrets_list = [
-    for k, v in var.secrets : merge(
-      { name = k },
-        v.arn != null ? { valueFrom = v.arn } :
-          v.name != null ? { valueFrom = v.name } : {}
-    )
+    for k, v in var.secrets : {
+      name      = k
+      valueFrom = v.key != null ? "${v.arn}:${v.key}::" : v.arn
+    }
   ]
 
   # Choose log driver for the app container
@@ -47,6 +46,7 @@ locals {
       name      = "log-router"
       image     = "public.ecr.aws/aws-observability/aws-for-fluent-bit:latest"
       essential = true
+      environment = local.loki_env
 
       firelensConfiguration = {
         type    = "fluentbit"
@@ -124,7 +124,7 @@ resource "aws_iam_policy" "read_secrets" {
 
 resource "aws_iam_role_policy_attachment" "attach_read_secrets" {
   count      = length(var.allow_read_secret_arns) > 0 ? 1 : 0
-  role       = var.task_role_name
+  role       = var.execution_role_name
   policy_arn = aws_iam_policy.read_secrets[0].arn
 }
 # --------------------------------
@@ -143,7 +143,7 @@ data "aws_iam_policy_document" "read_params" {
     ]
     resources = [
       for p in var.allow_read_ssm_params :
-      "arn:${data.aws_partition.current.partition}:ssm:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:parameter${p}"
+      "arn:${data.aws_partition.current.partition}:ssm:${data.aws_region.current.id}:${data.aws_caller_identity.current.account_id}:parameter${p}"
     ]
   }
 }
@@ -156,7 +156,7 @@ resource "aws_iam_policy" "read_params" {
 
 resource "aws_iam_role_policy_attachment" "attach_read_params" {
   count      = length(var.allow_read_ssm_params) > 0 ? 1 : 0
-  role       = var.task_role_name
+  role       = var.execution_role_name
   policy_arn = aws_iam_policy.read_params[0].arn
 }
 
@@ -191,7 +191,7 @@ resource "aws_ecs_task_definition" "this" {
           }
         ]
 
-        environment = concat(local.env_list, local.loki_env)
+        environment = local.env_list
         secrets     = local.secrets_list
 
         logConfiguration = {

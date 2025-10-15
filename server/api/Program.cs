@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using System.Text;
 using System.Text.Json.Serialization;
 using api.Data;
@@ -15,12 +17,50 @@ using Microsoft.AspNetCore.HttpLogging;
 using api.Auth.CurrentUser;
 
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
-        .UseSnakeCaseNamingConvention()
-);
+{
+    var cfg = builder.Configuration;
+
+    // Use full connection string if provided
+    var conn = cfg.GetConnectionString("DefaultConnection");
+
+    // Otherwise build from individual DB settings
+    if (string.IsNullOrWhiteSpace(conn))
+        conn = BuildPostgresConnectionString(cfg);
+
+    options.UseNpgsql(conn)
+        .UseSnakeCaseNamingConvention();
+});
+
+static string BuildPostgresConnectionString(IConfiguration cfg)
+{
+    var endpoint = cfg["DB:Endpoint"] ?? throw new InvalidOperationException("Missing DB:Endpoint");
+    var dbName   = cfg["DB:Name"]     ?? throw new InvalidOperationException("Missing DB:Name");
+
+    string host = endpoint;
+    int port = 5432;
+    var split = endpoint.Split(':', 2);
+    if (split.Length == 2 && int.TryParse(split[1], out var p))
+    {
+        host = split[0];
+        port = p;
+    }
+
+    var csb = new NpgsqlConnectionStringBuilder
+    {
+        Host = host,
+        Port = port,
+        Database = dbName,
+        Username = cfg["DB:Username"],
+        Password = cfg["DB:Password"]
+    };
+
+    return csb.ConnectionString;
+}
+
 
 builder.Services.AddControllers()
     .AddJsonOptions(opts =>
@@ -142,16 +182,14 @@ var app = builder.Build();
 
 await app.MigrateAndSeedAsync();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "VC API v1");
-        // For password flow, no PKCE/redirect config needed.
-    });
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "VC API v1");
+    // For password flow, no PKCE/redirect config needed.
+});
+
 app.UseHttpLogging();
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");

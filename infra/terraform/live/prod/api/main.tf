@@ -39,22 +39,32 @@ variable "attach_to_alb" {
 
 variable "db_secret_name" {
   type    = string
-  default = "/app/prod/db/credentials"
+  default = "/virtual-consultant/prod/db/credentials"
 }
 
 variable "db_endpoint_param" {
   type    = string
-  default = "/app/prod/db/endpoint"
+  default = "/virtual-consultant/prod/db/endpoint"
 }
 
 variable "db_name_param" {
   type    = string
-  default = "/app/prod/db/name"
+  default = "/virtual-consultant/prod/db/name"
 }
 
 variable "alb_target_group_name" {
   type    = string
   default = "vc-prod-api-tg"
+}
+
+
+variable "rabbitmq_user_secret_name" {
+  type    = string
+  default = "/virtual-consultant/prod/rabbit/username"
+}
+variable "rabbitmq_pass_secret_name" {
+  type    = string
+  default = "/virtual-consultant/prod/rabbit/password"
 }
 
 # -------------------------
@@ -113,6 +123,14 @@ data "aws_cloudwatch_log_group" "ecs" {
   name = "/ecs/virtual-consultant/prod"
 }
 
+data "aws_security_group" "rds" {
+  name = "vc-prod-rds-sg"
+}
+
+data "aws_security_group" "rabbit" {
+  name = "vc-prod-rabbit-sg"
+}
+
 # -------------------------
 # API image (pin to digest)
 # -------------------------
@@ -132,6 +150,30 @@ locals {
 # -------------------------
 # Optional: DB secrets/params (count-safe)
 # -------------------------
+# -------------------------
+# Secret Generation & Storage (JWT Key)
+# -------------------------
+resource "random_string" "jwt_key" {
+  length  = 64
+  special = false # Special chars can be tricky in env vars
+}
+
+resource "aws_secretsmanager_secret" "jwt_key" {
+  name = "/virtual-consultant/prod/api/jwt-key"
+  tags = {
+    Project = "virtual-consultant"
+    Env     = "prod"
+  }
+}
+
+resource "aws_secretsmanager_secret_version" "jwt_key" {
+  secret_id     = aws_secretsmanager_secret.jwt_key.id
+  secret_string = random_string.jwt_key.result
+}
+
+# -------------------------
+# Data lookups for externally managed secrets
+# -------------------------
 data "aws_secretsmanager_secret" "db" {
   count = var.use_db_secret ? 1 : 0
   name  = var.db_secret_name
@@ -147,12 +189,26 @@ data "aws_ssm_parameter" "db_name" {
   name  = var.db_name_param
 }
 
+data "aws_secretsmanager_secret" "rabbitmq_user" {
+  count = 1 # Always look up rabbit user
+  name  = var.rabbitmq_user_secret_name
+}
+
+data "aws_secretsmanager_secret" "rabbitmq_pass" {
+  count = 1 # Always look up rabbit pass
+  name  = var.rabbitmq_pass_secret_name
+}
+
 # Build environment map (conditionally include DB params)
 locals {
   base_env = {
-    ASPNETCORE_ENVIRONMENT = "Production"
-    RabbitMq__HostName     = "rabbit.vc-prod.internal"
-    PORT                    = "8080"
+    ASPNETCORE_ENVIRONMENT      = "Production"
+    RabbitMq__HostName          = "rabbit.vc-prod.internal"
+    RabbitMq__Port              = "5672"
+    RabbitMq__VirtualHost       = "/"
+    RabbitMq__Exchange          = "app.tasks"
+    RabbitMq__RoutingKeyTaskCreated = "task.created"
+    PORT                        = "8080"
   }
 
   env_with_db = var.use_db_params ? merge(local.base_env, {
@@ -160,19 +216,28 @@ locals {
     DB__Name     = data.aws_ssm_parameter.db_name[0].value
   }) : local.base_env
 
-  secrets_map = var.use_db_secret ? {
-    DB__Username = {
-      arn = data.aws_secretsmanager_secret.db[0].arn
-    }
-    DB__Password = {
-      arn = data.aws_secretsmanager_secret.db[0].arn
-    }
-  } : {}
-}
+  # Env + Secrets
+  secrets_map = {
+    # Managed API secrets
+    Jwt__Key           = { arn = aws_secretsmanager_secret.jwt_key.arn }
 
-# Grant read perms to task if we enabled Secrets/SSM
-locals {
-  allow_secret_arns = var.use_db_secret ? [data.aws_secretsmanager_secret.db[0].arn] : []
+    # Consumed secrets
+    RabbitMq__UserName = { arn = data.aws_secretsmanager_secret.rabbitmq_user[0].arn }
+    RabbitMq__Password = { arn = data.aws_secretsmanager_secret.rabbitmq_pass[0].arn }
+
+    # Conditionally add DB secrets
+    DB__Username = var.use_db_secret ? { 
+      arn = data.aws_secretsmanager_secret.db[0].arn
+      key = "username"
+    } : null
+    DB__Password = var.use_db_secret ? { 
+      arn = data.aws_secretsmanager_secret.db[0].arn
+      key = "password"
+    } : null
+  }
+
+  # Grant read perms to task for all enabled secrets
+  allow_secret_arns = [for s in local.secrets_map : s.arn if s != null]
   allow_param_names = var.use_db_params ? [var.db_endpoint_param, var.db_name_param] : []
 }
 
@@ -204,6 +269,7 @@ module "api" {
   subnet_ids  = data.aws_subnets.private.ids
 
   execution_role_arn = data.aws_iam_role.exec.arn
+  execution_role_name = data.aws_iam_role.exec.name
   task_role_arn      = data.aws_iam_role.task.arn
   task_role_name = data.aws_iam_role.task.name
 
@@ -231,9 +297,32 @@ module "api" {
   allow_read_ssm_params  = local.allow_param_names
 
   # Loki (optional) — set endpoint when you’re ready
-  enable_loki   = false
-  loki_endpoint = ""
-  loki_labels   = {}
+  enable_loki   = true
+  loki_endpoint = "https://loki.victorymodeling.com/loki/api/v1/push"
+  loki_labels   = { job = "vc-prod-api" }
+}
+
+# -------------------------
+# DB Connectivity
+# -------------------------
+resource "aws_security_group_rule" "api_to_db" {
+  type                     = "ingress"
+  description              = "Allow API to connect to the DB"
+  from_port                = 5432
+  to_port                  = 5432
+  protocol                 = "tcp"
+  security_group_id        = data.aws_security_group.rds.id
+  source_security_group_id = module.api.security_group_id
+}
+
+resource "aws_security_group_rule" "api_to_rabbit" {
+  type                     = "ingress"
+  description              = "Allow API to connect to RabbitMQ"
+  from_port                = 5672
+  to_port                  = 5672
+  protocol                 = "tcp"
+  security_group_id        = data.aws_security_group.rabbit.id
+  source_security_group_id = module.api.security_group_id
 }
 
 output "api_service_name" {

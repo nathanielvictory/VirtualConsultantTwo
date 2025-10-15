@@ -47,6 +47,14 @@ data "aws_subnets" "private" {
 }
 
 # -------------------------
+# Password Generation
+# -------------------------
+resource "random_password" "db" {
+  length  = 16
+  special = false # Special chars can be problematic in DB connection strings
+}
+
+# -------------------------
 # RDS module (publishes Secrets/SSM)
 # -------------------------
 module "rds" {
@@ -63,14 +71,14 @@ module "rds" {
   instance_class  = "db.t4g.small"
   db_name         = "consultant_db"
   username        = "consultant_user"
-  password        = "consultant_pass"
+  password        = random_password.db.result
 
   publish_secrets = true
-  db_secret_name  = "/app/prod/db/credentials"
+  db_secret_name  = "/virtual-consultant/prod/db/credentials"
 
   publish_ssm       = true
-  db_endpoint_param = "/app/prod/db/endpoint"
-  db_name_param     = "/app/prod/db/name"
+  db_endpoint_param = "/virtual-consultant/prod/db/endpoint"
+  db_name_param     = "/virtual-consultant/prod/db/name"
 }
 
 output "rds_endpoint" {
@@ -87,4 +95,9 @@ output "db_endpoint_param_name" {
 
 output "db_name_param_name" {
   value = module.rds.db_name_param_name
+}
+
+output "rds_security_group_id" {
+  description = "The ID of the security group for the RDS instance"
+  value       = module.rds.rds_sg_id
 }
