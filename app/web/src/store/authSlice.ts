@@ -8,20 +8,24 @@ type BackendAuthState = {
     tokenType: string | null;
     expiresAt: number | null;
     role: string | null;
+    isInitialized: boolean;
+    isInitializing: boolean;
 };
 
 const initialState: BackendAuthState = (() => {
     try {
         const storedToken = localStorage.getItem('backendToken');
         if (storedToken) {
-            const { accessToken, tokenType, expiresAt } = JSON.parse(storedToken);
+            const { accessToken, tokenType, expiresAt, email, role } = JSON.parse(storedToken);
             if (expiresAt && expiresAt > Date.now()) {
                 return {
-                    email: null, // Email is not persisted
+                    email,
                     accessToken,
                     tokenType,
                     expiresAt,
-                    role: null, // Role is not persisted
+                    role,
+                    isInitialized: false,
+                    isInitializing: true,
                 };
             }
         }
@@ -34,6 +38,8 @@ const initialState: BackendAuthState = (() => {
         tokenType: null,
         expiresAt: null,
         role: null,
+        isInitialized: false,
+        isInitializing: true,
     };
 })();
 
@@ -75,37 +81,42 @@ const slice = createSlice({
                     accessToken,
                     tokenType: state.tokenType,
                     expiresAt: state.expiresAt,
+                    email: state.email,
+                    role: state.role,
                 })
             );
         },
     },
     extraReducers: (builder) => {
-        builder.addMatcher(
-            authApi.endpoints.postApiAuthToken.matchFulfilled,
-            (state, { payload }) => {
-                state.accessToken = payload.access_token ?? null;
-                state.tokenType = payload.token_type ?? 'Bearer';
-                state.expiresAt = payload.expires_in ? Date.now() + payload.expires_in * 1000 : null;
-                state.role = (payload as any).role_label ?? null;
-                if (state.accessToken) {
-                    localStorage.setItem(
-                        'backendToken',
-                        JSON.stringify({
-                            accessToken: state.accessToken,
-                            tokenType: state.tokenType,
-                            expiresAt: state.expiresAt,
-                        })
-                    );
-                }
-            }
-        );
-        builder.addMatcher(
+                    builder.addMatcher(
+                        authApi.endpoints.postApiAuthToken.matchFulfilled,
+                        (state, { payload }) => {
+                            state.accessToken = payload.access_token ?? null;
+                            state.tokenType = payload.token_type ?? 'Bearer';
+                            state.expiresAt = payload.expires_in ? Date.now() + payload.expires_in * 1000 : null;
+                            state.role = (payload as any).role_label ?? null;
+                            if (state.accessToken) {
+                                localStorage.setItem(
+                                    'backendToken',
+                                    JSON.stringify({
+                                        accessToken: state.accessToken,
+                                        tokenType: state.tokenType,
+                                        expiresAt: state.expiresAt,
+                                        email: state.email,
+                                        role: state.role,
+                                    })
+                                );
+                            }
+                        }
+                    );        builder.addMatcher(
             authApi.endpoints.postApiAuthRefresh.matchFulfilled,
             (state, { payload }) => {
                 state.accessToken = payload.access_token ?? null;
                 state.tokenType = payload.token_type ?? 'Bearer';
                 state.expiresAt = payload.expires_in ? Date.now() + payload.expires_in * 1000 : null;
                 state.role = (payload as any).role_label ?? null;
+                state.isInitialized = true;
+                state.isInitializing = false;
                 if (state.accessToken) {
                     localStorage.setItem(
                         'backendToken',
@@ -113,9 +124,18 @@ const slice = createSlice({
                             accessToken: state.accessToken,
                             tokenType: state.tokenType,
                             expiresAt: state.expiresAt,
+                            email: state.email,
+                            role: state.role,
                         })
                     );
                 }
+            }
+        );
+        builder.addMatcher(
+            authApi.endpoints.postApiAuthRefresh.matchRejected,
+            (state) => {
+                state.isInitialized = true;
+                state.isInitializing = false;
             }
         );
         builder.addMatcher(authApi.endpoints.postApiAuthLogout.matchFulfilled, (state) => {

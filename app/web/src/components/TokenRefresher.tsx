@@ -1,17 +1,16 @@
 // src/components/TokenRefresher.tsx
-import { useState } from "react";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { authApi } from "../api/authApi";
-import { type PropsWithChildren } from "react";
+import {type PropsWithChildren, useState} from "react";
 
 export default function TokenRefresher({ children }: PropsWithChildren) {
     const dispatch = useAppDispatch();
-    const token = useAppSelector((s) => s.auth.accessToken);
-    const [refreshAttempted, setRefreshAttempted] = useState(false);
+    const { isInitializing } = useAppSelector((s) => s.auth);
+    const [refreshStarted, setRefreshStarted] = useState(false);
 
-    if (token && !refreshAttempted) {
+    if (isInitializing && !refreshStarted) {
+        setRefreshStarted(true);
         dispatch(authApi.endpoints.postApiAuthRefresh.initiate());
-        setRefreshAttempted(true);
     }
 
     return children;
