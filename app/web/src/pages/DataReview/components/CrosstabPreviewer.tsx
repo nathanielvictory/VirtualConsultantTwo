@@ -27,9 +27,24 @@ import {
     XAxis,
     YAxis,
     Tooltip as ReTooltip,
+    Legend,
 } from "recharts";
 
 type VizType = "bar" | "table";
+
+// Friendly color palette for stacks
+const PALETTE = [
+    "#4F46E5", // indigo-600
+    "#06B6D4", // cyan-500
+    "#22C55E", // green-500
+    "#EAB308", // yellow-500
+    "#F97316", // orange-500
+    "#EF4444", // red-500
+    "#8B5CF6", // violet-500
+    "#14B8A6", // teal-500
+    "#84CC16", // lime-500
+    "#F59E0B", // amber-500
+];
 
 export default function CrosstabPreviewer({ question }: { question: CrosstabQuestion | null }) {
     const [viz, setViz] = React.useState<VizType>("bar");
@@ -71,7 +86,7 @@ export default function CrosstabPreviewer({ question }: { question: CrosstabQues
         return m;
     }, [cells, keyOf]);
 
-    // Initialize selection: select all existing pairs
+    // Initialize selection: select all existing pairs (excluding subtotals)
     const [selected, setSelected] = React.useState<Set<string>>(() => {
         const initial = cells
             .filter(c => !c.is_subtotal_vertical && !c.is_subtotal_horizontal)
@@ -85,7 +100,7 @@ export default function CrosstabPreviewer({ question }: { question: CrosstabQues
             .filter(c => !c.is_subtotal_vertical && !c.is_subtotal_horizontal)
             .map(c => keyOf(c.vertical_answer, c.horizontal_answer));
         setSelected(new Set(initial));
-    }, [cells, keyOf])
+    }, [cells, keyOf]);
 
     const togglePair = (k: string) =>
         setSelected(prev => {
@@ -139,7 +154,7 @@ export default function CrosstabPreviewer({ question }: { question: CrosstabQues
         setSelected(new Set(cells.map(c => keyOf(c.vertical_answer, c.horizontal_answer))));
     const clearAll = () => setSelected(new Set());
 
-    // Data consumed by visualizations below
+    // Data consumed by the simple list/table view (unchanged)
     const vizData = React.useMemo(
         () =>
             cells
@@ -184,11 +199,65 @@ export default function CrosstabPreviewer({ question }: { question: CrosstabQues
         return map;
     }, [verticalAnswers, horizontalAnswers, selected, pctByPair, keyOf]);
 
+    // ===== Invalid crosstab guards =====
+    const isInvalidAxes = React.useMemo(() => {
+        const vName = (question as any)?.vertical_varname ?? null;
+        const hName = (question as any)?.horizontal_varname ?? null;
+        // If same var on both axes OR either is null/empty → treat as invalid and render nothing for the chart
+        return !vName || !hName || vName === hName;
+    }, [question]);
+
+    // -------- SWAPPED: stacked bar data (X = horizontal; stacks = vertical) ONLY for selected, non-zero --------
+    const stackedData = React.useMemo(() => {
+        if (isInvalidAxes) return [];
+        const rows: Array<Record<string, number | string>> = [];
+        for (const h of horizontalAnswers) {
+            const row: Record<string, number | string> = { hLabel: h };
+            let hasAnySelected = false;
+
+            for (const v of verticalAnswers) {
+                const k = keyOf(v, h);
+                if (!pctByPair.has(k)) continue;
+                if (!selected.has(k)) continue;
+
+                const val = normalizePercent(pctByPair.get(k)) || 0;
+                if (val > 0) {
+                    row[v] = val; // set keys with positive selected values
+                    hasAnySelected = true;
+                }
+            }
+
+            // Only include this horizontal if it has at least one selected, non-zero value
+            if (hasAnySelected) rows.push(row);
+        }
+        return rows;
+    }, [isInvalidAxes, horizontalAnswers, verticalAnswers, selected, pctByPair, keyOf]);
+
+    // Bars/legend entries for verticals that actually appear among selected values
+    const activeVerticals = React.useMemo(() => {
+        if (isInvalidAxes) return [];
+        const set = new Set<string>();
+        for (const h of horizontalAnswers) {
+            for (const v of verticalAnswers) {
+                const k = keyOf(v, h);
+                if (!pctByPair.has(k)) continue;
+                if (!selected.has(k)) continue;
+
+                const val = normalizePercent(pctByPair.get(k)) || 0;
+                if (val > 0) set.add(v);
+            }
+        }
+        return Array.from(set);
+    }, [isInvalidAxes, horizontalAnswers, verticalAnswers, selected, pctByPair, keyOf]);
+
+    // Only render the chart when axes are valid and we have data to show
+    const canRenderChart = !isInvalidAxes && stackedData.length > 0 && activeVerticals.length > 0;
+
     return (
         <Stack spacing={2}>
             {/* Controls */}
             <Stack direction="row" spacing={2} alignItems="center" sx={{ flexWrap: "wrap" }}>
-                <FormControl size="small" sx={{ minWidth: 160 }}>
+                <FormControl size="small" sx={{ minWidth: 200 }}>
                     <InputLabel id="crosstab-viz-label">Visualization</InputLabel>
                     <Select<VizType>
                         labelId="crosstab-viz-label"
@@ -196,14 +265,14 @@ export default function CrosstabPreviewer({ question }: { question: CrosstabQues
                         value={viz}
                         onChange={e => setViz(e.target.value as VizType)}
                     >
-                        <MenuItem value="bar">Bar chart</MenuItem>
+                        <MenuItem value="bar">Stacked bar chart</MenuItem>
                         <MenuItem value="table">Table</MenuItem>
                     </Select>
                 </FormControl>
                 <Typography variant="body2" color="text.secondary" sx={{ flex: 1, minWidth: 260 }}>
                     {question
-                        ? `${question.vertical_varname} — ${question.vertical_question}  ×  ${question.horizontal_varname} — ${question.horizontal_question}`
-                        : "Select a vertical and horizontal question"}
+                        ? `${question.horizontal_varname ?? "—"} — ${question.horizontal_question ?? "—"}  ×  ${question.vertical_varname ?? "—"} — ${question.vertical_question ?? "—"}`
+                        : "Select a horizontal and vertical question"}
                 </Typography>
             </Stack>
 
@@ -331,21 +400,41 @@ export default function CrosstabPreviewer({ question }: { question: CrosstabQues
             )}
 
             {/* Visualization below uses the matrix selection */}
-            {viz === "bar" ? (
+            {viz === "bar" && canRenderChart ? (
                 <Paper sx={{ p: 2 }}>
-                    <div style={{ width: "100%", height: 320 }}>
+                    <div style={{ width: "100%", height: 440 }}>
                         <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={vizData}>
+                            <BarChart data={stackedData}>
                                 <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="label" tick={{ fontSize: 11 }} interval={0} />
-                                <YAxis tickFormatter={(v) => `${v}%`} domain={[0, 100]} />
-                                <ReTooltip formatter={(v: number) => `${v}%`} />
-                                <Bar dataKey="value" />
+                                <XAxis dataKey="hLabel" tick={{ fontSize: 15 }} interval={0} />
+                                <YAxis
+                                    tick={{ fontSize: 15 }}
+                                    tickFormatter={(v) => `${v}%`}
+                                    domain={[0, 100]}
+                                    ticks={[0, 25, 50, 75, 100]}
+                                />
+                                <ReTooltip
+                                    formatter={(v: number, name: string) => [`${Math.round(v)}%`, name]}
+                                    labelFormatter={(label) => `${label}`}
+                                />
+                                <Legend />
+                                {activeVerticals.map((v, i) => (
+                                    <Bar
+                                        key={v}
+                                        dataKey={v}
+                                        stackId="pct"
+                                        fill={PALETTE[i % PALETTE.length]}
+                                        isAnimationActive={false}
+                                    />
+                                ))}
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
                 </Paper>
-            ) : (
+            ) : null}
+
+            {/* Table view remains available */}
+            {viz === "table" ? (
                 <Paper sx={{ p: 2 }}>
                     <Table size="small">
                         <TableHead>
@@ -364,14 +453,15 @@ export default function CrosstabPreviewer({ question }: { question: CrosstabQues
                         </TableBody>
                     </Table>
                 </Paper>
-            )}
+            ) : null}
         </Stack>
     );
 }
 
+// Values are already normalized (0–100). Keep guards for undefined/NaN.
 function normalizePercent(v: number | undefined) {
     if (v == null || Number.isNaN(v)) return 0;
-    return v > 1 ? v : v * 100;
+    return v;
 }
 function formatPercent(v: number | undefined) {
     const n = normalizePercent(v);
