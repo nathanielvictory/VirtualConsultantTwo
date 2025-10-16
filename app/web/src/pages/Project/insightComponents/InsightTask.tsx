@@ -16,6 +16,7 @@ import {
 import { useGetApiInsightsByIdQuery } from "../../../api/insightsApi";
 import TaskProgressBar from "../../../components/TaskProgressBar.tsx";
 import {tokensToDollars} from "../../../constants";
+import {useAppSelector} from "../../../store/hooks.ts";
 
 const TERMINAL: Array<TaskDetailDto["status"]> = ["Succeeded", "Failed", "Canceled"];
 
@@ -72,6 +73,8 @@ export default function InsightTask({
                                         onDismiss,
                                     }: InsightTaskProps) {
     const { data, isLoading, isError, refetch } = useGetApiTasksByIdQuery({ id: taskId });
+    const role = useAppSelector((s) => s.auth.role)
+    const isAdmin = role == "Admin";
 
     // Poll while not terminal
     React.useEffect(() => {
@@ -137,7 +140,13 @@ export default function InsightTask({
                     {succeeded && (
                         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
                             Total insights: <b>{insightArtifacts.length}</b> • Total tokens:{" "}
-                            <b>{totalTokens}</b> • Estimated cost: <b>{centsDisplay}</b>
+                            <b>{totalTokens}</b>
+                            {isAdmin && false && (
+                                <>
+                                    {" • Estimated cost: "}
+                                    <b>{centsDisplay}</b>
+                                </>
+                            )}
                         </Typography>
                     )}
 

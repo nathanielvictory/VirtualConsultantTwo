@@ -72,7 +72,6 @@ export default function InsightsPage() {
                         listPollEveryMs={2000}
                         taskPollEveryMs={1500}
                         onAnyTaskCompleted={() => {
-                            console.log("Task completed")
                             dispatch(insightsApi.util.invalidateTags(["Insights"]));
                         }}
                         onComplete={() => {

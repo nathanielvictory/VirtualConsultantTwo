@@ -28,6 +28,8 @@ import {tokensToDollars} from "../../constants"; // ← path assumes sibling to 
 
 export default function ProjectOverviewPage() {
     const projectId = useAppSelector((s) => s.selected.projectId);
+    const role = useAppSelector((s) => s.auth.role)
+    const isAdmin = role == "Admin";
 
     const {
         data: project,
@@ -162,6 +164,8 @@ export default function ProjectOverviewPage() {
                                 <ContentCopyIcon fontSize="inherit" />
                             </IconButton>
 
+                            {isAdmin && (
+                                <>
                             <Divider orientation="vertical" flexItem sx={{ mx: 1 }} />
 
                             <Tooltip title={`${project?.totalTokens ?? 0} tokens`}>
@@ -174,6 +178,8 @@ export default function ProjectOverviewPage() {
                                     )}
                                 </Typography>
                             </Tooltip>
+                                </>
+                        )}
                         </Stack>
                     </Stack>
 
