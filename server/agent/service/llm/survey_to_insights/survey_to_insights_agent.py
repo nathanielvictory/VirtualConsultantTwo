@@ -31,8 +31,7 @@ DEFAULT_INSIGHT_AGENT_PROMPT = (
     "disparities that things like targeted outreach can shore up. An example would be that independents "
     "have no opinion or have never heard of a candidate or that young people find an issue disproportionately "
     "unpopular. Please keep insights contained to a single topic and one line of text only while "
-    "including the short names of the questions these conclusions are drawn from. If you have lesser insights feel free "
-    "to provide up to three but your main goal is to provide one quality insight. The client will optionally provide a focus for "
+    "including the short names of the questions these conclusions are drawn from. The client will optionally provide a focus for "
     "your insights to look into. "
 )
 
@@ -96,11 +95,7 @@ class SurveyToInsightsAgent:
                     self.progress_callback.increment_progress()
                 if not output:
                     continue
-                all_insights.append(output.main_insight)
-                if output.optional_insight_one:
-                    all_insights.append(output.optional_insight_one)
-                if output.optional_insight_two:
-                    all_insights.append(output.optional_insight_two)
+                all_insights.append(output.new_insight)
         return all_insights
 
 

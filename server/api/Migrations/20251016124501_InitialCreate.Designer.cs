@@ -13,8 +13,8 @@ using api.Data;
 namespace api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250930125359_AddJsonPayloadToArtifact")]
-    partial class AddJsonPayloadToArtifact
+    [Migration("20251016124501_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -293,6 +293,29 @@ namespace api.Migrations
                     b.ToTable("organizations", (string)null);
                 });
 
+            modelBuilder.Entity("api.Models.OrganizationMembership", b =>
+                {
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer")
+                        .HasColumnName("user_id");
+
+                    b.Property<string>("OrganizationId")
+                        .HasColumnType("text")
+                        .HasColumnName("organization_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.HasKey("UserId", "OrganizationId")
+                        .HasName("pk_organization_memberships");
+
+                    b.HasIndex("OrganizationId")
+                        .HasDatabaseName("ix_organization_memberships_organization_id");
+
+                    b.ToTable("organization_memberships", (string)null);
+                });
+
             modelBuilder.Entity("api.Models.Project", b =>
                 {
                     b.Property<int>("Id")
@@ -350,6 +373,40 @@ namespace api.Migrations
                         .HasDatabaseName("ix_projects_organization_id");
 
                     b.ToTable("projects", (string)null);
+                });
+
+            modelBuilder.Entity("api.Models.ProjectAccess", b =>
+                {
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer")
+                        .HasColumnName("user_id");
+
+                    b.Property<int>("ProjectId")
+                        .HasColumnType("integer")
+                        .HasColumnName("project_id");
+
+                    b.Property<bool>("AllowAccess")
+                        .HasColumnType("boolean")
+                        .HasColumnName("allow_access");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Reason")
+                        .HasColumnType("text")
+                        .HasColumnName("reason");
+
+                    b.HasKey("UserId", "ProjectId")
+                        .HasName("pk_project_accesses");
+
+                    b.HasIndex("ProjectId")
+                        .HasDatabaseName("ix_project_accesses_project_id");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_project_accesses_user_id");
+
+                    b.ToTable("project_accesses", (string)null);
                 });
 
             modelBuilder.Entity("api.Models.RefreshToken", b =>
@@ -786,6 +843,27 @@ namespace api.Migrations
                     b.Navigation("Project");
                 });
 
+            modelBuilder.Entity("api.Models.OrganizationMembership", b =>
+                {
+                    b.HasOne("api.Models.Organization", "Organization")
+                        .WithMany("Memberships")
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_organization_memberships_organizations_organization_id");
+
+                    b.HasOne("api.Models.User", "User")
+                        .WithMany("OrganizationMemberships")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_organization_memberships_users_user_id");
+
+                    b.Navigation("Organization");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("api.Models.Project", b =>
                 {
                     b.HasOne("api.Models.Organization", "Organization")
@@ -796,6 +874,26 @@ namespace api.Migrations
                         .HasConstraintName("fk_projects_organizations_organization_id");
 
                     b.Navigation("Organization");
+                });
+
+            modelBuilder.Entity("api.Models.ProjectAccess", b =>
+                {
+                    b.HasOne("api.Models.Project", "Project")
+                        .WithMany("ProjectAccesses")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasConstraintName("fk_project_accesses_projects_project_id");
+
+                    b.HasOne("api.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_project_accesses_users_user_id");
+
+                    b.Navigation("Project");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("api.Models.RefreshToken", b =>
@@ -866,6 +964,8 @@ namespace api.Migrations
 
             modelBuilder.Entity("api.Models.Organization", b =>
                 {
+                    b.Navigation("Memberships");
+
                     b.Navigation("Projects");
                 });
 
@@ -875,6 +975,8 @@ namespace api.Migrations
 
                     b.Navigation("Memos");
 
+                    b.Navigation("ProjectAccesses");
+
                     b.Navigation("Slidedecks");
 
                     b.Navigation("Tasks");
@@ -883,6 +985,11 @@ namespace api.Migrations
             modelBuilder.Entity("api.Models.TaskJob", b =>
                 {
                     b.Navigation("Artifacts");
+                });
+
+            modelBuilder.Entity("api.Models.User", b =>
+                {
+                    b.Navigation("OrganizationMemberships");
                 });
 #pragma warning restore 612, 618
         }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -213,6 +214,31 @@ namespace api.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "organization_memberships",
+                columns: table => new
+                {
+                    user_id = table.Column<int>(type: "integer", nullable: false),
+                    organization_id = table.Column<string>(type: "text", nullable: false),
+                    created_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_organization_memberships", x => new { x.user_id, x.organization_id });
+                    table.ForeignKey(
+                        name: "fk_organization_memberships_organizations_organization_id",
+                        column: x => x.organization_id,
+                        principalTable: "organizations",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "fk_organization_memberships_users_user_id",
+                        column: x => x.user_id,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "projects",
                 columns: table => new
                 {
@@ -288,6 +314,33 @@ namespace api.Migrations
                         principalTable: "AspNetUsers",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "project_accesses",
+                columns: table => new
+                {
+                    user_id = table.Column<int>(type: "integer", nullable: false),
+                    project_id = table.Column<int>(type: "integer", nullable: false),
+                    allow_access = table.Column<bool>(type: "boolean", nullable: false),
+                    created_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    reason = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_project_accesses", x => new { x.user_id, x.project_id });
+                    table.ForeignKey(
+                        name: "fk_project_accesses_projects_project_id",
+                        column: x => x.project_id,
+                        principalTable: "projects",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "fk_project_accesses_users_user_id",
+                        column: x => x.user_id,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -368,6 +421,7 @@ namespace api.Migrations
                     created_resource_id = table.Column<int>(type: "integer", nullable: true),
                     action = table.Column<int>(type: "integer", nullable: false),
                     total_tokens = table.Column<int>(type: "integer", nullable: true),
+                    payload = table.Column<JsonDocument>(type: "jsonb", nullable: true),
                     created_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
@@ -434,9 +488,24 @@ namespace api.Migrations
                 column: "project_id");
 
             migrationBuilder.CreateIndex(
+                name: "ix_organization_memberships_organization_id",
+                table: "organization_memberships",
+                column: "organization_id");
+
+            migrationBuilder.CreateIndex(
                 name: "ix_organizations_name",
                 table: "organizations",
                 column: "name");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_project_accesses_project_id",
+                table: "project_accesses",
+                column: "project_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_project_accesses_user_id",
+                table: "project_accesses",
+                column: "user_id");
 
             migrationBuilder.CreateIndex(
                 name: "ix_projects_kbid",
@@ -519,6 +588,12 @@ namespace api.Migrations
 
             migrationBuilder.DropTable(
                 name: "memos");
+
+            migrationBuilder.DropTable(
+                name: "organization_memberships");
+
+            migrationBuilder.DropTable(
+                name: "project_accesses");
 
             migrationBuilder.DropTable(
                 name: "refresh_tokens");

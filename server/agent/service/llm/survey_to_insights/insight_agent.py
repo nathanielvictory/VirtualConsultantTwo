@@ -18,9 +18,7 @@ class InsightDependencies:
 
 
 class InsightOutput(BaseModel):
-    main_insight: str = Field(description="Primary quality insight")
-    optional_insight_one: Optional[str] = Field(default=None, description="First optional supporting insight")
-    optional_insight_two: Optional[str] = Field(default=None, description="Second optional supporting insight")
+    new_insight: str = Field(description="New insight into survey results")
 
 
 insight_agent = Agent(
