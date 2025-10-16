@@ -2,6 +2,7 @@ export interface SurveyAnswer {
     answer_number: number;
     answer_text: string;
     percentage: number;
+    is_subtotal: boolean;
 }
 
 export interface SurveyQuestion {
@@ -13,7 +14,9 @@ export interface SurveyQuestion {
 
 export interface CrosstabAnswer {
     vertical_answer: string;
+    is_subtotal_vertical: boolean;
     horizontal_answer: string;
+    is_subtotal_horizontal: boolean;
     percentage: number;
 }
 
