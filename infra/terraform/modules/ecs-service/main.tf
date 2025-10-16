@@ -47,7 +47,7 @@ locals {
 
   # Fluent Bit → Loki labels string
   loki_labels = join(",", concat(
-    ["env=${var.env}", "service=${var.service_name}"],
+    ["env=${var.env}", "service=${local.name}"],
     [for k, v in var.loki_labels : "${k}=${v}"]
   ))
 
@@ -56,12 +56,16 @@ locals {
 
   # IMPORTANT: Removed 'uri' to satisfy the installed loki output plugin.
   app_log_options = var.enable_loki ? {
-    Name        = "loki"
-    host        = local.loki_host
-    port        = tostring(local.loki_port)
-    tls         = local.loki_is_https ? "on" : "off"
-    labels      = local.loki_labels
-    line_format = "json"
+    Name            = "loki"
+    host            = local.loki_host
+    port            = tostring(local.loki_port)
+    tls             = local.loki_is_https ? "on" : "off"
+    labels          = local.loki_labels
+
+    # Keep JSON, but drop everything except 'log' and emit it raw
+    line_format     = "key_value"          # plugin flattens records as JSON by default
+    remove_keys     = "container_name,source,container_id,ecs_cluster,ecs_task_arn,ecs_task_definition"
+    drop_single_key = "true"           # <- if only 'log' remains, output its value without quotes
   } : {
     awslogs-group         = var.log_group_name
     awslogs-region        = var.aws_region

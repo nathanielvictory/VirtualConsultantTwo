@@ -18,7 +18,7 @@ class InsightDependencies:
 
 
 class InsightOutput(BaseModel):
-    new_insight: str = Field(description="New insight into survey results")
+    new_insight: str = Field(description="Single concise insight into survey results")
 
 
 insight_agent = Agent(
