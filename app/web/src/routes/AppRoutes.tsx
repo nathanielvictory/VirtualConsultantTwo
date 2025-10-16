@@ -14,8 +14,8 @@ import ImportSetupPage from "../pages/Project/ImportSetupPage.tsx";
 import InsightsPage from "../pages/Project/InsightsPage";
 import MemoPage from "../pages/Project/MemoPage";
 import SlidedeckPage from "../pages/Project/SlidedeckPage.tsx";
-import DataReviewPage from "../pages/DataReview/DataReviewPage";
 import ProjectSelectPage from "../pages/Project/ProjectSelectPage.tsx";
+import DataReviewPage from "../pages/DataReview/DataReviewPage.tsx";
 
 import AdminRoute from "./AdminRoute";
 

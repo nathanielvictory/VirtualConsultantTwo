@@ -72,15 +72,20 @@ export default function CrosstabPreviewer({ question }: { question: CrosstabQues
     }, [cells, keyOf]);
 
     // Initialize selection: select all existing pairs
-    const [selected, setSelected] = React.useState<Set<string>>(
-        () => new Set(cells.map(c => keyOf(c.vertical_answer, c.horizontal_answer)))
-    );
+    const [selected, setSelected] = React.useState<Set<string>>(() => {
+        const initial = cells
+            .filter(c => !c.is_subtotal_vertical && !c.is_subtotal_horizontal)
+            .map(c => keyOf(c.vertical_answer, c.horizontal_answer));
+        return new Set(initial);
+    });
 
     // If incoming cells change, reselect all available pairs
     React.useEffect(() => {
-        const all = new Set(cells.map(c => keyOf(c.vertical_answer, c.horizontal_answer)));
-        setSelected(all);
-    }, [cells, keyOf]);
+        const initial = cells
+            .filter(c => !c.is_subtotal_vertical && !c.is_subtotal_horizontal)
+            .map(c => keyOf(c.vertical_answer, c.horizontal_answer));
+        setSelected(new Set(initial));
+    }, [cells, keyOf])
 
     const togglePair = (k: string) =>
         setSelected(prev => {

@@ -33,11 +33,14 @@ export default function ToplinePreviewer({ question }: { question: SurveyQuestio
     const [viz, setViz] = React.useState<VizType>("bar");
 
     const answers = question?.survey_answers ?? [];
-
+    console.log(answers);
     // Initialize selection once (parent should remount via `key` to reset)
-    const [selected, setSelected] = React.useState<Set<number>>(() =>
-        new Set(answers.map(a => a.answer_number))
-    );
+    const [selected, setSelected] = React.useState<Set<number>>(() => {
+        const initial = answers
+            .filter(a => !a.is_subtotal)
+            .map(a => a.answer_number);
+        return new Set(initial);
+    });
 
     const toggle = (n: number) =>
         setSelected(prev => {
