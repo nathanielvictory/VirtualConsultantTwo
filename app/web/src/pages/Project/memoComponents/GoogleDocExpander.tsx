@@ -14,7 +14,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import FullscreenIcon from '@mui/icons-material/Fullscreen';
 import FullscreenExitIcon from '@mui/icons-material/FullscreenExit';
 
-import GoogleDocFrame from '../../../components/google/GoogleDocFrame'; // adjust path if needed
+import GoogleDocFrame from '../../../components/google/GoogleDocFrame';
 import { useAppSelector } from '../../../store/hooks';
 import { useGetApiMemosByIdQuery } from '../../../api/memosApi';
 import { useState } from 'react';
