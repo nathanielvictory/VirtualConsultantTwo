@@ -1,0 +1,34 @@
+// src/components/ChartOverlay/ChartCreatorShell.tsx
+import { Typography } from "@mui/material";
+import { useAppSelector } from "../../store/hooks.ts";
+import { useGetApiSlidedecksByIdQuery } from "../../api/slidedecksApi.ts";
+import { type Grid } from "./surveyMemo.ts";
+import ChartCreator from "./ChartCreator.tsx";
+
+type Props = {
+    type: "crosstab" | "topline";
+    answerGrid: Grid;
+}
+
+export default function ChartCreatorShell({ type, answerGrid }: Props) {
+    const selectedSlidedeckId = useAppSelector(state => state.selected.slidedeckId);
+
+    const { data: slidedeck, isSuccess } = useGetApiSlidedecksByIdQuery({id: selectedSlidedeckId!}, {
+        skip: !selectedSlidedeckId,
+    });
+
+    if (!selectedSlidedeckId) {
+        return <Typography>Please select a slidedeck to get started.</Typography>;
+    }
+
+    if (isSuccess && slidedeck?.presentationId && slidedeck?.sheetsId) {
+        return <ChartCreator
+            googlePresentationId={slidedeck.presentationId}
+            googleSheetId={slidedeck.sheetsId}
+            answerGrid={answerGrid}
+            type={type}
+        />
+    }
+
+    return <Typography>No presentation or sheet ID found for the selected slidedeck.</Typography>;
+}

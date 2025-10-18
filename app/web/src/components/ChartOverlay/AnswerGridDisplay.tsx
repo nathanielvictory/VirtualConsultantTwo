@@ -8,8 +8,7 @@ import {
     TableRow,
     Paper,
 } from "@mui/material";
-
-export type Grid = (string | number)[][];
+import { type Grid } from './surveyMemo.ts'
 
 type Props = {
     grid: Grid;

@@ -9,7 +9,7 @@ import type {
 
 export type Opt = { question_varname: string; question_text: string };
 
-type Grid = (string | number)[][];
+export type Grid = (string | number)[][];
 
 export type ChartOverlaySelection =
     | { mode: "topline"; topline: SurveyQuestion | null }

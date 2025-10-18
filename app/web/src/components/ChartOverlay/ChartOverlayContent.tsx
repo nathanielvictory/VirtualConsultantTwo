@@ -5,6 +5,7 @@ import type { Opt } from "./ChartOverlayDataGate";
 import ChartOverlaySelectors from "./ChartOverlaySelectors";
 import { getAnswerGrid, type ChartOverlaySelection } from "./surveyMemo.ts";
 import AnswerGridDisplay from "./AnswerGridDisplay.tsx";
+import ChartCreatorShell from "./ChartCreatorShell.tsx";
 
 /** Dumb content that owns its own selection state. */
 type Props = {
@@ -12,7 +13,7 @@ type Props = {
     topline: SurveyQuestion[];
     verticalOptions: Opt[];
     horizontalOptions: Opt[];
-    showSurveyText?: boolean; // <-- Added prop
+    showSurveyText?: boolean;
 };
 
 export default function ChartOverlayContent({
@@ -20,7 +21,7 @@ export default function ChartOverlayContent({
                                                 topline,
                                                 verticalOptions,
                                                 horizontalOptions,
-                                                showSurveyText = true, // <-- Default to true
+                                                showSurveyText,
                                             }: Props) {
     const [selection, setSelection] = React.useState<ChartOverlaySelection>({
         mode: "topline",
@@ -44,7 +45,11 @@ export default function ChartOverlayContent({
                 horizontalOptions={horizontalOptions}
                 onChange={setSelection}
             />
-            {showSurveyText && <AnswerGridDisplay grid={answerGrid} />}
+            {
+                showSurveyText
+                ? <AnswerGridDisplay grid={answerGrid} />
+                : <ChartCreatorShell type={selection.mode} answerGrid={answerGrid} />
+            }
         </>
     );
 }
