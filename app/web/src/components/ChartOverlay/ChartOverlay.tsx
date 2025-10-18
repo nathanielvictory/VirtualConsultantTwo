@@ -50,7 +50,7 @@ export default function ChartOverlay() {
                 sx={{
                     position: "fixed",
                     inset: 0,
-                    zIndex: (theme.zIndex?.modal ?? 1300) - 1, // below menus/popovers
+                    zIndex: (theme.zIndex?.modal ?? 1300) - 1,
                     // 🔑 Let events pass through this entire layer:
                     pointerEvents: "none",
                     overflow: "hidden",

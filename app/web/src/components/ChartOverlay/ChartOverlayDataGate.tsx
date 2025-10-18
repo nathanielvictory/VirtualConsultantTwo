@@ -3,7 +3,7 @@ import * as React from "react";
 import { Box, CircularProgress, Typography } from "@mui/material";
 import type { Survey, SurveyQuestion, CrosstabQuestion } from "../../types/survey";
 import { useSurveyData } from "../../hooks/useSurveyData";
-import {makeHorizontalOptions, makeVerticalOptions, selectCrosstabs, selectTopline} from "./surveyMemo.ts";
+import { makeHorizontalOptions, makeVerticalOptions, selectCrosstabs, selectTopline } from "./surveyMemo.ts";
 
 export type Opt = { question_varname: string; question_text: string };
 
@@ -29,9 +29,31 @@ export default function ChartOverlayDataGate({
                                                  loadingFallback,
                                                  errorFallback,
                                              }: ChartOverlayDataGateProps) {
+    // 1) Always call hooks in a stable order
     const { surveyData, isLoading, isError } = useSurveyData();
 
-    // ----- Loading -----
+    // Compute memoized slices *unconditionally*, with safe fallbacks
+    const topline = React.useMemo<SurveyQuestion[]>(
+        () => (surveyData ? selectTopline(surveyData) : []),
+        [surveyData]
+    );
+
+    const crosstabs = React.useMemo<CrosstabQuestion[]>(
+        () => (surveyData ? selectCrosstabs(surveyData) : []),
+        [surveyData]
+    );
+
+    const verticalOptions = React.useMemo<Opt[]>(
+        () => makeVerticalOptions(crosstabs ?? []),
+        [crosstabs]
+    );
+
+    const horizontalOptions = React.useMemo<Opt[]>(
+        () => makeHorizontalOptions(crosstabs ?? []),
+        [crosstabs]
+    );
+
+    // 2) Decide what to render afterward (no more hooks below this point)
     if (isLoading) {
         return (
             <>
@@ -52,15 +74,13 @@ export default function ChartOverlayDataGate({
         );
     }
 
-    // ----- Error / Empty Survey -----
     if (isError || !surveyData) {
         return (
             <>
                 {errorFallback ?? (
                     <Box sx={{ p: 2 }}>
                         <Typography color="error">
-                            Error loading survey data. Please ensure a project is selected and survey
-                            data has been processed.
+                            Error loading survey data. Please ensure a project is selected and survey data has been processed.
                         </Typography>
                     </Box>
                 )}
@@ -68,20 +88,7 @@ export default function ChartOverlayDataGate({
         );
     }
 
-    // ----- Memoized slices for consumers -----
-    const topline = React.useMemo(() => selectTopline(surveyData), [surveyData]);
-    const crosstabs = React.useMemo(() => selectCrosstabs(surveyData), [surveyData]);
-
-    const verticalOptions = React.useMemo<Opt[]>(
-        () => makeVerticalOptions(crosstabs),
-        [crosstabs]
-    );
-
-    const horizontalOptions = React.useMemo<Opt[]>(
-        () => makeHorizontalOptions(crosstabs),
-        [crosstabs]
-    );
-
+    // Ready
     return (
         <>
             {children({

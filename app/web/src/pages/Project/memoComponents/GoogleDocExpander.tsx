@@ -83,7 +83,7 @@ export default function GoogleDocExpander() {
                         position: 'fixed',
                         inset: 0,
                         bgcolor: 'background.paper',
-                        zIndex: (theme) => theme.zIndex.modal + 1,
+                        zIndex: (theme) => theme.zIndex.modal - 1,
                         display: 'flex',
                         flexDirection: 'column',
                     }}

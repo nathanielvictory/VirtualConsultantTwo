@@ -3,15 +3,22 @@ import type { PaletteMode } from '@mui/material';
 
 export interface SettingsState {
     themeMode: PaletteMode;
+    overlayVisible: boolean;
 }
 
 export function createInitialSettings(prefersDark: boolean): SettingsState {
-    return { themeMode: prefersDark ? 'dark' : 'light' };
+    return {
+        themeMode: prefersDark ? 'dark' : 'light',
+        overlayVisible: false, // default: hidden
+    };
 }
 
 const settingsSlice = createSlice({
     name: 'settings',
-    initialState: { themeMode: 'light' } as SettingsState, // safe default
+    initialState: {
+        themeMode: 'light',
+        overlayVisible: false,
+    } as SettingsState, // safe default
     reducers: {
         setThemeMode(state, action: PayloadAction<PaletteMode>) {
             state.themeMode = action.payload;
@@ -19,8 +26,20 @@ const settingsSlice = createSlice({
         toggleThemeMode(state) {
             state.themeMode = state.themeMode === 'light' ? 'dark' : 'light';
         },
+        setOverlayVisible(state, action: PayloadAction<boolean>) {
+            state.overlayVisible = action.payload;
+        },
+        toggleOverlay(state) {
+            state.overlayVisible = !state.overlayVisible;
+        },
     },
 });
 
-export const { setThemeMode, toggleThemeMode } = settingsSlice.actions;
+export const {
+    setThemeMode,
+    toggleThemeMode,
+    setOverlayVisible,
+    toggleOverlay,
+} = settingsSlice.actions;
+
 export default settingsSlice.reducer;
