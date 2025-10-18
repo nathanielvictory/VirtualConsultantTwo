@@ -7,10 +7,11 @@ import ChartCreator from "./ChartCreator.tsx";
 
 type Props = {
     type: "crosstab" | "topline";
+    defaultTitle?: string;
     answerGrid: Grid;
 }
 
-export default function ChartCreatorShell({ type, answerGrid }: Props) {
+export default function ChartCreatorShell({ type, answerGrid, defaultTitle }: Props) {
     const selectedSlidedeckId = useAppSelector(state => state.selected.slidedeckId);
     const accessToken = useAppSelector((s) => s.googleAuth.accessToken);
 
@@ -20,6 +21,10 @@ export default function ChartCreatorShell({ type, answerGrid }: Props) {
 
     if (!selectedSlidedeckId) {
         return <Typography>Please select a slidedeck to get started.</Typography>;
+    }
+
+    if (!answerGrid || answerGrid.length == 0) {
+        return <Typography>Please select some questions to get started.</Typography>;
     }
 
     if (!accessToken) {
@@ -32,6 +37,7 @@ export default function ChartCreatorShell({ type, answerGrid }: Props) {
             googleSheetId={slidedeck.sheetsId}
             answerGrid={answerGrid}
             type={type}
+            defaultTitle={defaultTitle}
         />
     }
 

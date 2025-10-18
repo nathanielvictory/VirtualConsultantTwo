@@ -1,45 +1,66 @@
 // src/components/ChartOverlay/ChartCreator.tsx
-import { Button, CircularProgress, Alert } from "@mui/material";
+import { useState } from "react";
+import {Button, CircularProgress, Alert, FormControlLabel, Checkbox, TextField, Box} from "@mui/material";
 import { type Grid } from "./surveyMemo";
-import { useWriteGridToNewSheet } from "../../hooks/useWriteGridToNewSheet";
-import {useAddChartToSheet} from "../../hooks/useAddChartToSheet.ts";
-
+import { useBuildChartPipeline } from "../../hooks/useBuildChartPipeline";
 
 interface ChartCreatorProps {
     googlePresentationId: string;
     googleSheetId: string;
     answerGrid: Grid;
     type: "crosstab" | "topline";
+    defaultTitle?: string;
 }
 
-export default function ChartCreator({ googleSheetId, answerGrid, type }: ChartCreatorProps) {
-    const { write, isLoading: isWriting, isError, error } = useWriteGridToNewSheet();
-    const { create: addChart, isLoading: isAddingChart } = useAddChartToSheet();
-    const isLoading = isWriting || isAddingChart;
+export default function ChartCreator({
+                                         googlePresentationId,
+                                         googleSheetId,
+                                         answerGrid,
+                                         type,
+                                         defaultTitle = "Untitled Chart",
+                                     }: ChartCreatorProps) {
+    const [createNewSlide, setCreateNewSlide] = useState(true);
+    const [title, setTitle] = useState(defaultTitle);
+    const { run, isLoading, isError, error } = useBuildChartPipeline();
+    const [lastDefaultTitle, setLastDefaultTitle] = useState("");
+
+    if (lastDefaultTitle != defaultTitle) {
+        setLastDefaultTitle(defaultTitle)
+        setTitle(defaultTitle);
+    }
 
     const handleClick = async () => {
         try {
-            // Step 1: Write grid
-            const gridResult = await write({ spreadsheetId: googleSheetId, grid: answerGrid });
-
-            // Step 2: Add chart using the new sheet’s ID
-            await addChart({
+            await run({
+                presentationId: googlePresentationId,
                 spreadsheetId: googleSheetId,
-                sheetId: gridResult.sheetId,
-                chartType: type,
-                title: gridResult.title,
-                rows: answerGrid.length,
-                cols: answerGrid[0].length,
+                grid: answerGrid,
+                type,
+                createNewSlide,
+                title,
             });
-        } catch (e) {
-            console.error(e);
+        } catch {
+            // errors surfaced below
         }
     };
 
     return (
         <>
+            <Box sx={{paddingLeft: 1, paddingRight: 1}}>
+                <TextField
+                    label="Title"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    size="small"
+                    sx={{ my: 1, width: "100%" }}
+                />
+            </Box>
+            <FormControlLabel
+                control={<Checkbox checked={createNewSlide} onChange={(e) => setCreateNewSlide(e.target.checked)} />}
+                label="Create a new slide"
+            />
             <Button variant="contained" onClick={handleClick} disabled={isLoading}>
-                {isLoading ? "Writing..." : "Add Chart"}
+                {isLoading ? "Working..." : "Add Chart"}
             </Button>
             {isLoading && <CircularProgress size={24} />}
             {isError && (

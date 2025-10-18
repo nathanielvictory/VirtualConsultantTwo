@@ -8,6 +8,7 @@ import buildCrosstabColumnChart from "./crosstab/columnChartSpec.ts"
 
 export type ChartType = "topline" | "crosstab";
 export type DataDims = { rows: number; cols: number };
+export type AddChartResult = { chartId: number };
 
 const SHEETS_BASE = "https://sheets.googleapis.com/v4/spreadsheets";
 
@@ -18,11 +19,11 @@ export async function addChartToSheet(
     chartType: ChartType,
     title: string,
     dataDims?: DataDims
-): Promise<void> {
+): Promise<AddChartResult> {
     // Determine chart spec based on type
     const spec = chartType === "topline" ? buildToplineBarChart(sheetId, title) : buildCrosstabColumnChart(sheetId, title, dataDims!);
 
-    await googleFetch(
+    const resp = await googleFetch(
         `${SHEETS_BASE}/${encodeURIComponent(spreadsheetId)}:batchUpdate`,
         {
             method: "POST",
@@ -38,6 +39,10 @@ export async function addChartToSheet(
             }),
         }
     );
+
+    const chartId = resp.replies?.[0]?.addChart?.chart?.chartId;
+    if (typeof chartId !== "number") throw new Error("Sheets API: addChart did not return chartId");
+    return { chartId };
 }
 
 

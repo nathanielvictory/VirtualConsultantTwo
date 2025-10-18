@@ -16,6 +16,17 @@ type Props = {
     showSurveyText?: boolean;
 };
 
+function makeDefaultTitle(selection: ChartOverlaySelection): string {
+    if (selection.mode === "topline") {
+        const q = selection.topline;
+        return q ? `${q.question_varname} Chart` : "";
+    }
+    // crosstab
+    const v = selection.vertical;
+    const h = selection.horizontal;
+    return v && h ? `${v.question_varname} x ${h.question_varname} Chart` : "";
+}
+
 export default function ChartOverlayContent({
                                                 survey,
                                                 topline,
@@ -37,6 +48,8 @@ export default function ChartOverlayContent({
         [survey, selection]
     );
 
+    const defaultTitle = React.useMemo(() => makeDefaultTitle(selection), [selection]);
+
     return (
         <>
             <ChartOverlaySelectors
@@ -45,11 +58,15 @@ export default function ChartOverlayContent({
                 horizontalOptions={horizontalOptions}
                 onChange={setSelection}
             />
-            {
-                showSurveyText
-                ? <AnswerGridDisplay grid={answerGrid} />
-                : <ChartCreatorShell type={selection.mode} answerGrid={answerGrid} />
-            }
+            {showSurveyText ? (
+                <AnswerGridDisplay grid={answerGrid} />
+            ) : (
+                <ChartCreatorShell
+                    type={selection.mode}
+                    answerGrid={answerGrid}
+                    defaultTitle={defaultTitle}
+                />
+            )}
         </>
     );
 }

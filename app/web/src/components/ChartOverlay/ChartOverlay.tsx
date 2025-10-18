@@ -11,7 +11,7 @@ import ChartOverlayContentShell from "./ChartOverlayContentShell";
 export default function ChartOverlay() {
     const theme = useTheme();
 
-    const SMALL = { width: 420, height: 300 };
+    const SMALL = { width: 420, height: 320 };
     const MEDIUM = { width: 720, height: 520 };
 
     const [size, setSize] = useState<{ width: number; height: number }>(SMALL);
