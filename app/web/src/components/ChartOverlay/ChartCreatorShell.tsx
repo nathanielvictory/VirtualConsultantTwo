@@ -12,6 +12,7 @@ type Props = {
 
 export default function ChartCreatorShell({ type, answerGrid }: Props) {
     const selectedSlidedeckId = useAppSelector(state => state.selected.slidedeckId);
+    const accessToken = useAppSelector((s) => s.googleAuth.accessToken);
 
     const { data: slidedeck, isSuccess } = useGetApiSlidedecksByIdQuery({id: selectedSlidedeckId!}, {
         skip: !selectedSlidedeckId,
@@ -19,6 +20,10 @@ export default function ChartCreatorShell({ type, answerGrid }: Props) {
 
     if (!selectedSlidedeckId) {
         return <Typography>Please select a slidedeck to get started.</Typography>;
+    }
+
+    if (!accessToken) {
+        return <Typography>You must authenticate with google in the settings page to use this feature.</Typography>
     }
 
     if (isSuccess && slidedeck?.presentationId && slidedeck?.sheetsId) {
