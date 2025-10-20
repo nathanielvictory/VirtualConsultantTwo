@@ -19,7 +19,6 @@ import QuestionAutocomplete from "../../components/QuestionAutocomplete.tsx";
 import ToplinePreviewer from "../DataReview/components/ToplinePreviewer.tsx";
 import CrosstabPreviewer from "../DataReview/components/CrosstabPreviewer.tsx";
 import { useSurveyData } from "../../hooks/useSurveyData";
-import ChartOverlay from "../../components/ChartOverlay/ChartOverlay.tsx";
 
 type Mode = "topline" | "crosstab";
 
@@ -244,7 +243,6 @@ export default function DataReviewPage() {
                     </Stack>
                 </Paper>
             </Stack>
-            <ChartOverlay />
         </Container>
     );
 }
