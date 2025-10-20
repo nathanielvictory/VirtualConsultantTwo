@@ -81,6 +81,7 @@ export default function ChartOverlay() {
                             flexDirection: "column",
                             overflow: "hidden",
                             borderRadius: 2,
+                            boxShadow: "0 6px 18px rgba(0,0,0,0.25)"
                         }}
                     >
                         {/* Header (drag handle) */}

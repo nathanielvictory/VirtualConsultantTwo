@@ -14,15 +14,31 @@ export default function HomePage() {
                     </Stack>
 
                     <Typography color="text.secondary">
-                        Connected to Google. Use the panel below to create a Doc and append text.
+                        Welcome to your workspace. Follow the steps below to connect your Google account and start working with projects and AI insights.
                     </Typography>
                 </Stack>
             </Paper>
 
             <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                {/* Google Authentication Section */}
                 <Paper variant="outlined" sx={{ p: { xs: 2, md: 2.5 } }}>
-                    <Stack spacing={2}>
-                        <Typography variant="h6">Docs Playground</Typography>
+                    <Stack spacing={1.5}>
+                        <Typography variant="h6">Google Authentication</Typography>
+                        <Typography color="text.secondary">
+                            Go to <strong>Settings</strong> and link your Google account in order to create and modify Google Docs and Slides.
+                        </Typography>
+                    </Stack>
+                </Paper>
+
+                {/* Project Selection Section */}
+                <Paper variant="outlined" sx={{ p: { xs: 2, md: 2.5 } }}>
+                    <Stack spacing={1.5}>
+                        <Typography variant="h6">Select a Project</Typography>
+                        <Typography color="text.secondary">
+                            Pick an existing project to get started with. You can update the data to match the default project of
+                            <strong>reporting.victorymodeling.com</strong> using <strong>Data Refresh</strong>,
+                            then get started with the AI Agent in <strong>Insights</strong>.
+                        </Typography>
                     </Stack>
                 </Paper>
             </Box>
