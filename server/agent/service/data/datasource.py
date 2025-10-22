@@ -5,6 +5,7 @@ import io
 import json
 import gzip
 from logging import getLogger
+from collections import OrderedDict
 
 from config import settings
 from .s3_client import s3_client, get_survey_data_key
@@ -139,24 +140,13 @@ class ReportingSurveyDataSource(SurveyDataSource):
             raise KeyError(f"No topline found for varname: {varname}")
         return q
 
-    def _resolve_crosstab(self, varname: str, by_varname: str) -> Tuple[CrosstabQuestion, bool]:
+    def _resolve_crosstab(self, varname: str, by_varname: str) -> CrosstabQuestion:
         v = self._resolve_var_key(varname)
         h = self._resolve_var_key(by_varname)
 
         ct = self._crosstab_by_pair.get((v, h))
         if ct:
-            return ct, False
-
-        ct_rev = self._crosstab_by_pair.get((h, v))
-        if ct_rev:
-            return ct_rev, True
-
-        # Soft fallback: contains-match over known pairs
-        for (vs, hs), obj in self._crosstab_by_pair.items():
-            if (v == vs or v in vs or vs in v) and (h == hs or h in hs or hs in h):
-                return obj, False
-            if (v == hs or v in hs or hs in v) and (h == vs or h in vs or vs in h):
-                return obj, True
+            return ct
 
         raise KeyError(f"No crosstab for ({varname} BY {by_varname})")
 
@@ -209,56 +199,32 @@ class ReportingSurveyDataSource(SurveyDataSource):
         Returns raw (but rounded) values as provided by the payload.
         No normalization—each BY row may or may not sum to 100.
         """
-        ct, flipped = self._resolve_crosstab(varname, by_varname)
+        ct = self._resolve_crosstab(varname, by_varname)
 
         # Use matched varnames for display
-        display_var = ct.vertical_varname if not flipped else ct.horizontal_varname
-        display_by = ct.horizontal_varname if not flipped else ct.vertical_varname
+        display_var = ct.vertical_varname
+        display_by = ct.horizontal_varname
 
-        # Build BY -> { VAR_ANSWER -> value } map from raw payload numbers
-        from collections import defaultdict
-        by_to_var: Dict[str, Dict[str, float]] = defaultdict(dict)
+        horizontals = OrderedDict()
+        verticals = OrderedDict()
 
-        for cell in ct.crosstab_answers:
-            v_label, h_label = cell.vertical_answer, cell.horizontal_answer
-            val = float(cell.percentage) if cell.percentage is not None else 0.0
-            if not flipped:
-                var_label, by_label = v_label, h_label
-            else:
-                var_label, by_label = h_label, v_label
-            by_to_var[by_label][var_label] = val
+        # Build a lookup: (vertical_answer, horizontal_answer) -> percentage
+        lookup = {}
+        for ans in ct.crosstab_answers:
+            if ans.horizontal_answer not in horizontals:
+                horizontals[ans.horizontal_answer] = None
+            if ans.vertical_answer not in verticals:
+                verticals[ans.vertical_answer] = None
+            lookup[(ans.vertical_answer, ans.horizontal_answer)] = ans.percentage
 
-        # Column order (VAR answers) from the matched var's topline if available
-        try:
-            var_topline = self._resolve_topline(display_var)
-            var_values = [a.answer_text for a in var_topline.survey_answers]
-        except Exception:
-            # derive in first-seen order
-            seen = set()
-            var_values = []
-            for m in by_to_var.values():
-                for k in m.keys():
-                    if k not in seen:
-                        seen.add(k)
-                        var_values.append(k)
+        headers = [""] + list(horizontals.keys())
 
-        # Row order (BY values) from the matched BY var's topline if available; then fuzzy-filter
-        try:
-            by_topline = self._resolve_topline(display_by)
-            by_values = [a.answer_text for a in by_topline.survey_answers]
-        except Exception:
-            by_values = list(by_to_var.keys())
-
-        # Fuzzy filter BY values with shared matcher
-        by_values = _filter_labels(by_values, include_by_values)
-
-        # Build rows (rounded only; no normalization)
-        headers = [display_by] + var_values
         rows: List[List[Union[str, float]]] = []
-        for by_val in by_values:
-            row_vals = [by_to_var.get(by_val, {}).get(col, 0.0) for col in var_values]
-            rounded = _round_row(row_vals, decimals=1)
-            rows.append([by_val] + rounded)
+        for v in verticals.keys():
+            row = [v]
+            for h in horizontals.keys():
+                row.append(lookup.get((v, h), None))  # None if missing intersection
+            rows.append(row)
 
         return Grid(headers=headers, rows=rows)
 
@@ -267,10 +233,13 @@ class ReportingSurveyDataSource(SurveyDataSource):
     def topline_text(self, varname: str, *, decimals: int = 1) -> str:
         q = self.get_question(varname)
         grid = self.get_topline(varname)
-        lines = [f"Shortened Name: {q.varname}", f"Question Text: {q.question_text}"]
+        lines = [f"Shortened Name: `{q.varname}`", f"Question Text: {q.question_text}"]
         for answer_text, val in grid.rows:
             lines.append(f"{answer_text} {val:.{decimals}f}")
-        return "\n".join(lines)
+        topline_text = "\n".join(lines)
+        if varname != q.varname:
+            topline_text = f"The closest match I could find to that short name was this, make sure to use an exact short name next time:\n{topline_text}"
+        return topline_text
 
     def all_toplines_text(self, *, decimals: int = 1) -> str:
         blocks = [self.topline_text(q.question_varname, decimals=decimals)
@@ -293,17 +262,20 @@ class ReportingSurveyDataSource(SurveyDataSource):
             decimals: int = 1,
     ) -> str:
         # Get matched names for the title line
-        ct, flipped = self._resolve_crosstab(varname, by_varname)
-        display_var = ct.vertical_varname if not flipped else ct.horizontal_varname
-        display_by = ct.horizontal_varname if not flipped else ct.vertical_varname
+        ct = self._resolve_crosstab(varname, by_varname)
+        display_var = ct.vertical_varname
+        display_by = ct.horizontal_varname
 
         grid = self.get_crosstab(varname, by_varname)
         headers = [str(h) for h in grid.headers]
 
         # Token-light text: no symbols, no percent signs
-        lines = [f"{display_var} BY {display_by}", " ".join(headers)]
+        lines = [f"{display_var} BY {display_by}", "\t".join(headers)]
         for row in grid.rows:
             by_value = str(row[0])
             nums = [f"{float(x):.{decimals}f}" for x in row[1:]]
-            lines.append(" ".join([by_value] + nums))
-        return "\n".join(lines)
+            lines.append("\t".join([by_value] + nums))
+        crosstab_data = "\n".join(lines)
+        if varname != display_var or by_varname != display_by:
+            crosstab_data = f"The closest match I could find to those short names was this, make sure to use exact short names next time:\n{crosstab_data}"
+        return crosstab_data

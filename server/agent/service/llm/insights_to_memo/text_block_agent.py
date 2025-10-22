@@ -4,6 +4,7 @@ from logging import getLogger
 
 from pydantic import BaseModel, Field
 from pydantic_ai import Agent, RunContext
+import re
 
 from ..base import model
 from service.data.datasource import ReportingSurveyDataSource
@@ -41,10 +42,10 @@ async def append_data_to_prompt(ctx: RunContext[TextBlockDependencies]) -> str:
 @text_block_agent.tool
 async def get_topline_data(ctx: RunContext[TextBlockDependencies], short_name: str) -> str:
     """
-        Retrieves the topline survey results based on the question identifier.
+        Retrieves the topline survey results based on the shortened name.
 
         Args:
-            short_name (str): The short name (identifier) for the question.
+            short_name (str): The short name for the question.
         Returns:
             str: A formatted string representation of the topline results.
         """
@@ -54,17 +55,19 @@ async def get_topline_data(ctx: RunContext[TextBlockDependencies], short_name: s
         return topline_data
     except KeyError:
         logger.info(f"No topline for {short_name}")
-        return "I couldn't find any question with that short name."
+        if not re.sub(r'^Q\d{1,2}', '', short_name).strip():
+            return "I couldn't find a match but you're not using the full, exact short name. Please use the full short name and try again."
+        return "I couldn't find any question with that short name, if you're sure you used the exact short name the topline might not exist."
 
 
 @text_block_agent.tool
 async def get_crosstab_data(ctx: RunContext[TextBlockDependencies], short_name: str, by_short_name: str) -> str:
     """
-        Retrieves the crosstabulated survey results based on the provided question short names.
+        Retrieves the crosstabulated survey results based on the provided shortened names.
 
         Args:
-            short_name (str): The short name (identifier) for the vertical axis question.
-            by_short_name (str): The short name (identifier) for the horizontal axis question.
+            short_name (str): The short name for the vertical axis question.
+            by_short_name (str): The short name for the horizontal axis question.
 
         Returns:
             str: A formatted string representation of the crosstab results.
@@ -75,4 +78,6 @@ async def get_crosstab_data(ctx: RunContext[TextBlockDependencies], short_name: 
         return crosstab_data
     except KeyError:
         logger.info(f"No crosstab for {short_name} x {by_short_name}")
-        return "I couldn't find the crosstab with those short names."
+        if not re.sub(r'^Q\d{1,2}', '', short_name).strip() or not re.sub(r'^Q\d{1,2}', '', by_short_name).strip():
+            return "You're not using full, exact short names. Please use the full short name and try again."
+        return "I couldn't find the crosstab with those short names, if you're sure you used the exact short name the crosstab might not exist."
